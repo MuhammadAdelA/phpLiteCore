@@ -1,4 +1,4 @@
-# phpphpLiteCore PHP Framework "Alfa"
+# phpLiteCore PHP Framework "Alfa"
 
 > ⚠️ **Warning:** This framework is still under active development.  
 > DO NOT USE FOR PRODUCTION.
