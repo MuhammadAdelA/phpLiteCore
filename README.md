@@ -1,9 +1,9 @@
-# LiteCore PHP Framework "Alfa"
+# phpphpLiteCore PHP Framework "Alfa"
 
 > ⚠️ **Warning:** This framework is still under active development.  
 > DO NOT USE FOR PRODUCTION.
 
-**LiteCore** is a lightweight, fast, and developer-friendly PHP framework designed to provide just the core essentials for modern web application development — no bloat, just pure functionality.
+**phpLiteCore** is a lightweight, fast, and developer-friendly PHP framework designed to provide just the core essentials for modern web application development — no bloat, just pure functionality.
 
 ---
 
@@ -22,5 +22,5 @@
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/litecore.git
-cd litecore
+git clone https://github.com/yourusername/phpLiteCore.git
+cd phpLiteCore
