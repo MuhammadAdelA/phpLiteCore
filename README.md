@@ -22,5 +22,5 @@
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/phpLiteCore.git
+git clone https://github.com/MuhammadAdelA/phpLiteCore.git
 cd phpLiteCore
