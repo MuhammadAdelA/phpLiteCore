@@ -1,4 +1,4 @@
-# LiteCore PHP Framework
+# LiteCore PHP Framework "Alfa"
 
 **LiteCore** is a lightweight, fast, and developer-friendly PHP framework designed to provide just the core essentials for modern web application development — no bloat, just pure functionality.
 
