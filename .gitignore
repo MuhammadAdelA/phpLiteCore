@@ -1,0 +1,11 @@
+# Ignore PhpStorm project files
+.idea/
+*.iml
+
+# Optional: ignore Mac system files
+.DS_Store
+
+# Optional: ignore system-wide swap or temp files
+*.swp
+*.swo
+*.tmp
