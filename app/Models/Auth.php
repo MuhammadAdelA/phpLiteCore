@@ -1,9 +1,8 @@
 <?php
 
-namespace MyApp\app;
+namespace MyApp;
 
-use MyApp\app\Database\MySQL;
-use const MyApp\l_no_permissions_available;
+use MyApp\Database\MySQL;
 
 class Auth
 {
@@ -96,10 +95,10 @@ class Auth
     {
         $privileges = $this->privileges();
         return $privileges && in_array(
-            $privilege,
-            explode(",", $privileges
-            )
-        );
+                $privilege,
+                explode(",", $privileges
+                )
+            );
     }
 
     public function hooked($id): bool

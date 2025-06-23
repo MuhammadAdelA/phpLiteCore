@@ -1,20 +1,8 @@
 <?php
 
-namespace MyApp\app;
+namespace MyApp;
 
-use MyApp\app\Database\MySQL;
-use const MyApp\__LANG__;
-use const MyApp\l_active;
-use const MyApp\l_failed_to_delete_from_database;
-use const MyApp\l_maximum_characters_is_255;
-use const MyApp\l_not_available;
-use const MyApp\l_pending;
-use const MyApp\l_role_does_not_exists;
-use const MyApp\l_role_is_in_use;
-use const MyApp\l_role_name_ar_cannot_be_empty;
-use const MyApp\l_role_name_en_cannot_be_empty;
-use const MyApp\l_super_admin_role_cannot_be_edited_or_deleted;
-use const MyApp\l_suspended;
+use MyApp\Database\MySQL;
 
 class Role
 {

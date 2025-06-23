@@ -1,9 +1,8 @@
 <?php
 
-namespace MyApp\app;
+namespace MyApp;
 
 use JetBrains\PhpStorm\NoReturn;
-use function MyApp\redirect_to;
 
 class Session extends Member
 {

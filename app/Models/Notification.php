@@ -1,8 +1,6 @@
 <?php
 
-namespace MyApp\app;
-
-use const MyApp\l_notification_does_not_exists;
+namespace MyApp;
 
 class Notification
 {

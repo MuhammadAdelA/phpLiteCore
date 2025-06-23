@@ -1,42 +1,9 @@
 <?php
 
-namespace MyApp\app;
+namespace MyApp;
 
 use Exception;
-use MyApp\app\Database\MySQL;
-use MyApp\Cart;
-use MyApp\Order;
-use function MyApp\gen_strong_pwd;
-use function MyApp\get_client_ip;
-use function MyApp\send_mail;
-use const MyApp\l_admin_created_an_account_for_you;
-use const MyApp\l_email_activated_successfully;
-use const MyApp\l_email_already_active;
-use const MyApp\l_email_cannot_be_empty;
-use const MyApp\l_failed_to_delete_from_database;
-use const MyApp\l_failed_to_insert_into_database;
-use const MyApp\l_full_name_cannot_be_empty;
-use const MyApp\l_incorrect_password;
-use const MyApp\l_invalid_full_name;
-use const MyApp\l_invalid_otp;
-use const MyApp\l_invalid_password_criteria;
-use const MyApp\l_invalid_reset_link;
-use const MyApp\l_login_or_password_cannot_be_empty;
-use const MyApp\l_member_cannot_be_found;
-use const MyApp\l_member_is_in_use;
-use const MyApp\l_member_not_found;
-use const MyApp\l_membership_is_suspended;
-use const MyApp\l_password_cannot_be_empty;
-use const MyApp\l_password_changed_successfully;
-use const MyApp\l_phone_cannot_be_empty;
-use const MyApp\l_please_assign_another_account_as_admin_first;
-use const MyApp\l_this_link_is_expired;
-use const MyApp\l_this_member_is_not_managed_by_your_group;
-use const MyApp\l_this_token_is_expired;
-use const MyApp\l_you_cant_delete_your_self;
-use const MyApp\l_you_did_not_updated_any_thing;
-use const MyApp\l_you_must_provide_your_current_password;
-use const MyApp\l_your_account_activation_link;
+use MyApp\Database\MySQL;
 
 class Member
 {
@@ -174,8 +141,8 @@ class Member
         if (Validate::is_set($this->full_name))
             if (!Validate::is_set($this->full_name) || !Validate::max255($this->full_name))
                 $this->errors_list[] = [l_invalid_full_name, "full_name"];
-         else
-            $this->errors_list[] = [l_full_name_cannot_be_empty, "full_name"];
+            else
+                $this->errors_list[] = [l_full_name_cannot_be_empty, "full_name"];
 
         $password && $this->validate_password();
         $this->validate_email($email);
@@ -445,7 +412,7 @@ class Member
      */
     public function delete(int $id): bool
     {
-         global $sess;
+        global $sess;
         $this->id = $id;
 
         // member must be exits
@@ -481,8 +448,8 @@ class Member
         // make sure there is at least one super admin
         if (
             !$this->mySQL->table($this->table_name)->where("role_id", "1")
-            ->and_where("id", $this->id, "<>")
-            ->fetchAll()
+                ->and_where("id", $this->id, "<>")
+                ->fetchAll()
         ) {
             $this->error_m = l_please_assign_another_account_as_admin_first;
             return false;
@@ -598,7 +565,7 @@ class Member
         // sending error accord
         else
             $this->error_m = sprintf(l_password_recovery_could_not_been_sent, $email);
-            return false;
+        return false;
     }
 
     /**
@@ -645,8 +612,8 @@ class Member
 
         if(
             $member = $mysqlDB->table($this->table_name)->where("email", $get["email"])
-                    ->and_where("token", $get["token"])
-                    ->fetch()
+                ->and_where("token", $get["token"])
+                ->fetch()
         ){
             if(time() - $member["token_time"] > 60 * 60) {
                 $this->errors_list[] = [l_this_link_is_expired];

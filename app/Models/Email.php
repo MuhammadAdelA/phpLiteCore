@@ -1,6 +1,6 @@
 <?php
 
-namespace MyApp\app;
+namespace MyApp;
 
 class Email
 {

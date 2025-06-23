@@ -1,13 +1,6 @@
 <?php
 
-namespace MyApp\app;
-
-use const MyApp\l_business_type_ar_cannot_be_empty;
-use const MyApp\l_business_type_does_not_exists;
-use const MyApp\l_business_type_en_cannot_be_empty;
-use const MyApp\l_business_type_is_in_use;
-use const MyApp\l_failed_to_delete_from_database;
-use const MyApp\l_maximum_characters_is_255;
+namespace MyApp;
 
 class SimpleCrud
 {
