@@ -1,6 +1,8 @@
 <?php
 
-namespace MyApp;
+namespace MyApp\app;
+
+use const MyApp\l_goto_page;
 
 class Pagination{
 
