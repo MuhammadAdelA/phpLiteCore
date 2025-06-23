@@ -1,11 +1,44 @@
-# Ignore PhpStorm project files
+# PhpStorm project settings
 .idea/
 *.iml
 
-# Optional: ignore Mac system files
+# OS-specific files
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Optional: ignore system-wide swap or temp files
+# Composer vendor directory
+/vendor/
+
+# Node dependencies (if applicable)
+node_modules/
+
+# Log files
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Cache and temp files
 *.swp
 *.swo
 *.tmp
+*.bak
+*.old
+
+# PHPUnit
+.phpunit.result.cache
+
+# Coverage reports
+coverage/
+clover.xml
+phpunit.xml
+
+# Laravel specific (if needed later)
+storage/
+bootstrap/cache/
+
+# VSCode (if used)
+.vscode/
