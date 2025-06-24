@@ -1,0 +1,50 @@
+name: PHP Code Quality Checks
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  lint-and-test:
+    name: 🧪 Test on PHP ${{ matrix.php-versions }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-versions: ['8.1', '8.2', '8.3']
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: pdo, exif, fileinfo, mbstring, sqlsrv, mysqli, intl, gd, bcmath
+          tools: composer:v2
+
+      - name: 📥 Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php-versions }}-
+
+      - name: 🔍 Check required PHP extensions
+        run: |
+          for ext in pdo exif fileinfo mbstring sqlsrv mysqli intl gd; do
+            php -m | grep -i $ext || (echo "❌ Missing extension: $ext" && exit 1)
+          done
+
+      - name: 📦 Install Dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: ✅ PHP Syntax Lint
+        run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
+
+      - name: 🧪 Run Pest Tests
+        run: ./vendor/bin/pest

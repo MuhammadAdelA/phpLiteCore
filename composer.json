@@ -1,0 +1,49 @@
+{
+  "name": "muhammadadela/phplitecore",
+  "description": "phpLiteCore is a modern, lightweight, and fast PHP framework for building web applications of any size.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Muhammad Mahmoud",
+      "email": "ceo@itvillage.net"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "ext-bcmath": "*",
+    "ext-exif": "*",
+    "ext-fileinfo": "*",
+    "ext-gd": "*",
+    "ext-intl": "*",
+    "ext-mbstring": "*",
+    "ext-mysqli": "*",
+    "ext-pdo": "*",
+    "ext-sqlsrv": "*",
+    "phpmailer/phpmailer": "^6.9",
+    "symfony/yaml": "^6.4",
+    "vlucas/phpdotenv": "^5.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "PhpLiteCore\\": "src/"
+    },
+    "files": [
+      "src/Helpers/Functions.php",
+      "src/Bootstrap/ErrorHandler.php"
+    ]
+  },
+  "require-dev": {
+    "pestphp/pest": "^2.34",
+    "phpunit/phpunit": "^10.5",
+    "symfony/var-dumper": "^6.4"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
