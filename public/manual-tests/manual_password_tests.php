@@ -43,7 +43,7 @@ $tests = [
 
 foreach ($tests as $t) {
     echo "=== {$t['description']} ===\n";
-    // نشغّل الإنشاء ثلاث مرات لكل حالة لنلاحظ التباين
+
     for ($i = 0; $i < 3; $i++) {
         try {
             $pwd = StringUtils::generateStrongPassword(
