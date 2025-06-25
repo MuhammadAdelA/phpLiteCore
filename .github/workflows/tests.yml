@@ -19,11 +19,16 @@ jobs:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install required PHP extensions
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-pdo php-exif php-fileinfo php-mbstring php-mysqli php-intl php-gd
+
       - name: ⚙️ Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: pdo, exif, fileinfo, mbstring, sqlsrv, mysqli, intl, gd, bcmath
+          extensions: pdo, exif, fileinfo, mbstring, mysqli, intl, gd, bcmath
           tools: composer:v2
 
       - name: 📥 Cache Composer dependencies
@@ -36,15 +41,15 @@ jobs:
 
       - name: 🔍 Check required PHP extensions
         run: |
-          for ext in pdo exif fileinfo mbstring sqlsrv mysqli intl gd; do
+          for ext in pdo exif fileinfo mbstring mysqli intl gd; do
             php -m | grep -i $ext || (echo "❌ Missing extension: $ext" && exit 1)
           done
 
       - name: 📦 Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: ✅ PHP Syntax Lint
         run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
 
       - name: 🧪 Run Pest Tests
-        run: ./vendor/bin/pest
+        run: vendor/bin/pest -c phpunit.xml
