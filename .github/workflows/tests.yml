@@ -41,10 +41,11 @@ jobs:
           done
 
       - name: 📦 Install Dependencies
-        run: composer install --prefer-dist --no-progress
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: ✅ PHP Syntax Lint
         run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
 
       - name: 🧪 Run Pest Tests
-        run: ./vendor/bin/pest
+        run: |
+          php vendor/bin/pest --ansi
