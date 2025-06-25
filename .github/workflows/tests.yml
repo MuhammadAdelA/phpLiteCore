@@ -48,4 +48,4 @@ jobs:
 
       - name: 🧪 Run Pest Tests
         run: |
-          php vendor/bin/pest --ansi
+          php vendor/bin/pest
