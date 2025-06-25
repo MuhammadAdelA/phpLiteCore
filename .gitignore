@@ -34,11 +34,11 @@ node_modules/
 # Coverage reports
 coverage/
 clover.xml
-phpunit.xml
+# phpunit.xml
 
 # Laravel specific (if needed later)
-storage/
-bootstrap/cache/
+# storage/
+# bootstrap/cache/
 
 # VSCode (if used)
 .vscode/
