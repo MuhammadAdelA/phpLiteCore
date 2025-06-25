@@ -47,4 +47,4 @@ jobs:
         run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
 
       - name: 🧪 Run Pest Tests
-        run: vendor/bin/pest
+        run: ./vendor/bin/pest
