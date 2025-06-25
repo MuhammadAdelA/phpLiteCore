@@ -51,5 +51,8 @@ jobs:
       - name: ✅ PHP Syntax Lint
         run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
 
+      - name: Make sure tests-results is there
+        run: mkdir -p vendor/pestphp/pest/.temp | touch vendor/pestphp/pest/.temp/test-results
+
       - name: 🧪 Run Pest Tests
         run: vendor/bin/pest -c phpunit.xml
