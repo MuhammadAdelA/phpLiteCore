@@ -1,8 +1,8 @@
 <?php
 
-namespace MyApp;
+namespace phpLiteCore;
 
-use MyApp\Database\MySQL;
+use phpLiteCore\Database\MySQL;
 
 class Auth
 {
@@ -24,7 +24,7 @@ class Auth
     public function get_all_permissions(string $type = "array"): bool|array
     {
         if(!$permissions = $this->mySQL->table('role')->where("id", "1")->getThis("permissions")){
-            $this->error_m = l_no_permissions_available;
+            $this->error_m = Translator::get('no_permissions_available');;
             return false;
         }
         if($type == "array")

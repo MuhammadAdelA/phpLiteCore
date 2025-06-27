@@ -6,4 +6,6 @@ return [
     'login'        => 'Login',
     'logout'       => 'Logout',
     'dashboard'    => 'Dashboard',
+
+    'no_permissions_available' => 'No permissions available',
 ];

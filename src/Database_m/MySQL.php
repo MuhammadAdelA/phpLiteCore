@@ -1,15 +1,15 @@
 <?php
 
-namespace MyApp\app\Models\Database;
+namespace MyApp\Database;
 
 use PDO;
 use PDOException;
-use const MyApp\Database\debug;
+use PDOStatement;
 
 class MySQL extends Database
 {
     public static object $instance;                     // The current instance
-    public string $rowsCount;
+    public string $rows_count;
     protected PDO $dbh;
     protected string $db_host     = mysql_db_host;      // Database host
     protected string $db_port     = mysql_db_port;      // Database port
@@ -25,10 +25,6 @@ class MySQL extends Database
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ];
-    protected string $distinct = '';
-    protected string $order_by = '';
-    protected int $limit;
-    protected int $offset;
 
     protected function __construct()
     {
@@ -72,9 +68,12 @@ class MySQL extends Database
     {
         $sql = "INSERT INTO " . $this->table;
         $sql .= " SET " . $this->set($columns, $values, $bind);
-
-        $stmt = $this->prepare($sql);
-        $stmt->execute($this->bindings);
+        try {
+            $stmt = $this->prepare($sql);
+            $stmt->execute($this->bindings);
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
 
         // Reset bindings
         $this->bindings = [];
@@ -92,7 +91,7 @@ class MySQL extends Database
      */
     public function update(array|string $columns, array|string $values, bool $bind=true): int
     {
-        $sql = "UPDATE " . $this->confirmTables($this->table);
+        $sql = "UPDATE " . $this->confirm_tables($this->table);
         $sql .= " SET " . $this->set($columns, $values, $bind);
 
         if($this->where_clause != "") {
@@ -145,19 +144,26 @@ class MySQL extends Database
      * @param int $mode
      * @return object|bool|array
      */
-    public function fetch (string|array $columns = "*", int $mode = PDO::FETCH_ASSOC): object|bool|array{
-        return $this->limit(1)->fetchAll($columns, mode: $mode);
+    public function fetch (
+        string|array $columns = "*",
+        int $mode = PDO::FETCH_ASSOC
+    ): object|bool|array
+    {
+        return $this->fetchAll($columns, limit:  1, mode: $mode);
     }
 
     /**
-     * @param string $order_by
      * @param string|array $columns
      * @param int $mode
      * @return object|bool|array
      */
-    public function fetchLast(string $order_by, string|array $columns = "*", int $mode = PDO::FETCH_ASSOC): object|bool|array
+    public function fetchLast (
+        string $order_by,
+        string|array $columns = "*",
+        int $mode = PDO::FETCH_ASSOC
+    ): object|bool|array
     {
-        return $this->limit(1)->orderBy($order_by, 'DESC')->fetchAll($columns, mode: $mode);
+        return $this->fetchAll($columns, order_by: $order_by, order: 'DESC' ,limit:  1, mode: $mode);
     }
     /**
      * Fetch database results that match certain value
@@ -166,7 +172,7 @@ class MySQL extends Database
      * @param string $search
      * @return array|bool|object
      */
-    public function fetchMatch(string $column, string $search): object|bool|array
+    public function fetch_match(string $column, string $search): object|bool|array
     {
         $this->where_group($column, $search);
         return $this->fetchAll();
@@ -179,7 +185,7 @@ class MySQL extends Database
      * @param string $search
      * @return array|bool|object
      */
-    public function fetchStarts(string $column, string $search): object|bool|array
+    public function fetch_starts(string $column, string $search): object|bool|array
     {
         $this->where_starts($column, $search);
         return $this->fetchAll();
@@ -192,7 +198,7 @@ class MySQL extends Database
      * @param string $search
      * @return array|bool|object
      */
-    public function fetchEnds(string $column, string $search): object|bool|array
+    public function fetch_ends(string $column, string $search): object|bool|array
     {
         $this->where_ends($column, $search);
         return $this->fetchAll();
@@ -205,7 +211,7 @@ class MySQL extends Database
      * @param string $search
      * @return array|bool|object
      */
-    public function fetchHas(string $column, string $search): object|bool|array
+    public function fetch_has(string $column, string $search): object|bool|array
     {
         $this->where_has($column, $search);
         return $this->fetchAll();
@@ -219,7 +225,7 @@ class MySQL extends Database
      * @param string $end
      * @return array|bool|object
      */
-    public function fetchBetween(string $column, string $start, string $end): object|bool|array
+    public function fetch_between(string $column, string $start, string $end): object|bool|array
     {
         $this->where_between($column, $start, $end);
         return $this->fetchAll();
@@ -245,45 +251,59 @@ class MySQL extends Database
      * @param string $column
      * @return string|bool
      */
-    public function getThis(string $column): string|bool
+    public function get_this(string $column): string|bool
     {
         $found = $this->fetch($column);
         return $found ? ($found[$column] == null ? "" : $found[$column]) : false;
     }
 
     /**
+     * Find the highest database record depending on where clue for certain column and return its value
+     *
+     * @param string $column
+     * @return string|bool
+     */
+    public function get_highest(string $column): bool|string
+    {
+        $found = $this->fetchAll($column, "CAST($column AS SIGNED) DESC", false);
+        return ($found ? $found[$column] : false);
+    }
+
+    /**
      * Select from database
      * @param string|string[] $columns
+     * @param string $order_by
+     * @param string $order
+     * @param string $limit
+     * @param string $offset
      * @param int $mode
      * @return array|object|bool
      */
-    public function fetchAll (string|array $columns = "*", int $mode = PDO::FETCH_ASSOC): object|bool|array
+    public function fetchAll (
+        string|array $columns = "*",
+        string       $order_by = "",
+        string       $order = "ASC",
+        string       $limit = "",
+        string       $offset = "",
+        int          $mode = PDO::FETCH_ASSOC
+    ): object|bool|array
     {
-        $all = !((isset($this->limit) && $this->limit === 1) && !isset($this->offset));
+        $all = !($limit == 1);
+        $sql = "SELECT {$this->prepare_columns($columns)} FROM $this->table";
 
-        $sql = "SELECT $this->distinct {$this->prepareColumns($columns)} FROM $this->table";
-
-        if($this->where_clause !== "") {
-            $sql .= " WHERE" . $this->where_clause;
+        $this->where_clause !== ""   && $sql .= " WHERE"     .$this->where_clause;
+        if($order_by !== "")
+        {
+            $sql .= " ORDER BY " . $this->protect_identifiers($order_by);
+            $sql .= $order === "ASC" ? " ASC " : " DESC ";
         }
-
-        if($this->order_by !== '') {
-            $sql .= ' ORDER BY';
-            $sql .= rtrim($this->order_by, ', ');
-        }
-
-        if(isset($this->limit)) {
-            $sql .= " LIMIT " . $this->limit;
-        }
-
-        if(isset($this->offset)) {
-            $sql .= ", " . $this->offset;
-        }
+        $limit !== "" && $sql .= " LIMIT "    .$limit ;
+        $offset !== "" && $sql .= ", "         .$offset;
 
         // Count results
-        $this->rowsCount = $this->cnt(reset: false);
+        $this->rows_count = $this->cnt(reset: false);
         // Start fetching
-        if ($this->rowsCount > 0) {
+        if ($this->rows_count > 0) {
             // Preparing the statement
             $stmt = $this->prepare($sql);
             // Apply the prepared query
@@ -291,10 +311,7 @@ class MySQL extends Database
                 $stmt->execute($this->bindings);
 
                 // Reset
-                unset($this->limit, $this->offset);
-                $this->where_clause = '';
-                $this->order_by = '';
-                $this->distinct = '';
+                $this->where_clause = "";
                 $this->bindings = [];
 
             } catch (PDOException $e) {
@@ -308,9 +325,8 @@ class MySQL extends Database
                 } else {
                     return $stmt->fetch($mode);
                 }
-
             } catch (PDOException $e) {
-                if (debug == 'Development') {
+                if (debug) {
                     echo "<b>Last query:</b> $this->last_query<br>";
                     echo "<b>PDO said:</b> {$e->getMessage()}<br>";
                     exit();
@@ -326,7 +342,7 @@ class MySQL extends Database
         }
     }
 
-    public function fetchFromTable(string|array $columns, string $value, string $operator="=", bool $bind = true): self
+    public function fetch_from_table(string|array $columns, string $value, string $operator="=", bool $bind = true): self
     {
         /**
         SELECT * FROM `f_exchange`.`member` WHERE (
@@ -347,8 +363,8 @@ class MySQL extends Database
         $i = 1;
         foreach ($columns as $column){
             $this->bindings[] = "%$value%";
-            if($i == 1) $this->where_clause .= "{$this->protectIdentifiers($column)} LIKE ?";
-            else $this->where_clause .= " OR {$this->protectIdentifiers($column)} LIKE ?";
+            if($i == 1) $this->where_clause .= "{$this->protect_identifiers($column)} LIKE ?";
+            else $this->where_clause .= " OR {$this->protect_identifiers($column)} LIKE ?";
             $i++;
         }
 
@@ -361,7 +377,7 @@ class MySQL extends Database
      * @param string $column column name
      * @return array|bool
      */
-    public function columnExists(string $column): bool|array
+    public function column_exists(string $column): bool|array
     {
         return (
             $this->query("SHOW COLUMNS FROM " . $this->table . " LIKE '" . $column . "'")
@@ -374,9 +390,9 @@ class MySQL extends Database
      *
      * @return array|false
      */
-    public function showColumns(): array|false
+    public function show_columns(): array|false
     {
-        // MySQL query string and confirm that table exists
+        // MySQL query string and confirm that table is exists
         $sql = "SHOW COLUMNS FROM `" . $this->db_name . "`." . $this->table;
 
         $stmt = $this->query($sql);
@@ -406,7 +422,7 @@ class MySQL extends Database
      * Getting all tables in the current database
      * @return array
      */
-    public function getTables(): array
+    public function get_tables(): array
     {
         // select all tables from current database
         $sql = "SELECT * FROM `information_schema`.`tables` WHERE `table_schema` = '$this->db_name'";
@@ -415,56 +431,73 @@ class MySQL extends Database
         if ($stmt = $this->query($sql)) {
             $results = $stmt->fetchAll();
             foreach ($results as $result) {
-                $tables[] = $this->protectIdentifiers($result['TABLE_NAME']);
+                $tables[] = $this->protect_identifiers($result['TABLE_NAME']);
             }
         }
         return ($tables);
     }
 
     /**
-     * Decides whether we need all or just the uniques
-     * @return MySQL
+     * Fetch JOIN Function collect data from multiple tables and columns depending on multiple statements "ON" & multiple "WHERE"
+     * @ Param $tables (array) ex. array("table1", "table2", ....) table one is the master table;
+     * @ Param $columns (multidimensional array) (two levels) ex. array(array("column1", "column2", ..), array("column3", "column4", .. ));
+     * @ Param $on (array ex. array("column1", "column2", ....);
+     * @ Param $where (string) ex. "`table`.`column` = 'something' AND ... ";
+     * @ Param $order_by (string) ex. "ORDER BY `semicolon`";
+     * @ Param $group_by (array) ex. array("GROUP BY `table`.`column`", "GROUP BY `table1`.`column1`" OR array("") for ignore grouping);
+     * @ Param $limit (string) ex. "LIMIT 1" or "LIMIT 10, 15 <--(offset) ";
+     * return associated array or false
      */
-    public function distinct(): MySQL
+    /*public function fetch_join($tables, $columns, $on, $where, $order_by, $group_by = "", $type = "LEFT", $limit = "")
     {
-        $this->distinct = 'DISTINCT';
-        return $this;
+        if ((count($tables) - 1 !== count($on)) || ((count($tables) !== count($columns)))) {
+            die("Tables count not match with ON statement count or not match with columns count");
+        }
+        $sql = "SELECT " . $this->prepare_columns($columns[0]);
+        $sql .= " FROM `" . $tables[0] . "`";
+        for ($i = 0; $i < count($on); $i++) {
+            $sql .= " " . $type . " JOIN (SELECT " . $this->prepare_columns($columns[intval($i + 1)]);
+            $sql .= " FROM `" . $tables[intval($i + 1)] . "`" . $group_by[$i] . ") AS `table" . intval($i + 1) . "` ON " . $on[$i];
+        }
+        $sql .= " WHERE " . $where;
+        $sql .= $group_by[0];
+        $sql .= " ORDER BY " . $order_by;
+        $sql .= $limit != "" ? " LIMIT " . $limit : "";
+        //die($sql);
+        $result_set = $this->query($sql);
+        if ($this->num_rows($result_set) > 0) {
+            if ($limit == "") {
+                while ($row = $this->fetch_assoc($result_set)) {
+                    $rows[] = $row;
+                }
+                $this->num_rows = count($rows);
+                return ($rows);
+            } else {
+                return $this->fetch_assoc($result_set);
+            }
+        }
+    }*/
+
+    /*public function this_in(string $col, string $id): string
+    {
+        $in = "(";
+        if (strpos($col, "`") === false) {
+            $in .= "`{$col}` = '{$id}' OR ";
+            $in .= "`{$col}` LIKE '{$id},%' OR ";
+            $in .= "`{$col}` LIKE '%,{$id}' OR ";
+            $in .= "`{$col}` LIKE '%,{$id},%'";
+        } else {
+            $in .= $col . " = '{$id}' OR ";
+            $in .= $col . " LIKE '{$id},%' OR ";
+            $in .= $col . " LIKE '%,{$id}' OR ";
+            $in .= $col . " LIKE '%,{$id},%'";
+        }
+        $in .= ")";
+        return ($in);
     }
 
-    /**
-     * Apply Singular order by or multiple
-     *
-     * @param string $order_by
-     * @param string $order @default ASC
-     * @return $this
-     */
-    public function orderBy(string $order_by, string $order = "ASC"): MySQL
+    public function in_id($id, $col)
     {
-        $this->order_by .= " {$this->protectIdentifiers($order_by)} $order, " ;
-        return $this;
-    }
-
-    /**
-     * Limit the fetched results
-     *
-     * @param int $limit
-     * @return $this
-     */
-    public function limit(int $limit): MySQL
-    {
-        $this->limit = $limit ;
-        return $this;
-    }
-
-    /**
-     * Set the offset for fetching results
-     *
-     * @param int $offset
-     * @return $this
-     */
-    public function offset(int $offset): MySQL
-    {
-        $this->offset = $offset ;
-        return $this;
-    }
+        return "IN(" . $col . ")";
+    }*/
 }

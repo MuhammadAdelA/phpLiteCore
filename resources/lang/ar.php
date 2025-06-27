@@ -6,4 +6,7 @@ return [
     'login'        => 'تسجيل الدخول',
     'logout'       => 'تسجيل الخروج',
     'dashboard'    => 'لوحة التحكم',
+
+
+    'no_permissions_available' => 'لا توجد أذونات متاحة',
 ];

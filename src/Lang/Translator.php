@@ -10,7 +10,7 @@ class Translator
     public function __construct(string $locale = 'en', string $customLangPath = null)
     {
         $this->locale   = $locale;
-        // Use injected path or default base path two levels up
+        // Use the injected path or default base path two levels up
         $this->langPath = $customLangPath
             ?? dirname(__DIR__, 2)
             . DIRECTORY_SEPARATOR . 'resources'
