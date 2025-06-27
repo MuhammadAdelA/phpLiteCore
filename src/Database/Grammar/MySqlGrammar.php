@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Grammar;
 
+use InvalidArgumentException;
 use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
 
 /**
@@ -215,7 +216,7 @@ class MySqlGrammar implements GrammarInterface
      *
      * @param array $wheres
      * @return string
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function compileWheres(array $wheres): string
     {
@@ -277,7 +278,7 @@ class MySqlGrammar implements GrammarInterface
                     break;
 
                 default:
-                    throw new \InvalidArgumentException(
+                    throw new InvalidArgumentException(
                         "Unknown where type [{$where['type']}]"
                     );
             }

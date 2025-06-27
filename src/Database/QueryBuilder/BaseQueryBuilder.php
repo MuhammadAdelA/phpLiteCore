@@ -1,194 +1,375 @@
 <?php
-
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\QueryBuilder;
 
+use PDO;
 use PhpLiteCore\Database\Grammar\GrammarInterface;
+use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderTrait;
 
 /**
- * BaseQueryBuilder implements the core functionality for building SQL queries,
- * including nested where groups.
+ * BaseQueryBuilder provides a fluent interface to build SQL queries.
  */
 class BaseQueryBuilder implements QueryBuilderInterface
 {
+    /** @var PDO The PDO connection instance */
+    protected PDO $pdo;
+
+    /** @var GrammarInterface The SQL grammar compiler */
     protected GrammarInterface $grammar;
-    protected \PDO $connection;
 
-    protected array $bindings    = [];
-    protected array $columns     = ['*'];
-    protected string $table;
-    protected ?string $alias      = null;
-    protected array $wheres      = [];
-    protected array $joins       = [];
-    protected array $groups      = [];
-    protected array $orders      = [];
-    protected ?int $limit        = null;
-    protected ?int $offset       = null;
-    protected array $insertData  = [];
-    protected array $updateData  = [];
-    protected string $type;
-    protected ?int $rowCount = null;
+    /** @var string Query type: select, insert, update, delete */
+    protected string $type = 'select';
 
-    public function __construct(\PDO $connection, GrammarInterface $grammar)
+    /** @var array Selected columns */
+    protected array $columns = [];
+
+    /** @var string|null Table name */
+    protected ?string $table = null;
+
+    /** @var string|null Table alias */
+    protected ?string $alias = null;
+
+    /** @var array JOIN clauses */
+    protected array $joins = [];
+
+    /** @var array WHERE clauses data */
+    protected array $wheres = [];
+
+    /** @var array GROUP BY columns */
+    protected array $groups = [];
+
+    /** @var array ORDER BY clauses */
+    protected array $orders = [];
+
+    /** @var int|null LIMIT */
+    protected ?int $limit = null;
+
+    /** @var int|null OFFSET */
+    protected ?int $offset = null;
+
+    /** @var array Bindings for a prepared statement */
+    protected array $bindings = [];
+
+    /**
+     * Constructor.
+     *
+     * @param PDO               $pdo     PDO instance.
+     * @param GrammarInterface  $grammar Grammar for SQL compilation.
+     */
+    public function __construct(PDO $pdo, GrammarInterface $grammar)
     {
-        $this->connection = $connection;
-        $this->grammar    = $grammar;
+        $this->pdo     = $pdo;
+        $this->grammar = $grammar;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function select(string ...$columns): static
     {
+        // Set the query type and store selected columns
         $this->type    = 'select';
-        $this->columns = $columns ?: ['*'];
+        $this->columns = $columns;
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function from(string $table, ?string $alias = null): static
     {
+        // Store table and optional alias
         $this->table = $table;
         $this->alias = $alias;
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function insert(string $table, array $data): static
     {
-        $this->type       = 'insert';
-        $this->table      = $table;
-        $this->insertData = $data;
-        $this->bindings   = array_values($data);
+        // Switch to insert mode, set table and data bindings
+        $this->type     = 'insert';
+        $this->table    = $table;
+        $this->bindings = array_values($data);
+        $this->columns  = array_keys($data);
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function update(string $table, array $data): static
     {
-        $this->type       = 'update';
-        $this->table      = $table;
-        $this->updateData = $data;
-        $this->bindings   = array_values($data);
+        // Switch to update mode, set table, and data bindings
+        $this->type     = 'update';
+        $this->table    = $table;
+        $this->bindings = array_values($data);
+        $this->columns  = array_keys($data);
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function delete(): static
     {
+        // Switch to delete mode
         $this->type = 'delete';
         return $this;
     }
 
-    public function where(string $column, string $operator, mixed $value): static
+    /**
+     * {@inheritDoc}
+     */
+    public function where(
+        callable|string|array $column,
+        string|array|null $operator = null,
+        mixed $value = null,
+        string $boolean = 'AND'
+    ): static
     {
-        $this->wheres[]   = [
+        // 1) Array of triples [[col, op, val], …] ⇒ group each triple
+        if (is_array($column)
+            && array_keys($column) === range(0, count($column) - 1)
+            && !empty($column)
+            && is_array($column[0])
+            && count($column[0]) === 3
+        ) {
+            return $this->whereGroup(function($query) use ($column) {
+                foreach ($column as [$col, $op, $val]) {
+                    $query->where($col, $op, $val);
+                }
+            }, $boolean);
+        }
+
+        // 2) Nested group via closure
+        if ($column instanceof \Closure) {
+            return $this->whereGroup($column, $boolean);
+        }
+
+        // 3) Column is an associative array ⇒ group of Basic = for each pair
+        if (is_array($column)
+            && array_keys($column) !== range(0, count($column) - 1)
+        ) {
+            return $this->whereGroup(function($query) use ($column) {
+                foreach ($column as $col => $val) {
+                    $query->where($col, '=', $val);
+                }
+            }, $boolean);
+        }
+
+        // 4) Operator is array ⇒ either WHERE IN or associative group
+        if (is_array($operator)) {
+            // indexed array ⇒ WHERE IN
+            if (array_keys($operator) === range(0, count($operator) - 1)) {
+                return $this->whereIn($column, $operator, 'In', $boolean);
+            }
+            // associative array ⇒ group of Basic =
+            return $this->whereGroup(function($query) use ($operator) {
+                foreach ($operator as $col => $val) {
+                    $query->where($col, '=', $val);
+                }
+            }, $boolean);
+        }
+
+        // 5) Operator is string AND value is array ⇒ group of same operators
+        if (is_string($operator) && is_array($value)) {
+            return $this->whereGroup(function($query) use ($column, $operator, $value) {
+                foreach ($value as $val) {
+                    $query->where($column, $operator, $val);
+                }
+            }, $boolean);
+        }
+
+        // 6) Two-argument case ⇒ default operator '='
+        if ($value === null) {
+            $value    = $operator;
+            $operator = '=';
+        }
+
+        // 7) Basic single condition
+        $this->wheres[] = [
             'type'     => 'Basic',
             'column'   => $column,
             'operator' => $operator,
-            'value'    => $value,
-            'boolean'  => 'AND'
+            'boolean'  => $boolean,
         ];
         $this->bindings[] = $value;
-        return $this;
-    }
 
-    public function orWhere(string $column, string $operator, mixed $value): static
-    {
-        $this->wheres[]   = [
-            'type'     => 'Basic',
-            'column'   => $column,
-            'operator' => $operator,
-            'value'    => $value,
-            'boolean'  => 'OR'
-        ];
-        $this->bindings[] = $value;
         return $this;
     }
 
     /**
-     * Adds a nested where group with AND boolean.
+     * {@inheritDoc}
      */
-    public function whereGroup(callable $callback): static
+    public function orWhere(
+        callable|string|array $column,
+        string|array|null $operator = null,
+        mixed $value = null,
+    ): static
     {
-        return $this->addNestedGroup($callback, 'AND');
+        return static::where($column, $operator, $value, 'OR');
     }
 
     /**
-     * Adds a nested where group with OR boolean.
+     * {@inheritDoc}
      */
-    public function orWhereGroup(callable $callback): static
+    public function whereIn(string $column, array $values, string $type, string $boolean): static
     {
-        return $this->addNestedGroup($callback, 'OR');
+        // Add WHERE IN clause with AND boolean
+        $this->wheres[] = [
+            'type'    => $type,
+            'column'  => $column,
+            'values'  => $values,
+            'boolean' => $boolean,
+        ];
+        // Merge bindings for all values
+        $this->bindings = array_merge($this->bindings, $values);
+        return $this;
     }
 
     /**
-     * Internal helper to add nested groups.
+     * {@inheritDoc}
      */
-    protected function addNestedGroup(callable $callback, string $boolean): static
+    public function orWhereIn(string $column, array $values): static
     {
-        $nested = new static($this->connection, $this->grammar);
+        return static::whereIn($column, $values, 'In', 'OR');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function whereNotIn(string $column, array $values): static
+    {
+        return static::whereIn($column, $values, 'NotIn', 'AND');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function orWhereNotIn(string $column, array $values): static
+    {
+       return static::whereIn($column, $values, 'NotIn', 'OR');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function whereBetween(string $column, mixed $start, mixed $end, string $boolean = 'AND'): static
+    {
+        // Add a WHERE BETWEEN clause with AND boolean
+        $this->wheres[] = [
+            'type'    => 'Between',
+            'column'  => $column,
+            'values'  => [$start, $end],
+            'boolean' => $boolean,
+        ];
+        // Append both bounds to bindings
+        $this->bindings = array_merge($this->bindings, [$start, $end]);
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function orWhereBetween(string $column, mixed $start, mixed $end): static
+    {
+        return static::whereBetween($column, $start, $end, 'OR');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function whereGroup(callable $callback, string $boolean = 'AND'): static
+    {
+        // Create a nested builder for the group
+        $nested = new static($this->pdo, $this->grammar);
         $callback($nested);
-
-        $this->wheres[]   = [
-            'type'    => 'Nested',
-            'query'   => $nested,
-            'boolean' => $boolean
+        // Add a nested group with AND/OR boolean
+        $this->wheres[] = [
+            'type'   => 'Nested',
+            'wheres' => $nested->wheres,
+            'boolean'=> $boolean,
         ];
-        $this->bindings   = array_merge($this->bindings, $nested->getBindings());
-
+        // Merge nested bindings
+        $this->bindings = array_merge($this->bindings, $nested->bindings);
         return $this;
     }
 
-    public function whereIn(string $column, array $values): static
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public function orWhereGroup(callable $callback, string $boolean = 'OR'): static
     {
-        $this->wheres[]    = [
-            'type'     => 'In',
-            'column'   => $column,
-            'values'   => $values,
-            'boolean'  => 'AND'
-        ];
-        $this->bindings    = array_merge($this->bindings, array_values($values));
-        return $this;
+        return static::whereGroup($callback, $boolean);
     }
 
-    public function join(string $table, string $first, string $operator, string $second, string $type = 'INNER'): static
-    {
-        $this->joins[] = compact('type', 'table', 'first', 'operator', 'second');
-        return $this;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     public function groupBy(string ...$columns): static
     {
+        // Store GROUP BY columns
         $this->groups = $columns;
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function orderBy(string $column, string $direction = 'ASC'): static
     {
-        $this->orders[] = compact('column', 'direction');
+        // Add ORDER BY clause
+        $this->orders[] = [$column, $direction];
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function limit(int $limit): static
     {
+        // Set LIMIT
         $this->limit = $limit;
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function offset(int $offset): static
     {
+        // Set OFFSET
         $this->offset = $offset;
         return $this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function toSql(): string
     {
+        // Delegate SQL compilation to Grammar
         return match ($this->type) {
             'select' => $this->grammar->compileSelect($this),
             'insert' => $this->grammar->compileInsert($this),
             'update' => $this->grammar->compileUpdate($this),
             'delete' => $this->grammar->compileDelete($this),
-            default  => throw new \LogicException('Unknown query type: ' . $this->type),
+            default  => throw new \LogicException("Invalid query type [{$this->type}]"),
         };
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getBindings(): array
     {
+        // Return accumulated bindings
         return $this->bindings;
     }
 
@@ -202,6 +383,4 @@ class BaseQueryBuilder implements QueryBuilderInterface
     public function getOrders(): array      { return $this->orders; }
     public function getLimit(): ?int        { return $this->limit; }
     public function getOffset(): ?int       { return $this->offset; }
-    public function getInsertData(): array  { return $this->insertData; }
-    public function getUpdateData(): array  { return $this->updateData; }
 }
