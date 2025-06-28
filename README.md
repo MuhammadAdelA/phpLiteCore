@@ -1,7 +1,7 @@
 # phpLiteCore PHP Framework "beta"
 
-> ⚠️ **Warning:** This framework is still under active development.  
-> DO NOT USE FOR PRODUCTION.
+> ⚠️ **Warning:** This framework is still under active development.
+> But now you can use it for production purposes (not recommended).
 
 **phpLiteCore** is a lightweight, fast, and developer-friendly PHP framework designed to provide just the core essentials for modern web application development — no bloat, just pure functionality.
 
