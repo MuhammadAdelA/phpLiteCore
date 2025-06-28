@@ -98,7 +98,7 @@ class Database
     }
 
     /**
-     * Allow swapping the grammar (e.g. for PostgreSQL).
+     * Allow swapping the grammar (e.g., for PostgreSQL).
      */
     public function setGrammar(GrammarInterface $grammar): void
     {

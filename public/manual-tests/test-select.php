@@ -12,8 +12,7 @@ $config = [
 ];
 $db = new Database($config);
 $builder = $db->table('users')
-    ->where([['status','=', 1], ['email', 'LIKE', '%@example.com']])
-    ->orWhere([['status', '=', 0], ['name', '=', 'Carol Lee']])
+    ->whereHas('email','@example.com')
     ->orderBy('created_at', 'DESC')
     ->limit(10);
 

@@ -175,6 +175,103 @@ interface QueryBuilderInterface
      */
     public function groupBy(string ...$columns): static;
 
+    /*public function having(string $column, string $operator, mixed $value): static;
+    public function orHaving(string $column, string $operator, mixed $value): static;
+    public function havingIn(string $column, array $values, string $type): static;
+    public function orHavingIn(string $column, array $values): static;
+    public function havingNotIn(string $column, array $values): static;
+    public function orHavingNotIn(string $column, array $values): static;
+    public function havingBetween(string $column, mixed $start, mixed $end): static;
+    public function orHavingBetween(string $column, mixed $start, mixed $end): static;
+    public function havingGroup(callable $callback, string $boolean): static;
+    public function orHavingGroup(callable $callback, string $boolean): static;
+    public function havingRaw(string $sql, array $bindings = []): static;
+    public function orHavingRaw(string $sql, array $bindings = []): static;
+    public function havingExists(callable $callback, string $boolean, string $operator = 'AND', bool $not = false): static;
+    public function orHavingExists(callable $callback, string $operator = 'AND', bool $not = false): static;
+    public function havingNotExists(callable $callback, string $operator = 'AND', bool $not = false): static;
+    public function orHavingNotExists(callable $callback, string $operator = 'AND', bool $not = false): static;
+    public function havingNull(string $column, string $boolean, string $operator = 'AND', bool $not = false): static;
+    public function orHavingNull(string $column, string $operator = 'AND', bool $not = false): static;
+    public function havingNotNull(string $column, string $boolean, string $operator = 'AND', bool $not = false): static;
+    public function orHavingNotNull(string $column, string $operator = 'AND', bool $not = false): static;
+    public function havingDate(string $column, string $operator, string $value): static;
+    public function orHavingDate(string $column, string $operator, string $value): static;
+    public function havingTime(string $column, string $operator, string $value): static;
+    public function orHavingTime(string $column, string $operator, string $value): static;
+    public function havingDateTime(string $column, string $operator, string $value): static;
+    public function orHavingDateTime(string $column, string $operator, string $value): static;
+    public function havingYear(string $column, string $operator, string $value): static;
+    public function orHavingYear(string $column, string $operator, string $value): static;
+    public function havingMonth(string $column, string $operator, string $value): static;
+    public function orHavingMonth(string $column, string $operator, string $value): static;
+    public function havingDay(string $column, string $operator, string $value): static;
+    public function orHavingDay(string $column, string $operator, string $value): static;
+    public function havingWeek(string $column, string $operator, string $value): static;
+    public function orHavingWeek(string $column, string $operator, string $value): static;
+    public function havingWeekDay(string $column, string $operator, string $value): static;
+    public function orHavingWeekDay(string $column, string $operator, string $value): static;
+    public function havingHour(string $column, string $operator, string $value): static;
+    public function orHavingHour(string $column, string $operator, string $value): static;
+    public function havingMinute(string $column, string $operator, string $value): static;
+    public function orHavingMinute(string $column, string $operator, string $value): static;
+    public function havingSecond(string $column, string $operator, string $value): static;
+    public function orHavingSecond(string $column, string $operator, string $value): static;
+
+    public function join(string $table, string $first, string $operator, string $second, string $type = 'inner', bool $where = false): static;
+    public function leftJoin(string $table, string $first, string $operator, string $second, bool $where = false): static;
+    public function rightJoin(string $table, string $first, string $operator, string $second, bool $where = false): static;
+    public function fullJoin(string $table, string $first, string $operator, string $second, bool $where = false): static;
+    public function crossJoin(string $table, string $first, string $operator, string $second, bool $where = false): static;
+    public function naturalJoin(string $table, string $first, string $operator, string $second, bool $where = false): static;
+    public function on(string $first, string $operator, string $second): static;
+    public function orOn(string $first, string $operator, string $second): static;
+
+    public function union(callable $callback, bool $all = false): static;
+    public function unionAll(callable $callback): static;
+    public function intersect(callable $callback): static;
+    public function intersectAll(callable $callback): static;
+    public function except(callable $callback): static;
+    public function exceptAll(callable $callback): static;
+    public function subQuery(callable $callback, string $as): static;
+    public function exists(callable $callback, string $boolean = 'AND', string $operator = 'AND', bool $not = false): static;
+    public function notExists(callable $callback, string $operator = 'AND', bool $not = false): static;
+    public function null(string $column, string $boolean, string $operator = 'AND', bool $not = false): static;
+    public function notNull(string $column, string $boolean, string $operator = 'AND', bool $not = false): static;
+    public function date(string $column, string $operator, string $value): static;
+    public function time(string $column, string $operator, string $value): static;
+    public function dateTime(string $column, string $operator, string $value): static;
+    public function year(string $column, string $operator, string $value): static;
+    public function month(string $column, string $operator, string $value): static;
+    public function day(string $column, string $operator, string $value): static;
+    public function week(string $column, string $operator, string $value): static;
+    public function weekDay(string $column, string $operator, string $value): static;
+    public function hour(string $column, string $operator, string $value): static;
+    public function minute(string $column, string $operator, string $value): static;
+    public function second(string $column, string $operator, string $value): static;
+    public function raw(string $sql, array $bindings = []): static;
+    public function insertGetId(string $table, array $data, string $sequence = null): static;
+    public function insertOrIgnore(string $table, array $data): static;
+    public function insertOrReplace(string $table, array $data): static;
+    public function insertUsing(string $table, array $columns, array $values, string $update = null): static;
+    public function updateOrInsert(array $columns, array $values, array $update = null): static;
+    public function updateOrIgnore(array $columns, array $values): static;
+    public function updateOrReplace(array $columns, array $values): static;
+    public function truncate(string $table): static;
+    public function lock(string $value = 'FOR UPDATE'): static;
+    public function sharedLock(string $value = 'LOCK IN SHARE MODE'): static;
+    public function noLock(): static;
+    public function forUpdate(): static;
+    public function forShare(): static;
+    public function noWait(): static;
+    public function skipLocked(): static;
+    public function of(string $table): static;
+    public function crossJoinSub(callable $callback, string $as): static;
+    public function joinSub(callable $callback, string $table, string $first, string $operator, string $second, string $type = 'inner', bool $where = false): static;
+    public function leftJoinSub(callable $callback, string $table, string $first, string $operator, string $second, bool $where = false): static;
+    public function rightJoinSub(callable $callback, string $table, string $first, string $operator, string $second, bool $where = false): static;*/
+
+
     /**
      * Add ORDER BY clause.
      *
@@ -213,4 +310,32 @@ interface QueryBuilderInterface
      * @return array
      */
     public function getBindings(): array;
+
+    /**
+     * Execute the built SELECT query, fetch all rows, and store rowCount.
+     *
+     * @return array
+     */
+    public function get(): array;
+
+    /**
+     * Get the first record matching the query, or null if none.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function first(): ?array;
+
+    /**
+     * Determine if any record exists matching the query.
+     *
+     * @return bool
+     */
+    public function exists(): bool;
+
+    /**
+     * Count how many records match the query.
+     *
+     * @return int
+     */
+    public function found(): int;
 }
