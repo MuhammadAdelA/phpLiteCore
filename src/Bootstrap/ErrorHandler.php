@@ -2,27 +2,53 @@
 
 declare(strict_types=1);
 
-// Register a global exception handler
-set_exception_handler(function (\Throwable $e): void {
-    // Prefix the message for distinction
-    $message = '<b>phpLiteCore said</b>: ' . $e->getMessage();
+/**
+ * A simple, environment-aware error and exception handler for phpLiteCore.
+ */
 
-    // Send HTTP 500 response
+// Set the global exception handler.
+set_exception_handler(function (\Throwable $e): void {
+    // Set a generic 500 server error status code.
     http_response_code(500);
 
-    // Display the prefixed message
-    echo $message;
+    // Behavior depends on the environment.
+    if (defined('ENV') && ENV === 'development') {
+        // In development, show detailed error information.
+        echo '<style>body { font-family: sans-serif; padding: 1em; } .stack-trace { white-space: pre-wrap; }</style>';
+        echo '<h1>Uncaught Exception</h1>';
+        echo '<h3>' . htmlspecialchars(get_class($e)) . '</h3>';
+        echo '<p><b>Message:</b> ' . htmlspecialchars($e->getMessage()) . '</p>';
+        echo '<p><b>File:</b> ' . htmlspecialchars($e->getFile()) . ' line ' . $e->getLine() . '</p>';
+        echo '<h3>Stack Trace:</h3>';
+        echo '<pre class="stack-trace">' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+    } else {
+        // In production, log the detailed error and show a generic message.
+        $logMessage = sprintf(
+            "Uncaught Exception: %s: \"%s\" in %s:%d\nStack trace:\n%s",
+            get_class($e),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            $e->getTraceAsString()
+        );
+        error_log($logMessage);
 
-    // Stop execution
+        // Display a simple, user-friendly error message.
+        echo '<h1>An error occurred</h1>';
+        echo '<p>We are sorry, but something went wrong. Please try again later.</p>';
+    }
+
+    // Stop execution.
     exit;
 });
 
-// Convert PHP errors to ErrorException so they're caught by the exception handler
-
+// Set the error handler to convert all errors to ErrorException.
 set_error_handler(
-    /**
-     * @throws ErrorException
-     */
+/**
+ * @throws ErrorException
+ */
     function (int $severity, string $message, string $file, int $line): bool {
-    throw new \ErrorException($message, 0, $severity, $file, $line);
-});
+        // This function will throw an exception, which will then be caught by our set_exception_handler.
+        throw new \ErrorException($message, 0, $severity, $file, $line);
+    }
+);

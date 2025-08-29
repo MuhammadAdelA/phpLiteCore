@@ -6,6 +6,7 @@ return [
     'login'        => 'Login',
     'logout'       => 'Logout',
     'dashboard'    => 'Dashboard',
+    'PhpLiteCore is successfully running!' => 'PhpLiteCore is up and running!',
 
     'no_permissions_available' => 'No permissions available',
 ];

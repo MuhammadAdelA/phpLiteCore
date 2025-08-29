@@ -8,10 +8,16 @@ use PhpLiteCore\Pagination\PaginatorInterface;
 
 class JsonRenderer implements RendererInterface
 {
+    private string $baseUrl;
+
+    public function __construct(string $baseUrl = '/')
+    {
+        // Ensure the base URL ends with a query string starter
+        $this->baseUrl = rtrim($baseUrl, '?&') . (str_contains($baseUrl, '?') ? '&' : '?') . 'page=';
+    }
+
     public function render(PaginatorInterface $paginator): string
     {
-        $baseUrl = '/api/items?page='; // Example base URL
-
         $data = [
             'meta' => [
                 'total_items' => $paginator->getTotalItems(),
@@ -21,10 +27,10 @@ class JsonRenderer implements RendererInterface
                 'items_on_page' => $paginator->getItemsOnCurrentPage(),
             ],
             'links' => [
-                'first' => $baseUrl . '1',
-                'last' => $baseUrl . $paginator->getTotalPages(),
-                'prev' => $paginator->hasPrevPage() ? $baseUrl . $paginator->getPrevPageUrl() : null,
-                'next' => $paginator->hasNextPage() ? $baseUrl . $paginator->getNextPageUrl() : null,
+                'first' => $this->baseUrl . '1',
+                'last' => $this->baseUrl . $paginator->getTotalPages(),
+                'prev' => $paginator->hasPrevPage() ? $this->baseUrl . $paginator->getPrevPageUrl() : null,
+                'next' => $paginator->hasNextPage() ? $this->baseUrl . $paginator->getNextPageUrl() : null,
             ],
         ];
 

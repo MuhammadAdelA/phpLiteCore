@@ -58,8 +58,30 @@ class Response
      */
     private static function getStatusText(int $code): string
     {
+        // A more comprehensive list of HTTP status codes.
         $texts = [
-            404 => 'Not Found'
+            // Informational 1xx
+            100 => 'Continue',
+            101 => 'Switching Protocols',
+            // Successful 2xx
+            200 => 'OK',
+            201 => 'Created',
+            202 => 'Accepted',
+            204 => 'No Content',
+            // Redirection 3xx
+            301 => 'Moved Permanently',
+            302 => 'Found',
+            304 => 'Not Modified',
+            // Client Error 4xx
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            // Server Error 5xx
+            500 => 'Internal Server Error',
+            501 => 'Not Implemented',
+            503 => 'Service Unavailable',
         ];
         return $texts[$code] ?? '';
     }
