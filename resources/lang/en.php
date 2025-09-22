@@ -1,7 +1,7 @@
 <?php
 return [
     // English translations
-    'welcome'      => 'Welcome to phpLiteCore!',
+    'welcome'      => 'Welcome %s to phpLiteCore!',
     'error'        => 'An error occurred.',
     'login'        => 'Login',
     'logout'       => 'Logout',

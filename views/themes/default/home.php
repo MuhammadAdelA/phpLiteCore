@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($pageTitle); // Security: Always escape output ?></title>
+    <title><?= htmlspecialchars($pageTitle); ?></title>
 </head>
 <body>
-<h1><?php echo htmlspecialchars($welcome); ?></h1>
-<p><?php echo htmlspecialchars($welcomeMessage)?></p>
-<p>This page was rendered by the View class.</p>
+<h1><?= htmlspecialchars($welcomeMessage); ?></h1>
+<p><?= htmlspecialchars($PhpLiteCoreIsUpAndRunning); ?></p>
 </body>
 </html>

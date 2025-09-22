@@ -8,6 +8,7 @@ use PhpLiteCore\Database\Grammar\GrammarInterface;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderGetTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderLikeTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderWhereTraits;
+use PhpLiteCore\Pagination\Paginator;
 
 /**
  * BaseQueryBuilder provides a fluent interface to build SQL queries.
@@ -53,6 +54,9 @@ class BaseQueryBuilder implements QueryBuilderInterface
 
     /** @var int|null OFFSET */
     protected ?int $offset = null;
+
+    /** @var array|null The aggregate function to apply (e.g., COUNT, SUM) */
+    protected ?array $aggregate = null;
 
     /** @var array Bindings for a prepared statement */
     protected array $bindings = [];
@@ -168,6 +172,56 @@ class BaseQueryBuilder implements QueryBuilderInterface
         $this->offset = $offset;
         return $this;
     }
+
+    /**
+     * Execute a query as a "count" query.
+     *
+     * @param string $columns
+     * @return int
+     */
+    public function count(string $columns = '*'): int
+    {
+        // Clone the builder to not affect the original query
+        $clone = clone $this;
+
+        // Set the aggregate property
+        $clone->aggregate = ['function' => 'COUNT', 'columns' => [$columns]];
+
+        // The columns for the main query are not needed for a count.
+        $clone->columns = [];
+
+        // Execute the aggregate query
+        $result = $clone->get();
+
+        // The result of a COUNT query will be in the first row and first column.
+        return (int) ($result[0]['aggregate'] ?? 0);
+    }
+
+    /**
+     * Paginate the given query.
+     *
+     * @param int $perPage
+     * @param int $currentPage
+     * @return array An array containing the Paginator instance and the items.
+     */
+    public function paginate(int $perPage, int $currentPage = 1): array
+    {
+        // Get the total number of records by executing a count query.
+        $totalItems = $this->count();
+
+        // Create the Paginator instance, which will also validate the current page.
+        $paginator = new Paginator($totalItems, $perPage, $currentPage);
+
+        // Apply the limit and offset to the original query to get the items for the current page.
+        $items = $this->limit($perPage)->offset($paginator->getOffset())->get();
+
+        return [
+            'paginator' => $paginator,
+            'items'     => $items,
+        ];
+    }
+
+    public function getAggregate(): ?array { return $this->aggregate; }
 
     /**
      * {@inheritDoc}

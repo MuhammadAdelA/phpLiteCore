@@ -5,6 +5,9 @@
 
 /** @var PhpLiteCore\Routing\Router $router */
 
-// Define your web routes here
 $router->get('/', ['HomeController', 'index']);
 $router->get('/about', ['AboutController', 'index']);
+
+
+$router->get('/posts', ['PostController', 'index']);
+$router->get('/posts/{id}', ['PostController', 'show']);

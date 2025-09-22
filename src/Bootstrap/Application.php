@@ -2,7 +2,9 @@
 namespace PhpLiteCore\Bootstrap;
 
 use Dotenv\Dotenv;
+use PhpLiteCore\Database\Database; // Added for Database service
 use PhpLiteCore\Lang\Translator;
+use PhpLiteCore\Routing\Router;     // Added for Router service
 
 class Application
 {
@@ -17,6 +19,18 @@ class Application
      * @var Translator
      */
     public Translator $translator;
+
+    /**
+     * The Database connection instance.
+     * @var Database
+     */
+    public Database $db;
+
+    /**
+     * The Router instance.
+     * @var Router
+     */
+    public Router $router;
 
     /**
      * Private constructor to prevent direct creation.
@@ -57,13 +71,34 @@ class Application
         // Step 4: Set the system timezone.
         date_default_timezone_set(SYSTEM_TIMEZONE);
 
-        // Step 5: Instantiate core services.
-        $locale = set_language() ?: DEFAULT_LANG;
+        // Step 5: Instantiate and register core services.
+        $this->registerCoreServices();
+    }
 
+    /**
+     * Creates instances of the core services and registers them on the application.
+     */
+    private function registerCoreServices(): void
+    {
+        // --- Translator Service ---
+        $locale = set_language() ?: DEFAULT_LANG;
         define('LANG', $locale);
         define('HTML_DIR', getDirection(LANG) ?: 'ltr');
-
         $this->translator = new Translator(LANG);
+
+        // --- Database Service ---
+        $dbConfig = [
+            'host'     => $_ENV['MYSQL_DB_HOST'] ?? 'localhost',
+            'port'     => (int) ($_ENV['MYSQL_DB_PORT'] ?? 3306),
+            'database' => $_ENV['MYSQL_DB_NAME'],
+            'username' => $_ENV['MYSQL_DB_USER'],
+            'password' => $_ENV['MYSQL_DB_PASS'],
+            'charset'  => $_ENV['MYSQL_DB_CHAR'] ?? 'utf8mb4',
+        ];
+        $this->db = new Database($dbConfig);
+
+        // --- Router Service ---
+        $this->router = new Router();
     }
 
     /**

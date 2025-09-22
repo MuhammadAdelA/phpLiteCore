@@ -88,12 +88,19 @@ class Response
 
     /**
      * Shortcut for 404 Not Found.
+     * Renders the default 404 error page.
      *
-     * @param string $message Optional message body.
+     * @param string $message Optional custom message. If empty, a default is used.
      * @return void
      */
     #[NoReturn] public static function notFound(string $message = ''): void
     {
-        self::sendStatus(404, $message);
+        $defaultMessage = 'The page you are looking for could not be found.';
+
+        render_http_error_page(
+            404,
+            'Not Found',
+            $message ?: $defaultMessage
+        );
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Routing;
 
+use Exception;
+use PhpLiteCore\Bootstrap\Application;
 use PhpLiteCore\Http\Response;
 
 class Router
@@ -20,25 +22,11 @@ class Router
      */
     protected string $controllerNamespace = 'App\\Controllers\\';
 
-    /**
-     * Add a new GET route to the collection.
-     *
-     * @param string $uri The URI pattern.
-     * @param array $action The controller and method to call [Controller::class, 'method'].
-     * @return void
-     */
     public function get(string $uri, array $action): void
     {
         $this->addRoute('GET', $uri, $action);
     }
 
-    /**
-     * Add a new POST route to the collection.
-     *
-     * @param string $uri The URI pattern.
-     * @param array $action The controller and method to call [Controller::class, 'method'].
-     * @return void
-     */
     public function post(string $uri, array $action): void
     {
         $this->addRoute('POST', $uri, $action);
@@ -47,19 +35,31 @@ class Router
     /**
      * Resolve the current request and dispatch to the appropriate action.
      *
+     * @param Application $app The main application instance.
      * @return void
+     * @throws Exception
      */
-    public function dispatch(): void
+    public function dispatch(Application $app): void
     {
         $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         foreach ($this->routes as $route) {
-            // Check if the method and URI match the registered route.
-            // Note: This is a simple exact match. We will add support for parameters like /users/{id} later.
-            if ($route['method'] === $requestMethod && $route['uri'] === $requestUri) {
-                $this->callAction($route['action'][0], $route['action'][1]);
-                return; // Stop processing once a match is found.
+            // Check if the request method matches
+            if ($route['method'] !== $requestMethod) {
+                continue;
+            }
+
+            // Check if the URI matches the route's regex pattern
+            if (preg_match($route['regex'], $requestUri, $matches)) {
+                // Remove the full match from the beginning of the array
+                array_shift($matches);
+
+                // Combine the extracted parameter values with their names
+                $params = array_combine($route['params'], $matches);
+
+                $this->callAction($app, $route['action'][0], $route['action'][1], $params);
+                return;
             }
         }
 
@@ -68,45 +68,62 @@ class Router
     }
 
     /**
-     * Add a route to the routes collection.
+     * Converts a route URI with placeholders into a regex pattern
+     * and adds it to the routes' collection.
      *
-     * @param string $method The HTTP method.
-     * @param string $uri The URI pattern.
-     * @param array $action The controller and method.
+     * @param string $method
+     * @param string $uri e.g., /users/{id}
+     * @param array $action
      * @return void
      */
     protected function addRoute(string $method, string $uri, array $action): void
     {
+        $params = [];
+        // Find all {param} occurrences in the URI
+        preg_match_all('/\{([a-zA-Z][a-zA-Z0-9_]*)\}/', $uri, $paramMatches);
+        if (!empty($paramMatches[1])) {
+            $params = $paramMatches[1];
+        }
+
+        // Convert the URI into a valid regex pattern
+        // This replaces {param} with a capturing group ([^/]+)
+        $regex = preg_replace('/\{[a-zA-Z][a-zA-Z0-9_]*\}/', '([^/]+)', $uri);
+        $regex = '#^' . $regex . '$#';
+
         $this->routes[] = [
             'method' => strtoupper($method),
             'uri'    => $uri,
             'action' => $action,
+            'regex'  => $regex,
+            'params' => $params,
         ];
     }
 
     /**
-     * Instantiate the controller and call the action method.
+     * Instantiate the controller and call the action method, passing route parameters.
      *
-     * @param string $controller The controller class name.
-     * @param string $method The method name.
+     * @param Application $app
+     * @param string $controller
+     * @param string $method
+     * @param array $params The parameters extracted from the URI.
      * @return void
+     * @throws Exception
      */
-    protected function callAction(string $controller, string $method): void
+    protected function callAction(Application $app, string $controller, string $method, array $params = []): void
     {
         $fullControllerName = $this->controllerNamespace . $controller;
 
         if (!class_exists($fullControllerName)) {
-            // In a real app, this should throw a more specific exception.
-            throw new \Exception("Controller class {$fullControllerName} not found.");
+            throw new Exception("Controller class {$fullControllerName} not found.");
         }
 
-        $controllerInstance = new $fullControllerName();
+        $controllerInstance = new $fullControllerName($app);
 
         if (!method_exists($controllerInstance, $method)) {
-            throw new \Exception("Method {$method} not found on controller {$fullControllerName}.");
+            throw new Exception("Method {$method} not found on controller {$fullControllerName}.");
         }
 
-        // Call the controller method.
-        $controllerInstance->{$method}();
+        // Pass the extracted parameters as arguments to the controller method.
+        call_user_func_array([$controllerInstance, $method], $params);
     }
 }

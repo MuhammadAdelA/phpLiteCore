@@ -1,6 +1,46 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
 use JetBrains\PhpStorm\Pure;
+
+/**
+ * Renders a generic HTTP error page.
+ * This is a self-contained function to avoid dependencies on the View class.
+ *
+ * @param int    $error_code    The HTTP status code (e.g., 404, 500).
+ * @param string $error_title   The title of the error (e.g., 'Not Found').
+ * @param string $error_message The user-friendly message to display.
+ * @return void
+ */
+#[NoReturn]
+function render_http_error_page(int $error_code, string $error_title, string $error_message): void
+{
+    http_response_code($error_code);
+
+    // Define the path for the custom error page in the theme.
+    // In a more advanced implementation, 'default' would come from a config file.
+    $customErrorViewPath = PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'error-pages' . DIRECTORY_SEPARATOR . $error_code . '.php';
+
+    // Define the path for the default system error page.
+    $defaultErrorViewPath = PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'system' . DIRECTORY_SEPARATOR . 'http_error.php';
+
+    // Check if a custom error page exists.
+    if (file_exists($customErrorViewPath)) {
+        $viewToRender = $customErrorViewPath;
+    } else {
+        $viewToRender = $defaultErrorViewPath;
+    }
+
+    // Extract variables for the chosen view file.
+    extract(compact('error_code', 'error_title', 'error_message'));
+
+    // Use output buffering to capture the view.
+    ob_start();
+    require $viewToRender;
+    echo ob_get_clean();
+
+    exit;
+}
 
 /**
  * @param string $lang
