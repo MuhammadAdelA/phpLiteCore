@@ -30,13 +30,33 @@ class MySqlGrammar implements GrammarInterface
     /**
      * Compile a SELECT query into SQL.
      *
+     * This method handles both standard SELECT queries and aggregate queries (e.g., COUNT).
+     *
      * @param BaseQueryBuilder $builder
      * @return string
      */
     public function compileSelect(BaseQueryBuilder $builder): string
     {
-        // Wrap each selected column
-        $columns = array_map([$this, 'wrapIdentifier'], $builder->getColumns());
+        // First, check if an aggregate function needs to be compiled.
+        if (null !== $aggregate = $builder->getAggregate()) {
+            $column = empty($aggregate['columns']) || $aggregate['columns'] === ['*']
+                ? '*'
+                : $this->wrapIdentifier(implode(', ', $aggregate['columns']));
+
+            $sql = 'SELECT ' . $aggregate['function'] . '(' . $column . ') AS aggregate'
+                . ' FROM ' . $this->wrapIdentifier($builder->getTable());
+
+            // Add WHERE clauses to the COUNT query as well.
+            if ($wheres = $builder->getWheres()) {
+                $sql .= ' WHERE ' . $this->compileWheres($wheres);
+            }
+
+            return $sql;
+        }
+
+        // If not an aggregate, compile a standard SELECT statement.
+        $columns = empty($builder->getColumns()) ? ['*'] : $builder->getColumns();
+        $columns = array_map([$this, 'wrapIdentifier'], $columns);
 
         // Start building the SELECT clause
         $sql = 'SELECT ' . implode(', ', $columns)
@@ -94,10 +114,11 @@ class MySqlGrammar implements GrammarInterface
         // Wrap table name
         $table = $this->wrapIdentifier($builder->getTable());
 
-        // Prepare columns and placeholders
-        $data       = $builder->getInsertData();
-        $columns    = array_map([$this, 'wrapIdentifier'], array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        // Use the existing getColumns() method
+        $columns = array_map([$this, 'wrapIdentifier'], $builder->getColumns());
+
+        // The number of placeholders should match the number of bindings
+        $placeholders = implode(', ', array_fill(0, count($builder->getBindings()), '?'));
 
         return sprintf(
             'INSERT INTO %s (%s) VALUES (%s)',
@@ -106,6 +127,7 @@ class MySqlGrammar implements GrammarInterface
             $placeholders
         );
     }
+
 
     /**
      * Compile an UPDATE query into SQL.
@@ -118,10 +140,10 @@ class MySqlGrammar implements GrammarInterface
         // Wrap table name
         $table = $this->wrapIdentifier($builder->getTable());
 
-        // Build SET clauses
-        $data = $builder->getUpdateData();
+        // Build SET clauses using getColumns()
+        $columns = $builder->getColumns();
         $sets = [];
-        foreach ($data as $column => $_) {
+        foreach ($columns as $column) {
             $sets[] = $this->wrapIdentifier($column) . ' = ?';
         }
 
@@ -223,64 +245,34 @@ class MySqlGrammar implements GrammarInterface
         $clauses = [];
 
         foreach ($wheres as $index => $where) {
-            // Determine boolean connector (AND/OR)
             $boolean = $where['boolean'] ?? 'AND';
             $prefix  = $index === 0 ? '' : " {$boolean} ";
 
             switch ($where['type']) {
                 case 'Basic':
-                    // column = ?
-                    $clauses[] = $prefix
-                        . $this->wrapIdentifier($where['column'])
-                        . ' ' . $where['operator'] . ' ?';
+                    $clauses[] = $prefix . $this->wrapIdentifier($where['column']) . ' ' . $where['operator'] . ' ?';
                     break;
 
                 case 'In':
-                    // column IN (?, ?, ...)
-                    $placeholders = implode(
-                        ', ',
-                        array_fill(0, count($where['values']), '?')
-                    );
-                    $clauses[] = $prefix
-                        . $this->wrapIdentifier($where['column'])
-                        . " IN ({$placeholders})";
-                    break;
-
                 case 'NotIn':
-                    // column NOT IN (?, ?, ...)
-                    $placeholders = implode(
-                        ', ',
-                        array_fill(0, count($where['values']), '?')
-                    );
-                    $clauses[] = $prefix
-                        . $this->wrapIdentifier($where['column'])
-                        . " NOT IN ({$placeholders})";
+                    $placeholders = implode(', ', array_fill(0, count($where['values']), '?'));
+                    $operator = $where['type'] === 'In' ? 'IN' : 'NOT IN';
+                    $clauses[] = $prefix . $this->wrapIdentifier($where['column']) . " $operator ($placeholders)";
                     break;
 
                 case 'Between':
-                    // column BETWEEN ? AND ?
-                    $clauses[] = $prefix
-                        . $this->wrapIdentifier($where['column'])
-                        . ' BETWEEN ? AND ?';
-                    break;
-
                 case 'NotBetween':
-                    // column NOT BETWEEN ? AND ?
-                    $clauses[] = $prefix
-                        . $this->wrapIdentifier($where['column'])
-                        . ' NOT BETWEEN ? AND ?';
+                    $operator = $where['type'] === 'Between' ? 'BETWEEN' : 'NOT BETWEEN';
+                    $clauses[] = $prefix . $this->wrapIdentifier($where['column']) . " $operator ? AND ?";
                     break;
 
                 case 'Nested':
-                    // ( nested_conditions )
                     $nestedSql = $this->compileWheres($where['wheres']);
                     $clauses[] = $prefix . '(' . $nestedSql . ')';
                     break;
 
                 default:
-                    throw new InvalidArgumentException(
-                        "Unknown where type [{$where['type']}]"
-                    );
+                    throw new InvalidArgumentException("Unknown where type [{$where['type']}]");
             }
         }
 
