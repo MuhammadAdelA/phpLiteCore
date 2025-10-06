@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use Exception;
+use phpDocumentor\Reflection\Types\This;
 use PhpLiteCore\View\View;
 class AboutController extends BaseController
 {
@@ -15,7 +16,7 @@ class AboutController extends BaseController
         $pageTitle = $this->app->translator->get('About Us');
         $content = $this->app->translator->get('This is the about us page, powered by phpLiteCore.');
 
-        echo View::make('about', [
+        $this->view('about', [
             'pageTitle' => $pageTitle,
             'pageContent' => $content
         ]);

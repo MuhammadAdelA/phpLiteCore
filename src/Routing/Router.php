@@ -7,6 +7,8 @@ namespace PhpLiteCore\Routing;
 use Exception;
 use PhpLiteCore\Bootstrap\Application;
 use PhpLiteCore\Http\Response;
+use PhpLiteCore\Routing\Exceptions\ControllerNotFoundException;
+use PhpLiteCore\Routing\Exceptions\MethodNotFoundException;
 
 class Router
 {
@@ -107,20 +109,23 @@ class Router
      * @param string $method
      * @param array $params The parameters extracted from the URI.
      * @return void
-     * @throws Exception
+     * @throws ControllerNotFoundException If the controller class does not exist.
+     * @throws MethodNotFoundException If the method does not exist on the controller.
      */
     protected function callAction(Application $app, string $controller, string $method, array $params = []): void
     {
         $fullControllerName = $this->controllerNamespace . $controller;
 
         if (!class_exists($fullControllerName)) {
-            throw new Exception("Controller class {$fullControllerName} not found.");
+            // Throw a specific, descriptive exception.
+            throw new ControllerNotFoundException("Controller class {$fullControllerName} not found.");
         }
 
         $controllerInstance = new $fullControllerName($app);
 
         if (!method_exists($controllerInstance, $method)) {
-            throw new Exception("Method {$method} not found on controller {$fullControllerName}.");
+            // Throw another specific, descriptive exception.
+            throw new MethodNotFoundException("Method {$method} not found on controller {$fullControllerName}.");
         }
 
         // Pass the extracted parameters as arguments to the controller method.
