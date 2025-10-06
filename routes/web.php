@@ -11,3 +11,4 @@ $router->get('/about', ['AboutController', 'index']);
 
 $router->get('/posts', ['PostController', 'index']);
 $router->get('/posts/{id}', ['PostController', 'show']);
+$router->post('/posts', ['PostController', 'store']);

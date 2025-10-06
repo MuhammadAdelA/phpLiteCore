@@ -94,4 +94,42 @@ trait QueryBuilderGetTraits
     public function getOrders(): array      { return $this->orders; }
     public function getLimit(): ?int        { return $this->limit; }
     public function getOffset(): ?int       { return $this->offset; }
+
+    /**
+     * Get only the bindings for the WHERE clauses.
+     *
+     * @return array
+     */
+    public function getWhereBindings(): array
+    {
+        $bindings = [];
+        foreach ($this->wheres as $where) {
+            if ($where['type'] === 'Nested') {
+                // Recursively call the same logic on the nested where's
+                $nestedBindings = $this->collectBindingsFromWheres($where['wheres']);
+                $bindings = array_merge($bindings, $nestedBindings);
+            } elseif (isset($where['values'])) { // For In, Between
+                $bindings = array_merge($bindings, $where['values']);
+            } elseif (array_key_exists('value', $where)) { // For Basic
+                $bindings[] = $where['value'];
+            }
+        }
+        return $bindings;
+    }
+
+    // A helper function to make recursion cleaner
+    private function collectBindingsFromWheres(array $wheres): array
+    {
+        $bindings = [];
+        foreach ($wheres as $where) {
+            if ($where['type'] === 'Nested') {
+                $bindings = array_merge($bindings, $this->collectBindingsFromWheres($where['wheres']));
+            } elseif (isset($where['values'])) {
+                $bindings = array_merge($bindings, $where['values']);
+            } elseif (array_key_exists('value', $where)) {
+                $bindings[] = $where['value'];
+            }
+        }
+        return $bindings;
+    }
 }

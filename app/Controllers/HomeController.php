@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use Exception; // Exception is no longer thrown directly from here
+use App\Models\User;
+use PhpLiteCore\View\View;
 
 class HomeController extends BaseController
 {
@@ -12,7 +14,7 @@ class HomeController extends BaseController
     public function index(): void
     {
         // 1. Business Logic: Get the data.
-        $user = $this->app->db->table('users')->where('id', '=', 1)->first();
+        $user = User::find(1);
 
         // 2. Prepare variables for the view.
         $pageTitle = $this->app->translator->get('Home Page');

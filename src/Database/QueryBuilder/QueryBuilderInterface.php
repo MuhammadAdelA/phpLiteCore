@@ -28,20 +28,18 @@ interface QueryBuilderInterface
     /**
      * Add INSERT clause.
      *
-     * @param string $table Table name.
-     * @param array  $data  Column-value pairs to insert.
-     * @return static
+     * @param array $data Column-value pairs to insert.
+     * @return int
      */
-    public function insert(string $table, array $data): static;
+    public function insert(array $data): int;
 
     /**
      * Add UPDATE clause.
      *
-     * @param string $table Table name.
-     * @param array  $data  Column-value pairs to update.
-     * @return static
+     * @param array $data Column-value pairs to update.
+     * @return int
      */
-    public function update(string $table, array $data): static;
+    public function update(array $data): int;
 
     /**
      * Add a DELETE clause.

@@ -2,12 +2,11 @@
 
 namespace App\Controllers;
 
-// Make sure to import Paginator and Bootstrap5Renderer
 use Exception;
-use PhpLiteCore\Pagination\Paginator;
 use PhpLiteCore\Pagination\Renderers\Bootstrap5Renderer;
 use PhpLiteCore\Http\Response;
-use PhpLiteCore\View\View;
+use PhpLiteCore\Validation\Exceptions\ValidationException;
+use PhpLiteCore\Validation\Validator;
 
 class PostController extends BaseController
 {
@@ -57,4 +56,43 @@ class PostController extends BaseController
             'post' => $post
         ]);
     }
+
+    /**
+     * Store a new post in the database.
+     */
+    public function store(): void
+    {
+        try {
+            // 1. Define the validation rules.
+            $rules = [
+                'title' => 'required|min:5',
+                'body'  => 'required|min:10',
+            ];
+
+            // 2. Run the validator. It will throw an exception on failure.
+            //    We assume the data comes from a POST request, e.g., $_POST.
+            $validatedData = Validator::validate($_POST, $rules);
+
+            // 3. If validation passes, create the post.
+            //    For this example, let's assume user_id is 1.
+            $this->app->db->table('posts')->insert([
+                'title'   => $validatedData['title'],
+                'body'    => $validatedData['body'],
+                'user_id' => 1,
+            ]);
+
+            // 4. Redirect to the posts list (or the new post's page).
+            Response::redirect('/posts');
+
+        } catch (ValidationException $e) {
+            // 5. If validation fails, handle the errors.
+            //    For an API, you might return JSON.
+            //    For a web page, you would typically redirect back with errors.
+            //    For now, we'll just dump the errors.
+            http_response_code(422);
+            header('Content-Type: application/json');
+            echo json_encode(['errors' => $e->getErrors()]);
+        }
+    }
+
 }

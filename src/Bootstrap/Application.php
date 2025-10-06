@@ -5,6 +5,7 @@ use Dotenv\Dotenv;
 use PhpLiteCore\Database\Database; // Added for Database service
 use PhpLiteCore\Lang\Translator;
 use PhpLiteCore\Routing\Router;     // Added for Router service
+use PhpLiteCore\Database\Model\BaseModel;
 
 class Application
 {
@@ -96,6 +97,9 @@ class Application
             'charset'  => $_ENV['MYSQL_DB_CHAR'] ?? 'utf8mb4',
         ];
         $this->db = new Database($dbConfig);
+
+        // --- Boot the Base Model ---
+        BaseModel::setConnection($this->db);
 
         // --- Router Service ---
         $this->router = new Router();

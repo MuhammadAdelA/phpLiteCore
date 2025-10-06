@@ -97,30 +97,54 @@ class BaseQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function insert(string $table, array $data): static
+    public function insert(array $data): int
     {
-        // Switch to insert mode, set table and data bindings
         $this->type     = 'insert';
-        $this->table    = $table;
-        $this->bindings = array_values($data);
         $this->columns  = array_keys($data);
-        return $this;
+        $this->bindings = array_values($data);
+        return $this->execute();
     }
 
     /**
      * {@inheritDoc}
      */
-    public function update(string $table, array $data): static
+    public function update(array $data): int
     {
-        // Switch to update mode, set table, and data bindings
         $this->type     = 'update';
-        $this->table    = $table;
-        $this->bindings = array_values($data);
         $this->columns  = array_keys($data);
-        return $this;
+        $this->bindings = array_values($data);
+        return $this->execute();
+    }
+
+    /**
+     * Find a record by its primary key.
+     *
+     * @param int|string $id
+     * @return array|null
+     */
+    public function find(int|string $id): ?array
+    {
+        return $this->where('id', '=', $id)->first();
+    }
+
+    /**
+     * Execute the query (for INSERT, UPDATE, DELETE).
+     *
+     * @return int The number of affected rows.
+     */
+    public function execute(): int
+    {
+        $sql = $this->toSql();
+
+        // For UPDATE and DELETE, we need to merge SET/DELETE bindings with WHERE bindings.
+        $bindings = in_array($this->type, ['update', 'delete'])
+            ? array_merge($this->bindings, $this->getWhereBindings())
+            : $this->getBindings();
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($bindings);
+
+        return $stmt->rowCount();
     }
 
     /**
