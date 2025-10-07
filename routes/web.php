@@ -12,3 +12,8 @@ $router->get('/about', ['AboutController', 'index']);
 $router->get('/posts', ['PostController', 'index']);
 $router->get('/posts/{id}', ['PostController', 'show']);
 $router->post('/posts', ['PostController', 'store']);
+
+// IMPORTANT: Only register test routes in the development environment
+if (defined('ENV') && ENV === 'development') {
+    $router->get('/run-db-tests', ['TestController', 'runDbTests']);
+}

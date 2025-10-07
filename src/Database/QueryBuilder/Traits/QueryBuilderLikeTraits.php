@@ -13,11 +13,19 @@ trait QueryBuilderLikeTraits
      *
      * @param string $column The column to filter.
      * @param string|array $values The value or values that the column should start with.
-     * @return BaseQueryBuilder|QueryBuilderLikeTraits The current query builder instance.
+     * @param string $boolean 'AND' or 'OR'
+     * @return self
      */
-    public function whereStarts(string $column, array|string $values): self
+    public function whereStarts(string $column, array|string $values, string $boolean = 'AND'): self
     {
-        return $this->where($column, 'LIKE', $values . '%');
+        if (is_array($values)) {
+            return $this->whereGroup(function ($query) use ($column, $values) {
+                foreach ($values as $value) {
+                    $query->orWhere($column, 'LIKE', $value . '%');
+                }
+            }, $boolean);
+        }
+        return $this->where($column, 'LIKE', $values . '%', $boolean);
     }
 
     /**
@@ -25,11 +33,11 @@ trait QueryBuilderLikeTraits
      *
      * @param string $column The column to filter.
      * @param string|array $values The value or values that the column should start with.
-     * @return BaseQueryBuilder|QueryBuilderLikeTraits The current query builder instance.
+     * @return self
      */
     public function orWhereStarts(string $column, array|string $values): self
     {
-        return $this->orWhere($column, 'LIKE', $values . '%');
+        return $this->whereStarts($column, $values, 'OR');
     }
 
     /**
@@ -37,11 +45,19 @@ trait QueryBuilderLikeTraits
      *
      * @param string $column The column to filter.
      * @param string|array $values The value or values to search within the column.
-     * @return BaseQueryBuilder|QueryBuilderLikeTraits The current query builder instance.
+     * @param string $boolean 'AND' or 'OR'
+     * @return self
      */
-    public function whereHas(string $column, array|string $values): self
+    public function whereHas(string $column, array|string $values, string $boolean = 'AND'): self
     {
-        return $this->where($column, 'LIKE', '%' . $values . '%');
+        if (is_array($values)) {
+            return $this->whereGroup(function ($query) use ($column, $values) {
+                foreach ($values as $value) {
+                    $query->orWhere($column, 'LIKE', '%' . $value . '%');
+                }
+            }, $boolean);
+        }
+        return $this->where($column, 'LIKE', '%' . $values . '%', $boolean);
     }
 
     /**
@@ -49,11 +65,11 @@ trait QueryBuilderLikeTraits
      *
      * @param string $column The column to filter.
      * @param string|array $values The value or values to search within the column.
-     * @return BaseQueryBuilder|QueryBuilderLikeTraits The current query builder instance.
+     * @return BaseQueryBuilder|QueryBuilderLikeTraits
      */
     public function orWhereHas(string $column, array|string $values): self
     {
-        return $this->orWhere($column, 'LIKE', '%' . $values . '%');
+        return $this->whereHas($column, $values, 'OR');
     }
 
     /**

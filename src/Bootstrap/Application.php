@@ -2,10 +2,10 @@
 namespace PhpLiteCore\Bootstrap;
 
 use Dotenv\Dotenv;
-use PhpLiteCore\Database\Database; // Added for Database service
-use PhpLiteCore\Lang\Translator;
-use PhpLiteCore\Routing\Router;     // Added for Router service
+use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Model\BaseModel;
+use PhpLiteCore\Lang\Translator;
+use PhpLiteCore\Routing\Router;
 
 class Application
 {
@@ -38,6 +38,13 @@ class Application
      */
     private function __construct()
     {
+        // Register this instance as the singleton immediately.
+        self::$instance = $this;
+
+        // Boot the BaseModel with the application instance FIRST.
+        BaseModel::setApp($this);
+
+        // Now, proceed with the rest of the bootstrap process.
         $this->bootstrap();
     }
 
@@ -48,10 +55,7 @@ class Application
      */
     public static function getInstance(): Application
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
+        return self::$instance ?? new self();
     }
 
     /**
@@ -59,20 +63,11 @@ class Application
      */
     private function bootstrap(): void
     {
-        // Step 1: Load environment variables first.
         $dotenv = Dotenv::createImmutable(PHPLITECORE_ROOT);
         $dotenv->load();
-
-        // Step 2: Define constants that depend on the environment variables.
         $this->defineConstants();
-
-        // Step 3: Now, set up error handling using the defined constants.
         $this->setupErrorHandling();
-
-        // Step 4: Set the system timezone.
         date_default_timezone_set(SYSTEM_TIMEZONE);
-
-        // Step 5: Instantiate and register core services.
         $this->registerCoreServices();
     }
 
@@ -98,9 +93,6 @@ class Application
         ];
         $this->db = new Database($dbConfig);
 
-        // --- Boot the Base Model ---
-        BaseModel::setConnection($this->db);
-
         // --- Router Service ---
         $this->router = new Router();
     }
@@ -114,7 +106,6 @@ class Application
         error_reporting(E_ALL);
         ini_set('log_errors', '1');
 
-        // Use the ENV constant as it's guaranteed to be defined at this point.
         if (defined('ENV') && ENV === 'production') {
             ini_set('display_errors', '0');
             ini_set('error_log', PHPLITECORE_ROOT . 'storage/logs/php-error.log');

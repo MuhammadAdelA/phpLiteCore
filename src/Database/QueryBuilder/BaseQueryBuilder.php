@@ -3,76 +3,80 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Database\QueryBuilder;
 
+namespace PhpLiteCore\Database\QueryBuilder;
+
 use PDO;
+use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Grammar\GrammarInterface;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderGetTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderLikeTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderWhereTraits;
 use PhpLiteCore\Pagination\Paginator;
-
 /**
- * BaseQueryBuilder provides a fluent interface to build SQL queries.
+ * BaseQueryBuilder provides a fluent interface to build and execute SQL queries.
  */
 class BaseQueryBuilder implements QueryBuilderInterface
 {
-    use QueryBuilderWhereTraits;
-    use QueryBuilderLikeTraits;
-    use QueryBuilderGetTraits;
+    // Ensure all necessary traits are being used by the class.
+    use QueryBuilderWhereTraits, QueryBuilderLikeTraits, QueryBuilderGetTraits;
 
-    /** @var PDO The PDO connection instance */
+    /** @var PDO The active PDO connection instance. */
     protected PDO $pdo;
 
-    /** @var GrammarInterface The SQL grammar compiler */
+    /** @var Database The main database wrapper instance. */
+    protected Database $db;
+
+    /** @var GrammarInterface The SQL grammar compiler. */
     protected GrammarInterface $grammar;
 
-    /** @var string Query type: select, insert, update, delete */
+    /** @var string The type of query being built (select, insert, update, delete). */
     protected string $type = 'select';
 
-    /** @var array Selected columns */
+    /** @var array The columns to be selected. */
     protected array $columns = [];
 
-    /** @var string|null Table name */
+    /** @var string|null The table the query is targeting. */
     protected ?string $table = null;
 
-    /** @var string|null Table alias */
+    /** @var string|null An alias for the target table. */
     protected ?string $alias = null;
 
-    /** @var array JOIN clauses */
+    /** @var array Any JOIN clauses for the query. */
     protected array $joins = [];
 
-    /** @var array WHERE clauses data */
+    /** @var array The WHERE clauses for the query. */
     protected array $wheres = [];
 
-    /** @var array GROUP BY columns */
+    /** @var array The GROUP BY columns for the query. */
     protected array $groups = [];
 
-    /** @var array ORDER BY clauses */
+    /** @var array The ORDER BY clauses for the query. */
     protected array $orders = [];
 
-    /** @var int|null LIMIT */
+    /** @var int|null The maximum number of records to return. */
     protected ?int $limit = null;
 
-    /** @var int|null OFFSET */
+    /** @var int|null The number of records to skip. */
     protected ?int $offset = null;
 
-    /** @var array|null The aggregate function to apply (e.g., COUNT, SUM) */
+    /** @var array|null The aggregate function to apply (e.g., COUNT, SUM). */
     protected ?array $aggregate = null;
 
-    /** @var array Bindings for a prepared statement */
+    /** @var array The bindings for the SET part of an insert/update query. */
     protected array $bindings = [];
-    private array $pattern;
-    public int $rowCount;
 
     /**
-     * Constructor.
+     * BaseQueryBuilder constructor.
      *
-     * @param PDO               $pdo     PDO instance.
-     * @param GrammarInterface  $grammar Grammar for SQL compilation.
+     * @param PDO $pdo The PDO connection instance.
+     * @param GrammarInterface $grammar The SQL grammar compiler.
+     * @param Database $db The database wrapper instance.
      */
-    public function __construct(PDO $pdo, GrammarInterface $grammar)
+    public function __construct(PDO $pdo, GrammarInterface $grammar, Database $db)
     {
         $this->pdo     = $pdo;
         $this->grammar = $grammar;
+        $this->db      = $db;
     }
 
     /**
@@ -80,9 +84,8 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function select(string ...$columns): static
     {
-        // Set the query type and store selected columns
         $this->type    = 'select';
-        $this->columns = $columns;
+        $this->columns = empty($columns) ? ['*'] : $columns;
         return $this;
     }
 
@@ -91,18 +94,21 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function from(string $table, ?string $alias = null): static
     {
-        // Store table and optional alias
         $this->table = $table;
         $this->alias = $alias;
         return $this;
     }
 
-    public function insert(array $data): int
+    /**
+     * {@inheritDoc}
+     */
+    public function insert(array $data): string|false
     {
         $this->type     = 'insert';
         $this->columns  = array_keys($data);
         $this->bindings = array_values($data);
-        return $this->execute();
+        $sql = $this->toSql();
+        return $this->db->insertAndGetId($sql, $this->bindings);
     }
 
     /**
@@ -117,18 +123,17 @@ class BaseQueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Find a record by its primary key.
-     *
-     * @param int|string $id
-     * @return array|null
+     * {@inheritDoc}
      */
-    public function find(int|string $id): ?array
+    public function delete(): int
     {
-        return $this->where('id', '=', $id)->first();
+        $this->type = 'delete';
+        $this->bindings = []; // DELETE statements have no SET bindings.
+        return $this->execute();
     }
 
     /**
-     * Execute the query (for INSERT, UPDATE, DELETE).
+     * Execute the query for non-SELECT statements (INSERT, UPDATE, DELETE).
      *
      * @return int The number of affected rows.
      */
@@ -136,9 +141,11 @@ class BaseQueryBuilder implements QueryBuilderInterface
     {
         $sql = $this->toSql();
 
-        // For UPDATE and DELETE, we need to merge SET/DELETE bindings with WHERE bindings.
+        // For UPDATE and DELETE, we need to merge the SET bindings (if any)
+        // with the WHERE bindings in the correct order.
         $bindings = in_array($this->type, ['update', 'delete'])
             ? array_merge($this->bindings, $this->getWhereBindings())
+            // INSERT statements only use the main bindings array.
             : $this->getBindings();
 
         $stmt = $this->pdo->prepare($sql);
@@ -150,19 +157,8 @@ class BaseQueryBuilder implements QueryBuilderInterface
     /**
      * {@inheritDoc}
      */
-    public function delete(): static
-    {
-        // Switch to delete mode
-        $this->type = 'delete';
-        return $this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function groupBy(string ...$columns): static
     {
-        // Store GROUP BY columns
         $this->groups = $columns;
         return $this;
     }
@@ -172,7 +168,6 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function orderBy(string $column, string $direction = 'ASC'): static
     {
-        // Add ORDER BY clause
         $this->orders[] = [$column, $direction];
         return $this;
     }
@@ -182,7 +177,6 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function limit(int $limit): static
     {
-        // Set LIMIT
         $this->limit = $limit;
         return $this;
     }
@@ -192,7 +186,6 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function offset(int $offset): static
     {
-        // Set OFFSET
         $this->offset = $offset;
         return $this;
     }
@@ -200,44 +193,40 @@ class BaseQueryBuilder implements QueryBuilderInterface
     /**
      * Execute a query as a "count" query.
      *
-     * @param string $columns
-     * @return int
+     * @param string $columns The column to count, defaults to '*'.
+     * @return int The total number of matching records.
      */
     public function count(string $columns = '*'): int
     {
-        // Clone the builder to not affect the original query
         $clone = clone $this;
-
-        // Set the aggregate property
+        // When running an aggregate, we don't want to hydrate the result into a model.
+        $clone->modelClass = null;
         $clone->aggregate = ['function' => 'COUNT', 'columns' => [$columns]];
-
-        // The columns for the main query are not needed for a count.
         $clone->columns = [];
 
-        // Execute the aggregate query
-        $result = $clone->get();
+        $result = $clone->get(); // This will now return a simple array
 
-        // The result of a COUNT query will be in the first row and first column.
+        // --- THE FIX IS HERE ---
+        // Access the result as an array element.
         return (int) ($result[0]['aggregate'] ?? 0);
     }
 
     /**
-     * Paginate the given query.
+     * Paginate the given query into a structured array of results.
      *
-     * @param int $perPage
-     * @param int $currentPage
-     * @return array An array containing the Paginator instance and the items.
+     * @param int $perPage The number of items to show per page.
+     * @param int $currentPage The current page number.
+     * @return array An array containing the Paginator instance and the items for the current page.
      */
     public function paginate(int $perPage, int $currentPage = 1): array
     {
-        // Get the total number of records by executing a count query.
         $totalItems = $this->count();
-
-        // Create the Paginator instance, which will also validate the current page.
         $paginator = new Paginator($totalItems, $perPage, $currentPage);
 
-        // Apply the limit and offset to the original query to get the items for the current page.
-        $items = $this->limit($perPage)->offset($paginator->getOffset())->get();
+        // The main query (not the count) should still hydrate models.
+        $items = $this->limit($perPage)
+            ->offset($paginator->getOffset())
+            ->get();
 
         return [
             'paginator' => $paginator,
@@ -245,14 +234,20 @@ class BaseQueryBuilder implements QueryBuilderInterface
         ];
     }
 
-    public function getAggregate(): ?array { return $this->aggregate; }
+    /**
+     * Get the aggregate function data for the Grammar.
+     * @return array|null
+     */
+    public function getAggregate(): ?array
+    {
+        return $this->aggregate;
+    }
 
     /**
      * {@inheritDoc}
      */
     public function toSql(): string
     {
-        // Delegate SQL compilation to Grammar
         return match ($this->type) {
             'select' => $this->grammar->compileSelect($this),
             'insert' => $this->grammar->compileInsert($this),
@@ -261,5 +256,4 @@ class BaseQueryBuilder implements QueryBuilderInterface
             default  => throw new \LogicException("Invalid query type [{$this->type}]"),
         };
     }
-
 }

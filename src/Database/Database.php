@@ -11,23 +11,22 @@ use PhpLiteCore\Database\Grammar\MySqlGrammar;
 use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
 
 /**
- * Database class manages PDO connection and provides QueryBuilder integration.
+ * The Database class manages the PDO connection and acts as a factory for the QueryBuilder.
+ * It provides methods for raw queries, transactions, and starting fluent queries.
  */
 class Database
 {
+    /** @var PDO The active PDO connection instance. */
     protected PDO $pdo;
+
+    /** @var GrammarInterface The SQL grammar compiler. */
     protected GrammarInterface $grammar;
 
     /**
-     * Initialize connection and default grammar (MySQL).
-     * @param array $config  [
-     *     'host' => string,
-     *     'port' => int,
-     *     'database' => string,
-     *     'username' => string,
-     *     'password' => string,
-     *     'charset' => string,
-     * ]
+     * Database constructor.
+     * Establishes the database connection using PDO.
+     *
+     * @param array $config The database connection configuration.
      */
     public function __construct(array $config)
     {
@@ -38,39 +37,48 @@ class Database
             $config['database'],
             $config['charset']
         );
+
         $this->pdo = new PDO(
             $dsn,
             $config['username'],
             $config['password'],
+            // Set error mode to exception for robust error handling.
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
-        // Use MySqlGrammar by default; can be replaced via setter
+
+        // Use MySqlGrammar by default; this can be replaced via the setter.
         $this->grammar = new MySqlGrammar();
     }
 
     /**
-     * Begin a fluent query on a table.
+     * Begin a fluent query builder instance for a specific table.
+     *
+     * @param string $table The name of the table to query.
+     * @return BaseQueryBuilder
      */
     public function table(string $table): BaseQueryBuilder
     {
-        return (new BaseQueryBuilder($this->pdo, $this->grammar))
-            ->select('*')
-            ->from($table);
+        return $this->queryBuilder()->from($table);
     }
 
     /**
-     * Get a fresh QueryBuilder instance (for custom queries).
+     * Get a fresh QueryBuilder instance.
+     *
+     * @return BaseQueryBuilder
      */
     public function queryBuilder(): BaseQueryBuilder
     {
-        return new BaseQueryBuilder($this->pdo, $this->grammar);
+        // Pass the PDO connection, grammar, and this Database instance to the builder.
+        // This allows the builder to perform actions like insertAndGetId.
+        return new BaseQueryBuilder($this->pdo, $this->grammar, $this);
     }
 
     /**
-     * Execute raw SQL with bindings.
-     * @param string $sql
-     * @param array $bindings
-     * @return PDOStatement
+     * Execute a raw SQL query with bindings.
+     *
+     * @param string $sql The raw SQL query string.
+     * @param array $bindings The parameters to bind to the query.
+     * @return PDOStatement The prepared statement after execution.
      */
     public function raw(string $sql, array $bindings = []): PDOStatement
     {
@@ -80,25 +88,49 @@ class Database
     }
 
     /**
-     * Transaction helpers.
+     * Execute an insert statement and return the last inserted ID.
+     *
+     * @param string $sql The raw SQL INSERT statement.
+     * @param array $bindings The parameters to bind to the query.
+     * @return string|false The ID of the last inserted row or false on failure.
+     */
+    public function insertAndGetId(string $sql, array $bindings = []): string|false
+    {
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($bindings);
+        return $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Begin a new database transaction.
+     * @return bool
      */
     public function beginTransaction(): bool
     {
         return $this->pdo->beginTransaction();
     }
 
+    /**
+     * Commit the active database transaction.
+     * @return bool
+     */
     public function commit(): bool
     {
         return $this->pdo->commit();
     }
 
+    /**
+     * Roll back the active database transaction.
+     * @return bool
+     */
     public function rollBack(): bool
     {
         return $this->pdo->rollBack();
     }
 
     /**
-     * Allow swapping the grammar (e.g., for PostgreSQL).
+     * Set a custom SQL grammar instance.
+     * @param GrammarInterface $grammar The grammar instance.
      */
     public function setGrammar(GrammarInterface $grammar): void
     {
@@ -106,31 +138,11 @@ class Database
     }
 
     /**
-     * Expose underlying PDO for advanced operations.
+     * Get the underlying PDO connection instance.
+     * @return PDO
      */
     public function getPdo(): PDO
     {
         return $this->pdo;
-    }
-
-    /**
-     * Get the ID of the last inserted row.
-     *
-     * @return string
-     */
-    public function lastInsertId(): string
-    {
-        return $this->pdo->lastInsertId();
-    }
-
-    /**
-     * Get the number of rows affected by a statement.
-     *
-     * @param PDOStatement $stmt
-     * @return int
-     */
-    public function rowCount(PDOStatement $stmt): int
-    {
-        return $stmt->rowCount() ?? 0;
     }
 }

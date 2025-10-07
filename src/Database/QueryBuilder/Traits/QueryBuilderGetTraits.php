@@ -4,96 +4,90 @@ namespace PhpLiteCore\Database\QueryBuilder\Traits;
 
 trait QueryBuilderGetTraits
 {
+    /** @var string|null The model class to hydrate results into. */
+    protected ?string $modelClass = null;
+
     /**
-     * {@inheritDoc}
+     * Set the model class to be used for hydrating results.
+     *
+     * @param string $class The fully qualified class name of the model.
+     * @return static
+     */
+    public function setModel(string $class): static
+    {
+        $this->modelClass = $class;
+        return $this;
+    }
+
+    /**
+     * Execute the query and return a collection of model instances or raw arrays.
+     *
+     * @return array
      */
     public function get(): array
     {
-        $sql      = $this->toSql();
-        $bindings = $this->getBindings();
+        $results = $this->runQuery();
+        if (!$this->modelClass) { return $results; }
 
-        $stmt = $this->pdo->prepare($sql);
-
-        foreach ($bindings as $key => $value) {
-            // Numeric keys are 1-based positional parameters
-            $param = is_int($key) ? $key + 1 : $key;
-            $stmt->bindValue($param, $value);
+        $models = [];
+        foreach ($results as $record) {
+            $models[] = new $this->modelClass($record);
         }
-
-        $stmt->execute();
-
-        // Fetch all results
-        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Store row count
-        $this->rowCount = count($results);
-
-        return $results;
+        return $models;
     }
 
     /**
-     * @inheritDoc
+     * Get the first record matching the query as a model instance or object.
+     *
+     * @return object|null
      */
-    public function first(): ?array
+    public function first(): ?object
     {
-        // Clone builder so the original state stays intact
-        $clone = clone $this;
-        $clone->limit(1);
+        $results = (clone $this)->limit(1)->runQuery();
+        if (empty($results)) { return null; }
 
-        $results = $clone->get();
-
-        // Return the first element or null
-        return $results[0] ?? null;
+        return $this->modelClass ? new $this->modelClass($results[0]) : (object)$results[0];
     }
 
     /**
-     * {@inheritDoc}
+     * Determine if any record exists matching the query.
+     *
+     * @return bool
      */
     public function exists(): bool
     {
-        // Clone builder to apply limit without side effects
         $clone = clone $this;
-        $clone->limit(1);
+        $clone->columns = ['1'];
 
-        $clone->get();
+        $result = $clone->limit(1)->runQuery();
 
-        // If rowCount > 0, at least one record exists
-        return $clone->rowCount > 0;
+        return !empty($result);
     }
 
     /**
      * Count how many records match the query.
+     * This is an alias for the count() method.
      *
      * @return int
      */
     public function found(): int
     {
-        // Clone builder so that the original SELECT and limit remain unchanged
-        $clone = clone $this;
-
-        $clone->get();
-
-        return $clone->rowCount;
+        return $this->count();
     }
 
     /**
-     * {@inheritDoc}
+     * A protected helper to run the actual SQL query.
+     *
+     * @return array
      */
-    public function getBindings(): array
+    protected function runQuery(): array
     {
-        // Return accumulated bindings
-        return $this->bindings;
+        $sql = $this->toSql();
+        $bindings = $this->getWhereBindings();
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($bindings);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-    // Getter methods for Grammar access
-    public function getColumns(): array      { return $this->columns; }
-    public function getTable(): string      { return $this->table; }
-    public function getAlias(): ?string     { return $this->alias; }
-    public function getWheres(): array      { return $this->wheres; }
-    public function getJoins(): array       { return $this->joins; }
-    public function getGroups(): array      { return $this->groups; }
-    public function getOrders(): array      { return $this->orders; }
-    public function getLimit(): ?int        { return $this->limit; }
-    public function getOffset(): ?int       { return $this->offset; }
 
     /**
      * Get only the bindings for the WHERE clauses.
@@ -102,12 +96,21 @@ trait QueryBuilderGetTraits
      */
     public function getWhereBindings(): array
     {
+        return $this->collectBindingsFromWheres($this->wheres);
+    }
+
+    /**
+     * Recursively collect bindings from a WHERE array.
+     *
+     * @param array $wheres
+     * @return array
+     */
+    private function collectBindingsFromWheres(array $wheres): array
+    {
         $bindings = [];
-        foreach ($this->wheres as $where) {
+        foreach ($wheres as $where) {
             if ($where['type'] === 'Nested') {
-                // Recursively call the same logic on the nested where's
-                $nestedBindings = $this->collectBindingsFromWheres($where['wheres']);
-                $bindings = array_merge($bindings, $nestedBindings);
+                $bindings = array_merge($bindings, $this->collectBindingsFromWheres($where['wheres']));
             } elseif (isset($where['values'])) { // For In, Between
                 $bindings = array_merge($bindings, $where['values']);
             } elseif (array_key_exists('value', $where)) { // For Basic
@@ -117,19 +120,35 @@ trait QueryBuilderGetTraits
         return $bindings;
     }
 
-    // A helper function to make recursion cleaner
-    private function collectBindingsFromWheres(array $wheres): array
-    {
-        $bindings = [];
-        foreach ($wheres as $where) {
-            if ($where['type'] === 'Nested') {
-                $bindings = array_merge($bindings, $this->collectBindingsFromWheres($where['wheres']));
-            } elseif (isset($where['values'])) {
-                $bindings = array_merge($bindings, $where['values']);
-            } elseif (array_key_exists('value', $where)) {
-                $bindings[] = $where['value'];
-            }
-        }
-        return $bindings;
-    }
+    // --- Getters for Grammar Access ---
+
+    /** @return array The bindings for the SET part of an insert/update. */
+    public function getBindings(): array { return $this->bindings; }
+
+    /** @return array The selected columns. */
+    public function getColumns(): array { return $this->columns; }
+
+    /** @return string The target table name. */
+    public function getTable(): string { return $this->table ?? ''; }
+
+    /** @return string|null The table alias. */
+    public function getAlias(): ?string { return $this->alias; }
+
+    /** @return array The WHERE clauses data. */
+    public function getWheres(): array { return $this->wheres; }
+
+    /** @return array The JOIN clauses. */
+    public function getJoins(): array { return $this->joins; }
+
+    /** @return array The GROUP BY columns. */
+    public function getGroups(): array { return $this->groups; }
+
+    /** @return array The ORDER BY clauses. */
+    public function getOrders(): array { return $this->orders; }
+
+    /** @return int|null The query limit. */
+    public function getLimit(): ?int { return $this->limit; }
+
+    /** @return int|null The query offset. */
+    public function getOffset(): ?int { return $this->offset; }
 }
