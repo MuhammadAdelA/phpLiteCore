@@ -3,8 +3,8 @@
 namespace App\Controllers;
 
 use PhpLiteCore\Bootstrap\Application;
+use PhpLiteCore\View\Exceptions\ViewNotFoundException;
 use PhpLiteCore\View\Layout;
-use PhpLiteCore\View\View;
 
 abstract class BaseController
 {
@@ -30,16 +30,12 @@ abstract class BaseController
      * @param string $view The name of the view file.
      * @param array $data The data to pass to the view.
      * @return void
+     * @throws ViewNotFoundException
      */
     protected function view(string $view, array $data = []): void
     {
-        try {
-            // It calls the correctly named Layout::create
-            echo Layout::create('app', $view, $data);
-        } catch (\Exception $e) {
-            // The global ErrorHandler will catch this exception.
-            throw $e;
-        }
+        // It calls the correctly named Layout::create
+        echo Layout::create('app', $view, $data);
     }
 
     /**

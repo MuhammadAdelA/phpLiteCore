@@ -52,7 +52,7 @@ class PostController extends BaseController
 
         // We need a view file for this: views/themes/default/post.php
         $this->view('post', [
-            'pageTitle' => $post['title'],
+            'pageTitle' => $post->title,
             'post' => $post
         ]);
     }
@@ -93,6 +93,16 @@ class PostController extends BaseController
             header('Content-Type: application/json');
             echo json_encode(['errors' => $e->getErrors()]);
         }
+    }
+
+    /**
+     * Show the form for creating a new post.
+     */
+    public function create(): void
+    {
+        $this->view('create-post', [
+            'pageTitle' => 'Create New Post'
+        ]);
     }
 
 }

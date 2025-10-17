@@ -4,21 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? 'phpLiteCore') ?></title>
-    <link href="//cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { padding-top: 2rem; padding-bottom: 2rem; }
-        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; color: #777; }
-        .post-item { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
-        .post-item h2 a { text-decoration: none; }
-    </style>
+
+    <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
-<div class="container">
+<div class="container py-4">
+
     <header class="mb-4">
-        <nav class="nav">
+        <nav class="nav nav-pills">
             <a class="nav-link" href="/">Home</a>
             <a class="nav-link" href="/posts">Posts</a>
             <a class="nav-link" href="/about">About</a>
         </nav>
     </header>
+
     <main>

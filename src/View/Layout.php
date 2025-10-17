@@ -3,8 +3,7 @@
 declare(strict_types=1);
 
 namespace PhpLiteCore\View;
-
-use Exception;
+use PhpLiteCore\View\Exceptions\ViewNotFoundException;
 
 class Layout extends View
 {
@@ -21,7 +20,7 @@ class Layout extends View
      * @param string $view The name of the content view file.
      * @param array $data Data to be passed to the view.
      * @param string $theme The theme directory.
-     * @throws Exception
+     * @throws ViewNotFoundException
      */
     public function __construct(string $layout, string $view, array $data = [], string $theme = 'default')
     {
@@ -33,7 +32,7 @@ class Layout extends View
      * Renders the layout and injects the content view into it.
      *
      * @return string The fully rendered HTML.
-     * @throws Exception
+     * @throws ViewNotFoundException
      */
     public function render(): string
     {
@@ -41,7 +40,7 @@ class Layout extends View
         $layoutPath = $this->buildLayoutPath();
 
         if (!file_exists($layoutPath)) {
-            throw new Exception("Layout file not found: {$layoutPath}");
+            throw new ViewNotFoundException("Layout file not found: {$layoutPath}");
         }
 
         extract($this->data);
@@ -74,7 +73,7 @@ class Layout extends View
      * @param string $view
      * @param array $data
      * @return string
-     * @throws Exception
+     * @throws ViewNotFoundException
      */
     public static function create(string $layout, string $view, array $data = []): string
     {

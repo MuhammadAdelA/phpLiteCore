@@ -4,103 +4,161 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Http;
 
-use JetBrains\PhpStorm\NoReturn;
+use PhpLiteCore\Lang\Translator; // Import the Translator class
+use ReturnTypeWillChange; // For compatibility with PHP 8.1+ regarding ArrayAccess implementation
+use JetBrains\PhpStorm\NoReturn; // For static analysis indicating termination
 
 /**
- * HTTP response helper methods.
+ * Represents an HTTP response.
+ * Provides methods for setting headers, status codes, cookies, and content.
+ * Includes helpers for common response types like redirects and JSON.
  */
-class Response
+class Response // Add ArrayAccess if you need header manipulation like $response['Content-Type'] = '...'
 {
+    /** @var int The HTTP status code. */
+    protected int $statusCode = 200;
+
+    /** @var array The HTTP headers. */
+    protected array $headers = [];
+
+    /** @var string The response body content. */
+    protected string $content = '';
+
     /**
-     * Redirect to a given location with a specific HTTP status code.
+     * Sets the HTTP status code for the response.
      *
-     * @param string $location The target URL or path.
-     * @param int    $status   HTTP status code for redirection (3xx).
-     * @return void
+     * @param int $code The HTTP status code (e.g., 200, 404, 500).
+     * @return static
      */
-    #[NoReturn] public static function redirect(string $location = '/', int $status = 302): void
+    public function setStatusCode(int $code): static
     {
-        // Sanitize location (basic)
-        $safeLocation = filter_var($location, FILTER_SANITIZE_URL);
-
-        // Send redirect header with explicit status code
-        header(sprintf('Location: %s', $safeLocation), true, $status);
-
-        // Terminate execution
-        exit;
+        $this->statusCode = $code;
+        return $this;
     }
 
     /**
-     * Send an HTTP status code and terminate execution.
+     * Adds or updates an HTTP header.
      *
-     * @param int    $code    HTTP status code to send.
-     * @param string $message Optional message body.
+     * @param string $key The header name (e.g., 'Content-Type').
+     * @param string $value The header value (e.g., 'application/json').
+     * @return static
+     */
+    public function setHeader(string $key, string $value): static
+    {
+        $this->headers[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Sets the response body content.
+     *
+     * @param string $content The content to send.
+     * @return static
+     */
+    public function setContent(string $content): static
+    {
+        $this->content = $content;
+        return $this;
+    }
+
+    /**
+     * Sends the HTTP headers and content to the browser.
+     * This method should typically be called only once at the end of the request lifecycle.
+     *
      * @return void
      */
-    #[NoReturn] public static function sendStatus(int $code, string $message = ''): void
+    public function send(): void
     {
-        // Send the status header
-        header(sprintf('HTTP/1.1 %d %s', $code, self::getStatusText($code)), true, $code);
+        // Send status code header.
+        http_response_code($this->statusCode);
 
-        // Optionally output a custom message
-        if ($message !== '') {
-            echo $message;
+        // Send all other headers.
+        foreach ($this->headers as $key => $value) {
+            header("{$key}: {$value}");
         }
 
+        // Echo the response body.
+        echo $this->content;
+    }
+
+    /**
+     * Static helper to create a redirect response.
+     * Terminates script execution after sending headers.
+     *
+     * @param string $url The URL to redirect to.
+     * @param int $statusCode The HTTP status code for the redirect (default: 302 Found).
+     * @return void
+     */
+    #[NoReturn] public static function redirect(string $url, int $statusCode = 302): void
+    {
+        header('Location: ' . $url, true, $statusCode);
         exit;
     }
 
     /**
-     * Get standard reason phrase for a status code.
+     * Static helper to create a JSON response.
+     * Sets the appropriate Content-Type header and encodes the data.
      *
-     * @param int $code
-     * @return string
+     * @param mixed $data The data to encode as JSON.
+     * @param int $statusCode The HTTP status code (default: 200 OK).
+     * @param array $headers Additional headers to send.
+     * @return void
      */
-    private static function getStatusText(int $code): string
+    public static function json(mixed $data, int $statusCode = 200, array $headers = []): void
     {
-        // A more comprehensive list of HTTP status codes.
-        $texts = [
-            // Informational 1xx
-            100 => 'Continue',
-            101 => 'Switching Protocols',
-            // Successful 2xx
-            200 => 'OK',
-            201 => 'Created',
-            202 => 'Accepted',
-            204 => 'No Content',
-            // Redirection 3xx
-            301 => 'Moved Permanently',
-            302 => 'Found',
-            304 => 'Not Modified',
-            // Client Error 4xx
-            400 => 'Bad Request',
-            401 => 'Unauthorized',
-            403 => 'Forbidden',
-            404 => 'Not Found',
-            405 => 'Method Not Allowed',
-            // Server Error 5xx
-            500 => 'Internal Server Error',
-            501 => 'Not Implemented',
-            503 => 'Service Unavailable',
-        ];
-        return $texts[$code] ?? '';
+        $response = new static();
+        $response->setStatusCode($statusCode);
+        $response->setHeader('Content-Type', 'application/json');
+        // Merge additional headers
+        foreach ($headers as $key => $value) {
+            $response->setHeader($key, $value);
+        }
+        $response->setContent(json_encode($data));
+        $response->send();
     }
 
     /**
-     * Shortcut for 404 Not Found.
-     * Renders the default 404 error page.
+     * Static helper for 404 Not Found response.
+     * Renders the default, translated 404 error page using the helper function.
+     * Terminates script execution.
      *
-     * @param string $message Optional custom message. If empty, a default is used.
+     * @param string $message Optional custom message key (will be translated if key exists).
+     * If the key doesn't exist, the provided string is used as fallback.
      * @return void
      */
     #[NoReturn] public static function notFound(string $message = ''): void
     {
-        $defaultMessage = 'The page you are looking for could not be found.';
+        // Instantiate the translator using the current language constant (LANG).
+        // Fallback to default language if LANG is not defined.
+        $currentLang = defined('LANG') ? LANG : ($_ENV['DEFAULT_LANG'] ?? 'en');
+        $translator = new Translator($currentLang);
 
+        // Get standard translated strings for 404.
+        $errorTitle = $translator->get('messages.error_404_title');
+        $defaultMessage = $translator->get('messages.error_404_message');
+
+        // If a custom message key was provided, try to translate it.
+        // If translation fails for the custom key, use the provided message string itself.
+        $finalMessage = $message ? $translator->get($message, [], $message) : $defaultMessage;
+
+        // Use the global helper function to render the standard HTTP error page.
+        // This function sets the status code and exits.
         render_http_error_page(
-            404,
-            'Not Found',
-            $message ?: $defaultMessage
+            404, // Status code
+            $errorTitle,
+            $finalMessage
         );
     }
+
+    // --- ArrayAccess methods (Optional: Implement if needed) ---
+    /*
+    #[ReturnTypeWillChange]
+    public function offsetExists(mixed $offset): bool { ... }
+    #[ReturnTypeWillChange]
+    public function offsetGet(mixed $offset): mixed { ... }
+    #[ReturnTypeWillChange]
+    public function offsetSet(mixed $offset, mixed $value): void { ... }F
+    #[ReturnTypeWillChange]
+    public function offsetUnset(mixed $offset): void { ... }
+    */
 }
