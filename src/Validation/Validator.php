@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Validation;
 
+use PhpLiteCore\Lang\Translator; // Import the Translator class
 use PhpLiteCore\Validation\Exceptions\ValidationException;
 
 class Validator
@@ -27,6 +28,12 @@ class Validator
     protected array $errors = [];
 
     /**
+     * The static Translator instance.
+     * @var Translator
+     */
+    protected static Translator $translator;
+
+    /**
      * Validator constructor.
      *
      * @param array $data The data to validate (e.g., $_POST).
@@ -36,6 +43,18 @@ class Validator
     {
         $this->data = $data;
         $this->rules = $rules;
+    }
+
+    /**
+     * Set the Translator instance to be used for validation messages.
+     * This is called once by the Application during bootstrap.
+     *
+     * @param Translator $translator The translator service instance.
+     * @return void
+     */
+    public static function setTranslator(Translator $translator): void
+    {
+        static::$translator = $translator;
     }
 
     /**
@@ -88,22 +107,27 @@ class Validator
         // Example: rule is "min:8"
         [$ruleName, $parameter] = array_pad(explode(':', $rule, 2), 2, null);
 
+        // Use the injected translator to get error messages from 'validation.php' files.
+        // This adheres to Constitution (Sec 1.5).
         switch ($ruleName) {
             case 'required':
                 if (empty($value)) {
-                    $this->addError($field, 'The ' . $field . ' field is required.');
+                    $this->addError($field, static::$translator->get('validation.required', ['field' => $field]));
                 }
                 break;
 
             case 'email':
                 if (!empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                    $this->addError($field, 'The ' . $field . ' must be a valid email address.');
+                    $this->addError($field, static::$translator->get('validation.email', ['field' => $field]));
                 }
                 break;
 
             case 'min':
                 if (!empty($value) && mb_strlen((string)$value) < (int)$parameter) {
-                    $this->addError($field, 'The ' . $field . ' must be at least ' . $parameter . ' characters.');
+                    $this->addError(
+                        $field,
+                        static::$translator->get('validation.min', ['field' => $field, 'value' => $parameter])
+                    );
                 }
                 break;
 

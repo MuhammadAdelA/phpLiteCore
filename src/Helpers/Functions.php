@@ -10,10 +10,11 @@ use JetBrains\PhpStorm\Pure;
  * @param int    $error_code    The HTTP status code (e.g., 404, 500).
  * @param string $error_title   The title of the error (e.g., 'Not Found').
  * @param string $error_message The user-friendly message to display.
+ * @param string $homeLinkText  The translated text for the "home" button.
  * @return void
  */
 #[NoReturn]
-function render_http_error_page(int $error_code, string $error_title, string $error_message): void
+function render_http_error_page(int $error_code, string $error_title, string $error_message, string $homeLinkText): void
 {
     http_response_code($error_code);
 
@@ -32,7 +33,7 @@ function render_http_error_page(int $error_code, string $error_title, string $er
     }
 
     // Extract variables for the chosen view file.
-    extract(compact('error_code', 'error_title', 'error_message'));
+    extract(compact('error_code', 'error_title', 'error_message', 'homeLinkText'));
 
     // Use output buffering to capture the view.
     ob_start();

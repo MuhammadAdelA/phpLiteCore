@@ -92,7 +92,8 @@
     <p class="error-message">
         <?= htmlspecialchars($error_message) ?>
     </p>
-    <a href="/" class="home-link">العودة للصفحة الرئيسية</a>
+
+    <a href="/" class="home-link"><?= htmlspecialchars($homeLinkText) ?></a>
 </div>
 </body>
 </html>

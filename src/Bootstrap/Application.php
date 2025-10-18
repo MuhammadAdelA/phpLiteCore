@@ -6,6 +6,7 @@ use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Model\BaseModel;
 use PhpLiteCore\Lang\Translator;
 use PhpLiteCore\Routing\Router;
+use PhpLiteCore\Validation\Validator; // Import the Validator class
 
 class Application
 {
@@ -81,6 +82,10 @@ class Application
         define('LANG', $locale);
         define('HTML_DIR', getDirection(LANG) ?: 'ltr');
         $this->translator = new Translator(LANG);
+
+        // --- Inject Translator into Validator Service ---
+        // This is crucial for the Validator to access translated error messages.
+        Validator::setTranslator($this->translator);
 
         // --- Database Service ---
         $dbConfig = [

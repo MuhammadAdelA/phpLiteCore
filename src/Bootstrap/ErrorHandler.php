@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 // Import PHPMailer and Translator classes at the top of the file
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PhpLiteCore\Lang\Translator; // Import the Translator class
 
@@ -13,7 +12,7 @@ use PhpLiteCore\Lang\Translator; // Import the Translator class
  * Logs errors, notifies developers in production via SMTP, and displays appropriate error pages.
  */
 
-set_exception_handler(function (\Throwable $e): void {
+set_exception_handler(function (Throwable $e): void {
     // 1. Log the detailed error to a file regardless of the environment.
     $logMessage = sprintf(
         "Uncaught Exception: %s: \"%s\" in %s:%d\nStack trace:\n%s",
@@ -30,7 +29,7 @@ set_exception_handler(function (\Throwable $e): void {
         $message = $e->getMessage();
 
         // Provide a more helpful message for the common "object as array" error.
-        if ($e instanceof \Error && str_contains($message, 'Cannot use object of type')) {
+        if ($e instanceof Error && str_contains($message, 'Cannot use object of type')) {
             preg_match("/Cannot use object of type '([^']+)' as array/", $message, $matches);
             $className = $matches[1] ?? 'Object';
             $message = "Error: Attempted to access an object of type '{$className}' as an array. Did you mean to use the object operator '->' instead of array brackets '[]'?";
@@ -82,7 +81,7 @@ set_exception_handler(function (\Throwable $e): void {
                 $body .= "<h2>Error Details:</h2><ul>";
                 $body .= "<li><strong>Message:</strong> " . htmlspecialchars($e->getMessage()) . "</li>";
                 $body .= "<li><strong>Class:</strong> " . get_class($e) . "</li>";
-                $body .= "<li><strong>File:</strong> " . $e->getFile() . " on line " . $e->getLine() . "</li>";
+                $body .= "<li><strong>File:</strong> " . $e->getFile() . " in line " . $e->getLine() . "</li>";
                 $body .= "</ul>";
                 $body .= "<h2>Request Info:</h2><ul>";
                 $body .= "<li><strong>URL:</strong> " . ($_SERVER['REQUEST_URI'] ?? 'N/A') . "</li>";
@@ -112,13 +111,15 @@ set_exception_handler(function (\Throwable $e): void {
         // Get translated strings for the user-facing error page.
         $errorTitle = $translator->get('messages.error_500_title');
         $errorMessage = $translator->get('messages.error_500_message');
+        $homeLinkText = $translator->get('messages.home_link_text'); // Get the translated home link text
         // --- END Translation Logic ---
 
         // Finally, show the generic, translated error page to the user.
         render_http_error_page(
             500, // Set the 500 status code.
             $errorTitle,
-            $errorMessage
+            $errorMessage,
+            $homeLinkText // Pass the translated text to the render function
         );
     }
 });
@@ -129,11 +130,11 @@ set_exception_handler(function (\Throwable $e): void {
  */
 set_error_handler(
 /**
- * @throws \ErrorException
+ * @throws ErrorException
  */
     function (int $severity, string $message, string $file, int $line): bool {
         // Throw an ErrorException which will be caught by set_exception_handler.
-        throw new \ErrorException($message, 0, $severity, $file, $line);
+        throw new ErrorException($message, 0, $severity, $file, $line);
     }
 );
 
@@ -162,5 +163,5 @@ function render_error_view(array $data): void
  * conceptually as part of the error handling flow.
  * Note: Ensure Functions.php is loaded *before* ErrorHandler.php in composer.json.
  *
- * function render_http_error_page(int $error_code, string $error_title, string $error_message): void { ... }
+ * function render_http_error_page(int $error_code, string $error_title, string $error_message, string $homeLinkText): void { ... }
  */

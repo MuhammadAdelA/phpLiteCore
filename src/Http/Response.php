@@ -136,6 +136,7 @@ class Response // Add ArrayAccess if you need header manipulation like $response
         // Get standard translated strings for 404.
         $errorTitle = $translator->get('messages.error_404_title');
         $defaultMessage = $translator->get('messages.error_404_message');
+        $homeLinkText = $translator->get('messages.home_link_text'); // Get the translated home link text
 
         // If a custom message key was provided, try to translate it.
         // If translation fails for the custom key, use the provided message string itself.
@@ -146,7 +147,8 @@ class Response // Add ArrayAccess if you need header manipulation like $response
         render_http_error_page(
             404, // Status code
             $errorTitle,
-            $finalMessage
+            $finalMessage,
+            $homeLinkText // Pass the translated text
         );
     }
 

@@ -100,10 +100,11 @@ class Translator
 
         [$file, $messageKey] = explode('.', $key, 2);
 
-        // Load the file if it hasn't been loaded yet (for future support of multiple files).
-        // For now, we only load 'messages' in the constructor. If you need other files,
-        // you would uncomment the next line or load them explicitly when needed.
-        // if (!isset($this->messages[$file])) { $this->loadMessagesFromFile($file); }
+        // Load the file if it hasn't been loaded yet.
+        // This enables lazy-loading of files like 'validation.php' or 'auth.php'
+        if (!isset($this->messages[$file])) {
+            $this->loadMessagesFromFile($file);
+        }
 
         $message = $this->findByDotNotation($this->messages[$file] ?? [], $messageKey);
 

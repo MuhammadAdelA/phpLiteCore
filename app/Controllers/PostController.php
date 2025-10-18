@@ -2,16 +2,20 @@
 
 namespace App\Controllers;
 
+use App\Models\Post; // Import the Post model
 use Exception;
 use PhpLiteCore\Pagination\Renderers\Bootstrap5Renderer;
 use PhpLiteCore\Http\Response;
 use PhpLiteCore\Validation\Exceptions\ValidationException;
 use PhpLiteCore\Validation\Validator;
+use PhpLiteCore\View\Exceptions\ViewNotFoundException;
 
 class PostController extends BaseController
 {
     /**
      * Display a list of all posts with pagination.
+     * (Compliant with Active Record and Translation)
+     *
      * @throws Exception
      */
     public function index(): void
@@ -19,22 +23,31 @@ class PostController extends BaseController
         $itemsPerPage = 5;
         $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
-        // A single, fluent line to get paginated results!
-        $paginationData = $this->app->db->table('posts')
-            ->orderBy('created_at', 'DESC')
+        // 1. Use Active Record (Constitution Sec 2)
+        $paginationData = Post::orderBy('created_at', 'DESC')
             ->paginate($itemsPerPage, $currentPage);
 
         $renderer = new Bootstrap5Renderer();
         $paginationLinks = $renderer->render($paginationData['paginator']);
 
+        // 2. Prepare translated variables (Constitution Sec 1.5)
+        $pageTitle = $this->app->translator->get('messages.posts.index_title');
+        $noPostsText = $this->app->translator->get('messages.posts.no_posts');
+        $publishedOnText = $this->app->translator->get('messages.posts.published_on');
+
+        // 3. Render the view with translated data
         $this->view('posts', [
-            'pageTitle'       => 'All Posts',
+            'pageTitle'       => $pageTitle,
             'posts'           => $paginationData['items'],
-            'paginationLinks' => $paginationLinks
+            'paginationLinks' => $paginationLinks,
+            'noPostsText'     => $noPostsText,
+            'publishedOnText' => $publishedOnText,
         ]);
     }
+
     /**
      * Show a single post by its ID.
+     * (Compliant with Active Record and Translation)
      *
      * @param int|string $id The ID from the URL.
      * @return void
@@ -42,23 +55,31 @@ class PostController extends BaseController
      */
     public function show(int|string $id): void
     {
-        // Find the post in the database using the provided ID.
-        $post = $this->app->db->table('posts')->where('id', '=', $id)->first();
+        // 1. Use Active Record (Constitution Sec 2)
+        $post = Post::find($id);
 
-        // If no post is found, return a 404 error.
+        // 2. Handle not found with translated message (Constitution Sec 1.5)
         if (!$post) {
-            Response::notFound("Post with ID {$id} not found.");
+            $notFoundMessage = $this->app->translator->get('messages.posts.not_found', ['id' => $id]);
+            Response::notFound($notFoundMessage);
         }
 
-        // We need a view file for this: views/themes/default/post.php
+        // 3. Prepare translated variables
+        $publishedOnText = $this->app->translator->get('messages.posts.published_on');
+        $backLinkText = $this->app->translator->get('messages.posts.back_link');
+
+        // 4. Render the view
         $this->view('post', [
-            'pageTitle' => $post->title,
-            'post' => $post
+            'pageTitle'       => $post->title, // Page title is data, not UI text
+            'post'            => $post,
+            'publishedOnText' => $publishedOnText,
+            'backLinkText'    => $backLinkText,
         ]);
     }
 
     /**
      * Store a new post in the database.
+     * (This implementation was already compliant as Validator handles errors)
      */
     public function store(): void
     {
@@ -69,39 +90,51 @@ class PostController extends BaseController
                 'body'  => 'required|min:10',
             ];
 
-            // 2. Run the validator. It will throw an exception on failure.
-            //    We assume the data comes from a POST request, e.g., $_POST.
+            // 2. Run the validator.
+            // (This now uses the fixed Validator, so errors will be translated)
             $validatedData = Validator::validate($_POST, $rules);
 
-            // 3. If validation passes, create the post.
-            //    For this example, let's assume user_id is 1.
-            $this->app->db->table('posts')->insert([
+            // 3. Create the post using Active Record (Constitution Sec 2)
+            $post = new Post([
                 'title'   => $validatedData['title'],
                 'body'    => $validatedData['body'],
-                'user_id' => 1,
+                'user_id' => 1, // Assuming user ID 1 for now
             ]);
+            $post->save();
 
-            // 4. Redirect to the posts list (or the new post's page).
+            // 4. Redirect to the posts list.
             Response::redirect('/posts');
 
         } catch (ValidationException $e) {
             // 5. If validation fails, handle the errors.
-            //    For an API, you might return JSON.
-            //    For a web page, you would typically redirect back with errors.
-            //    For now, we'll just dump the errors.
             http_response_code(422);
             header('Content-Type: application/json');
+            // Errors are already translated by the Validator
             echo json_encode(['errors' => $e->getErrors()]);
         }
     }
 
     /**
      * Show the form for creating a new post.
+     * (Compliant with Translation)
+     * @throws ViewNotFoundException
      */
     public function create(): void
     {
+        // 1. Prepare translated variables (Constitution Sec 1.5)
+        $pageTitle = $this->app->translator->get('messages.posts.create_title');
+        $formTitle = $this->app->translator->get('messages.posts.form_title');
+        $formContent = $this->app->translator->get('messages.posts.form_content');
+        $createButton = $this->app->translator->get('messages.posts.create_button');
+        $cancelButton = $this->app->translator->get('messages.posts.cancel_button');
+
+        // 2. Render the view
         $this->view('create-post', [
-            'pageTitle' => 'Create New Post'
+            'pageTitle'    => $pageTitle,
+            'formTitle'    => $formTitle,
+            'formContent'  => $formContent,
+            'createButton' => $createButton,
+            'cancelButton' => $cancelButton,
         ]);
     }
 
