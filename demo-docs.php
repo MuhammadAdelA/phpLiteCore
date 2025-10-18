@@ -240,7 +240,7 @@
             يتم تعريف جميع مسارات الويب في ملف <code>routes/web.php</code>. يقوم هذا الملف بتسجيل المسارات (Routes) إلى كائن <code>$router</code>.
         </p>
         <p>
-            [cite_start]يقوم <code>Router.php</code> [cite: 2] بمطابقة الرابط الحالي مع المسارات المسجلة وتشغيل المتحكم المناسب.
+            يقوم <code>Router.php</code> بمطابقة الرابط الحالي مع المسارات المسجلة وتشغيل المتحكم المناسب.
         </p>
 
         <h3>أمثلة على المسارات</h3>
@@ -248,24 +248,24 @@
         <p><strong>مسار GET بسيط:</strong></p>
         <pre><code>// routes/web.php
 
-// يربط الرابط '/' (الجذر) بالدالة 'index' في 'HomeController'
+// Connects the '/' (root) route to the 'index' method in 'HomeController'
 $router->get('/', ['HomeController', 'index']);
 
-// يربط الرابط '/about' بالدالة 'index' في 'AboutController'
+// Connects the '/about' route to the 'index' method in 'AboutController'
 $router->get('/about', ['AboutController', 'index']);</code></pre>
 
         <p><strong>مسار POST:</strong></p>
         <pre><code>// routes/web.php
 
-// يربط طلب POST إلى '/posts' بالدالة 'store' في 'PostController'
+// Connects a POST request to '/posts' to the 'store' method in 'PostController'
 $router->post('/posts', ['PostController', 'store']);</code></pre>
 
         <p><strong>المسارات الديناميكية (Dynamic Routes):</strong></p>
         <pre><code>// routes/web.php
 
-// يربط أي رابط مثل '/posts/1' أو '/posts/101'
-// بالدالة 'show' في 'PostController'
-// ويمرر '101' كبارامتر $id
+// Connects any route like '/posts/1' or '/posts/101'
+// to the 'show' method in 'PostController'
+// and passes '101' as the $id parameter
 $router->get('/posts/{id}', ['PostController', 'show']);</code></pre>
 
         <div class="alert alert-warning">
@@ -274,12 +274,12 @@ $router->get('/posts/{id}', ['PostController', 'show']);</code></pre>
             إذا تم تعريف <code>/posts/{id}</code> أولاً، سيتعامل الموجّه مع <code>/posts/create</code> على أنه طلب لـ ID بقيمة "create"، مما يسبب خطأ فادحاً (كما تم إصلاحه).
         </div>
 
-        <pre><code>// routes/web.php (المثال الصحيح)
+        <pre><code>// routes/web.php (Correct Example)
 
-// (صحيح) المسار الثابت أولاً
+// (Correct) Static route first
 $router->get('/posts/create', ['PostController', 'create']);
 
-// (صحيح) المسار الديناميكي ثانياً
+// (Correct) Dynamic route second
 $router->get('/posts/{id}', ['PostController', 'show']);</code></pre>
     </section>
 
@@ -423,9 +423,9 @@ if ($post) {
             عندما تستدعي <code>$this->view('home', $data)</code> من المتحكم:
         </p>
         <ol>
-            [cite_start]<li>كلاس <code>Layout.php</code> [cite: 3] [cite_start]ينشئ كائن <code>View.php</code> [cite: 4] لملف العرض (مثل <code>views/themes/default/home.php</code>).</li>
+            <li>كلاس <code>Layout.php</code> ينشئ كائن <code>View.php</code> لملف العرض (مثل <code>views/themes/default/home.php</code>).</li>
             <li>يتم عرض <code>home.php</code> وتخزين مخرجاته في متغير <code>$content</code>.</li>
-            [cite_start]<li>يتم عرض القالب الرئيسي <code>views/layouts/app.php</code>[cite: 1].</li>
+            <li>يتم عرض القالب الرئيسي <code>views/layouts/app.php</code>.</li>
             <li>القالب الرئيسي يقوم بطباعة متغير <code>$content</code> بداخله.</li>
         </ol>
 
@@ -450,7 +450,7 @@ require PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'partials' . DIRECTOR
     &lt;p&gt;&lt;?= nl2br(htmlspecialchars($post->body)) ?&gt;&lt;/p&gt;
     &lt;hr&gt;
 
-    &lt;!-- يستخدم المتغيرات المترجمة التي تم تمريرها من المتحكم --&gt;
+    &lt;!-- Uses translated variables passed from the controller --&gt;
     &lt;small&gt;&lt;?= htmlspecialchars($publishedOnText) ?&gt; &lt;?= date('Y-m-d', strtotime($post->created_at)) ?&gt;&lt;/small&gt;
 
 &lt;/article&gt;
@@ -467,7 +467,7 @@ require PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'partials' . DIRECTOR
         </p>
         <ul>
             <li><strong>المسار:</strong> <code>resources/lang/{locale}/{filename}.php</code></li>
-            [cite_start]<li><strong>أمثلة:</strong> <code>/lang/en/messages.php</code> [cite: 1][cite_start], <code>/lang/ar/validation.php</code>[cite: 3].</li>
+            <li><strong>أمثلة:</strong> <code>/lang/en/messages.php</code>, <code>/lang/ar/validation.php</code>.</li>
         </ul>
 
         <h3>آلية "Dot Notation"</h3>
@@ -490,7 +490,7 @@ require PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'partials' . DIRECTOR
             عند طلب مفتاح من ملف لم يتم تحميله بعد، يقوم المترجم بتحميله تلقائياً.
         </p>
         <p>للوصول للمفتاح <code>required</code> داخل <code>resources/lang/en/validation.php</code>:</p>
-        <pre><code>// المترجم سيقوم تلقائياً بتحميل "validation.php"
+        <pre><code>// The translator will automatically load "validation.php"
 $error = $this->app->translator->get('validation.required');
 // $error = "The {{field}} field is required."</code></pre>
 
@@ -498,15 +498,15 @@ $error = $this->app->translator->get('validation.required');
         <p>
             يتم تمرير مصفوفة كبارامتر ثانٍ لاستبدال المتغيرات (المحاطة بـ <code>{{...}}</code>).
         </p>
-        <pre><code>// المفتاح: 'messages.posts.not_found' => 'Post with ID {{id}} not found.'
-$id = urldecode('سسسس'); //
+        <pre><code>// Key: 'messages.posts.not_found' => 'Post with ID {{id}} not found.'
+$id = urldecode('example'); //
 
 $message = $this->app->translator->get(
     'messages.posts.not_found',
     ['id' => $id]
 ); //
 
-// $message = "المقالة ذات المعرف سسسس غير موجودة."</code></pre>
+// $message = "Post with ID example not found."</code></pre>
     </section>
 
     <section id="validation">
@@ -519,7 +519,7 @@ $message = $this->app->translator->get(
         </p>
 
         <h3>مثال: من <code>PostController</code></h3>
-        <pre><code>// داخل دالة store() في PostController
+        <pre><code>// Inside the store() method in PostController
 
 try {
     // 1. Define the validation rules.
@@ -538,8 +538,8 @@ try {
 
 } catch (ValidationException $e) {
     // 4. (Failure)
-    // $e->getErrors() ستحتوي على الأخطاء المترجمة
-    // مثل: ['title' => ['The title field is required.']]
+    // $e->getErrors() will contain the translated errors
+    // e.g.: ['title' => ['The title field is required.']]
     http_response_code(422);
     echo json_encode(['errors' => $e->getErrors()]);
 }</code></pre>
@@ -571,10 +571,10 @@ try {
             يمكنك إطلاق صفحة 404 مترجمة من أي متحكم باستخدام <code>Response::notFound()</code>.
         </p>
 
-        <pre><code>// استخدام رسالة 404 الافتراضية المترجمة
+        <pre><code>// Use the default translated 404 message
 Response::notFound();
 
-// استخدام رسالة مخصصة (يجب أن تكون مترجمة مسبقاً)
+// Use a custom (must be pre-translated) message
 $message = $this->app->translator->get('messages.posts.not_found', ['id' => $id]);
 Response::notFound($message); //</code></pre>
     </section>
@@ -603,14 +603,14 @@ Response::notFound($message); //</code></pre>
     &lt;meta charset="UTF-8"&gt;
     &lt;title&gt;&lt;?= htmlspecialchars($pageTitle ?? 'phpLiteCore') ?&gt;&lt;/title&gt;
 
-    &lt;!-- استدعاء ملف CSS المبني --&gt;
+    &lt;!-- Include the built CSS file --&gt;
     &lt;link rel="stylesheet" href="/assets/app.css"&gt;
 &lt;/head&gt;
 &lt;body&gt;
 ...</code></pre>
         <pre><code>&lt;!-- views/partials/footer.php --&gt;
 ...
-    &lt;!-- استدعاء ملف JS المبني --&gt;
+    &lt;!-- Include the built JS file --&gt;
     &lt;script src="/assets/app.js"&gt;&lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>

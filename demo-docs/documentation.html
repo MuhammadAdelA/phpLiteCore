@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>توثيق إطار عمل phpLiteCore</title>
+    <link rel="stylesheet" href="documentation.css">
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle-btn">تبديل الوضع</button>
+
+<nav id="sidebar">
+    <h2>توثيق phpLiteCore</h2>
+    <ul>
+        <li><a href="#intro" class="active">المقدمة والفلسفة</a></li>
+        <li><a href="#structure">الهيكل الأساسي</a></li>
+        <li><a href="#routing">نظام التوجيه (Routing)</a></li>
+        <li><a href="#controllers">المتحكمات (Controllers)</a></li>
+        <li>
+            <a href="#models">النماذج وقاعدة البيانات</a>
+            <ul>
+                <li><a href="#models-intro">1. نظرة عامة</a></li>
+                <li><a href="query-builder-guide.html" target="_blank">2. <strong>دليل منشئ الاستعلامات (شامل)</strong></a></li>
+            </ul>
+        </li>
+        <li><a href="#views">ملفات العرض والقوالب (Views)</a></li>
+        <li><a href="#translation">نظام الترجمة (i18n)</a></li>
+        <li><a href="#validation">التحقق من المدخلات (Validation)</a></li>
+        <li><a href="#errors">معالجة الأخطاء</a></li>
+        <li><a href="#assets">إدارة الأصول (Assets)</a></li>
+    </ul>
+</nav>
+
+<main>
+
+    <section id="intro">
+        <h1>المقدمة والفلسفة</h1>
+        <p>
+            <code>phpLiteCore</code> هو إطار عمل PHP حديث، خفيف الوزن، وسريع لبناء تطبيقات الويب من أي حجم.
+        </p>
+        <p>
+            يعتمد الإطار على فلسفة تصميم واضحة كما هو محدد في دستوره (القسم 2):
+        </p>
+        <ul>
+            <li><strong>المتحكم الأمامي (Front Controller):</strong> جميع الطلبات تمر عبر ملف <code>index.php</code> واحد، ويقوم <code>.htaccess</code> بتوجيه كل شيء إليه.</li>
+            <li><strong>الفصل الصارم للمسؤوليات (MVC):</strong> يتم فصل المنطق عن العرض بشكل كامل. المتحكمات (Controllers) تحضر البيانات وتمررها، وملفات العرض (Views) تعرضها فقط.</li>
+            <li><strong>نمط Active Record الهجين:</strong> طريقة قوية للتعامل مع قاعدة البيانات تجمع بين بساطة Active Record وقوة منشئ الاستعلامات (Query Builder).</li>
+        </ul>
+    </section>
+
+    <section id="structure">
+        <h1>الهيكل الأساسي</h1>
+        <p>يعتمد الإطار على هيكل ملفات واضح لفصل المسؤوليات (دستور القسم 3 و 4):</p>
+        <ul>
+            <li><code>/app</code>: يحتوي على كود التطبيق الخاص بك (<code>Controllers</code> و <code>Models</code>).</li>
+            <li><code>/src</code>: يحتوي على نواة (Core) إطار العمل (<code>Database</code>, <code>Routing</code>, <code>Lang</code>, etc.).</li>
+            <li><code>/resources</code>: ملفات المصدر قبل البناء (<code>js</code>, <code>scss</code>, <code>lang</code>).</li>
+            <li><code>/public</code>: المجلد الوحيد المتاح للويب. يحتوي فقط على الأصول (Assets) المبنية.</li>
+            <li><code>/views</code>: جميع ملفات قوالب العرض (<code>layouts</code>, <code>partials</code>, <code>themes</code>).</li>
+            <li><code>/routes</code>: ملف <code>web.php</code> لتعريف المسارات.</li>
+        </ul>
+    </section>
+
+    <section id="routing">
+        <h1>نظام التوجيه (Routing)</h1>
+        <p>
+            يتم تعريف جميع مسارات الويب في ملف <code>routes/web.php</code>. يقوم هذا الملف بتسجيل المسارات (Routes) إلى كائن <code>$router</code>.
+        </p>
+
+        <h3>أمثلة على المسارات</h3>
+
+        <p><strong>المسارات الأساسية (GET / POST):</strong></p>
+        <pre><code><span class="php-comment">// routes/web.php</span>
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/'</span>, [<span class="php-string">'HomeController'</span>, <span class="php-string">'index'</span>]);
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/about'</span>, [<span class="php-string">'AboutController'</span>, <span class="php-string">'index'</span>]);
+<span class="php-variable">$router</span>-><span class="php-function">post</span>(<span class="php-string">'/posts'</span>, [<span class="php-string">'PostController'</span>, <span class="php-string">'store'</span>]);</code></pre>
+
+        <p><strong>المسارات الديناميكية (وترتيبها):</strong></p>
+        <div class="alert alert-warning">
+            <strong>هام جداً (ترتيب المسارات):</strong> يجب دائماً تعريف المسارات الثابتة (مثل <code>/posts/create</code>) <strong>قبل</strong> المسارات الديناميكية (مثل <code>/posts/{id}</code>).
+        </div>
+
+        <pre><code><span class="php-comment">// routes/web.php (Correct Example)</span>
+
+<span class="php-comment">// (Correct) Static route first</span>
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/posts/create'</span>, [<span class="php-string">'PostController'</span>, <span class="php-string">'create'</span>]);
+
+<span class="php-comment">// (Correct) Dynamic route second</span>
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/posts/{id}'</span>, [<span class="php-string">'PostController'</span>, <span class="php-string">'show'</span>]);</code></pre>
+    </section>
+
+    <section id="controllers">
+        <h1>المتحكمات (Controllers)</h1>
+        <p>
+            المتحكمات موجودة في <code>app/Controllers</code> وهي مسؤولة عن منطق الطلب (دستور القسم 2 - MVC).
+        </p>
+        <p>
+            يجب أن ترث جميع المتحكمات من <code>BaseController</code>. هذا يمنحها الوصول إلى كائن التطبيق (<code>$this->app</code>) ودالة عرض القوالب <code>$this->view()</code>.
+        </p>
+
+        <h3>مثال كامل: <code>HomeController.php</code></h3>
+        <p>
+            هذا مثال مثالي يوضح "الفصل الصارم للمسؤوليات" (دستور القسم 2).
+        </p>
+
+        <pre><code><span class="php-keyword">&lt;?php</span>
+<span class="php-keyword">namespace</span> App\Controllers;
+
+<span class="php-keyword">use</span> <span class="php-class">App\Models\User</span>;
+
+<span class="php-keyword">class</span> <span class="php-class">HomeController</span> <span class="php-keyword">extends</span> <span class="php-class">BaseController</span>
+{
+    <span class="php-keyword">public</span> <span class="php-keyword">function</span> <span class="php-function">index</span>(): <span class="php-keyword">void</span>
+    {
+        <span class="php-comment">// 1. Business Logic</span>
+        <span class="php-variable">$user</span> = <span class="php-class">User</span>::<span class="php-function">find</span>(<span class="php-number">1</span>);
+
+        <span class="php-comment">// 2. Prepare ALL translated variables for the view</span>
+        <span class="php-variable">$pageTitle</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.home.page_title'</span>);
+        <span class="php-variable">$heroSubtitle</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(
+            <span class="php-string">'messages.home.hero_subtitle'</span>,
+            [<span class="php-string">'name'</span> => <span class="php-variable">$user</span>->name ?? <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.guest'</span>)]
+        );
+        <span class="php-variable">$versionLabel</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.home.version_label'</span>);
+
+        <span class="php-comment">// 3. Render the view, passing all final translated strings.</span>
+        <span class="php-variable">$this</span>-><span class="php-function">view</span>(<span class="php-string">'home'</span>, <span class="php-function">compact</span>(
+            <span class="php-string">'pageTitle'</span>,
+            <span class="php-string">'heroSubtitle'</span>,
+            <span class="php-string">'versionLabel'</span>
+        ));
+    }
+}</code></pre>
+    </section>
+
+    <section id="models">
+        <h1 id="models-intro">النماذج وقاعدة البيانات</h1>
+        <p>
+            يعتمد الإطار على نمط **"Active Record الهجين"** (دستور القسم 2).
+        </p>
+        <p>
+            يتم تحقيق ذلك بجعل جميع النماذج (مثل <code>User.php</code> و <code>Post.php</code>) ترث من <code>src/Database/Model/BaseModel.php</code>.
+        </p>
+        <p>
+            نظراً لشمولية هذا الجزء، تم تخصيص دليل مفصل له.
+        </p>
+        <a href="query-builder-guide.html" target="_blank" class="button-link">اذهب إلى: <strong>دليل منشئ الاستعلامات الشامل</strong></a>
+        <p style="margin-top: 20px;">
+            يشرح الدليل الجديد بالتفصيل كيفية تنفيذ:
+        </p>
+        <ul>
+            <li>الاستعلامات البسيطة (<code>find</code>, <code>all</code>, <code>first</code>).</li>
+            <li>جميع أنواع جمل <code>WHERE</code> (<code>where</code>, <code>orWhere</code>, <code>whereIn</code>, <code>whereBetween</code>).</li>
+            <li>جمل <code>LIKE</code> (<code>whereStarts</code>, <code>whereHas</code>).</li>
+            <li>التجميع والترتيب (<code>count</code>, <code>orderBy</code>, <code>limit</code>).</li>
+            <li>تقسيم الصفحات (<code>paginate</code>).</li>
+            <li>الإنشاء والتحديث والحذف (<code>save</code>, <code>delete</code>).</li>
+        </ul>
+    </section>
+
+    <section id="views">
+        <h1>ملفات العرض والقوالب (Views)</h1>
+        <p>
+            تتبع ملفات العرض قاعدة "الفصل الصارم" (دستور القسم 2 - MVC):
+        </p>
+        <ul>
+            <li>مسؤولة <strong>فقط</strong> عن عرض المتغيرات التي تم تمريرها إليها.</li>
+            <li>ممنوع منعاً باتاً وضع أي منطق برمجي داخلها.</li>
+            <li>استخدم دائماً صيغة <code>&lt;?= htmlspecialchars(...) ?&gt;</code> لطباعة المتغيرات.</li>
+        </ul>
+
+        <h4>مثال: ملف العرض <code>views/themes/default/post.php</code></h4>
+        <div class="alert alert-warning">
+            <strong>تدقيق عقد البيانات (1.6.1):</strong> لاحظ استخدام <code>$post->title</code> (الوصول ككائن) لأنه يستلم كائن (Object) من <code>PostController</code>.
+        </div>
+
+        <pre><code><span class="html-tag">&lt;article&gt;</span>
+    <span class="html-tag">&lt;h1&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$post</span>->title) ?&gt;<span class="html-tag">&lt;/h1&gt;</span>
+    <span class="html-tag">&lt;p&gt;</span>&lt;?= <span class="php-function">nl2br</span>(<span class="php-function">htmlspecialchars</span>(<span class="php-variable">$post</span>->body)) ?&gt;<span class="html-tag">&lt;/p&gt;</span>
+    <span class="html-tag">&lt;hr&gt;</span>
+
+    <span class="html-comment">&lt;!-- Uses translated variables passed from the controller --&gt;</span>
+    <span class="html-tag">&lt;small&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$publishedOnText</span>) ?&gt; &lt;?= <span class="php-function">date</span>(<span class="php-string">'Y-m-d'</span>, <span class="php-function">strtotime</span>(<span class="php-variable">$post</span>->created_at)) ?&gt;<span class="html-tag">&lt;/small&gt;</span>
+
+<span class="html-tag">&lt;/article&gt;</span>
+<span class="html-tag">&lt;a</span> <span class="html-attr">href=</span><span class="html-value">"/posts"</span><span class="html-tag">&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$backLinkText</span>) ?&gt;<span class="html-tag">&lt;/a&gt;</span></code></pre>
+    </section>
+
+    <section id="translation">
+        <h1>نظام الترجمة (i18n)</h1>
+        <p>
+            الترجمة **إلزامية** لجميع النصوص الموجهة للمستخدم (دستور القسم 1.5).
+        </p>
+        <p>
+            يستخدم الإطار نظاماً مجزأ (Modular) يعتمد على "التحميل الكسول" (Lazy Loading).
+        </p>
+
+        <h3>آلية "Dot Notation"</h3>
+        <p>
+            للوصول إلى نص مترجم، نستخدم <code>$translator->get('filename.key')</code>.
+        </p>
+
+        <h4>مثال 1: مفتاح متداخل (Nested)</h4>
+        <pre><code><span class="php-comment">// Key 'page_title' inside 'home' array in 'messages.php'</span>
+<span class="php-variable">$title</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.home.page_title'</span>);
+<span class="php-comment">// $title = "Welcome to phpLiteCore"</span></code></pre>
+
+        <h4>مثال 2: التحميل الكسول (Lazy Loading)</h4>
+        <pre><code><span class="php-comment">// The translator will automatically load "validation.php"</span>
+<span class="php-variable">$error</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'validation.required'</span>);
+<span class="php-comment">// $error = "The {{field}} field is required."</span></code></pre>
+
+        <h4>مثال 3: تمرير متغيرات (Placeholders)</h4>
+        <pre><code><span class="php-comment">// Key: 'messages.posts.not_found' => 'Post with ID {{id}} not found.'</span>
+<span class="php-variable">$id</span> = <span class="php-function">urldecode</span>(<span class="php-variable">$id_from_url</span>);
+
+<span class="php-variable">$message</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(
+    <span class="php-string">'messages.posts.not_found'</span>,
+    [<span class="php-string">'id'</span> => <span class="php-variable">$id</span>]
+); <span class="php-comment">//</span>
+
+<span class="php-comment">// $message = "Post with ID {decoded_id} not found."</span></code></pre>
+    </section>
+
+    <section id="validation">
+        <h1>التحقق من المدخلات (Validation)</h1>
+        <p>
+            يوفر الإطار كلاس <code>Validator</code> بسيط (موجود في <code>src/Validation/Validator.php</code>) أصبح الآن متصلاً بخدمة الترجمة.
+        </p>
+
+        <h3>مثال: من <code>PostController</code></h3>
+        <pre><code><span class="php-comment">// Inside the store() method in PostController</span>
+
+<span class="php-keyword">try</span> {
+    <span class="php-variable">$rules</span> = [
+        <span class="php-string">'title'</span> => <span class="php-string">'required|min:5'</span>,
+        <span class="php-string">'body'</span>  => <span class="php-string">'required|min:10'</span>,
+    ];
+
+    <span class="php-variable">$validatedData</span> = <span class="php-class">Validator</span>::<span class="php-function">validate</span>(<span class="php-variable">$_POST</span>, <span class="php-variable">$rules</span>); <span class="php-comment">//</span>
+
+    <span class="php-comment">// (Success) Create the post...</span>
+    <span class="php-variable">$post</span> = <span class="php-keyword">new</span> <span class="php-class">Post</span>(<span class="php-variable">$validatedData</span>);
+    <span class="php-variable">$post</span>-><span class="php-function">save</span>();
+    <span class="php-class">Response</span>::<span class="php-function">redirect</span>(<span class="php-string">'/posts'</span>);
+
+} <span class="php-keyword">catch</span> (<span class="php-class">ValidationException</span> <span class="php-variable">$e</span>) {
+    <span class="php-comment">// (Failure) $e->getErrors() will contain the translated errors</span>
+    <span class="php-function">http_response_code</span>(<span class="php-number">422</span>);
+    <span class="php-function">echo</span> <span class="php-function">json_encode</span>([<span class="php-string">'errors'</span> => <span class="php-variable">$e</span>-><span class="php-function">getErrors</span>()]);
+}</code></pre>
+    </section>
+
+    <section id="errors">
+        <h1>معالجة الأخطاء</h1>
+        <p>
+            يتم التحكم في معالجة الأخطاء بواسطة <code>src/Bootstrap/ErrorHandler.php</code> (دستور القسم 2).
+        </p>
+
+        <h3>بيئة الإنتاج (<code>ENV=production</code>)</h3>
+        <p>
+            يقوم النظام بإخفاء التفاصيل، تسجيل الخطأ، إرسال بريد للمطور، وعرض صفحة خطأ عامة ومترجمة.
+        </p>
+
+        <h3>أخطاء 404 (غير موجود)</h3>
+        <p>
+            استدعاء <code>Response::notFound()</code> من المتحكم.
+        </p>
+
+        <pre><code><span class="php-comment">// Use the default translated 404 message</span>
+<span class="php-class">Response</span>::<span class="php-function">notFound</span>();
+
+<span class="php-comment">// Use a custom (must be pre-translated) message</span>
+<span class="php-variable">$message</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.posts.not_found'</span>, [<span class="php-string">'id'</span> => <span class="php-variable">$id</span>]);
+<span class="php-class">Response</span>::<span class="php-function">notFound</span>(<span class="php-variable">$message</span>); <span class="php-comment">//</span></code></pre>
+    </section>
+
+    <section id="assets">
+        <h1>إدارة الأصول (Assets)</h1>
+        <p>
+            يعتمد الإطار على <strong>Webpack</strong>, <strong>NPM</strong>, و <strong>SCSS</strong> (دستور القسم 2).
+        </p>
+        <p>
+            يتم تعريف الاعتماديات في <code>package.json</code>، ويتم تعريف إعدادات البناء في <code>webpack.config.js</code>.
+        </p>
+
+        <h3>تدفق العمل (Workflow)</h3>
+        <ol>
+            <li>تعديل ملفات المصدر: <code>resources/js/app.js</code> أو <code>resources/scss/app.scss</code>.</li>
+            <li>تشغيل <code>npm run dev</code> (للتطوير) أو <code>npm run build</code> (للإنتاج).</li>
+            <li>يقوم Webpack ببناء الملفات النهائية في <code>public/assets/app.js</code> و <code>public/assets/app.css</code>.</li>
+        </ol>
+
+        <pre><code><span class="html-comment">&lt;!-- views/partials/header.php --&gt;</span>
+<span class="html-tag">&lt;head&gt;</span>
+    <span class="html-tag">&lt;meta</span> <span class="html-attr">charset=</span><span class="html-value">"UTF-8"</span><span class="html-tag">&gt;</span>
+    <span class="html-tag">&lt;title&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$pageTitle</span> ?? <span class="php-string">'phpLiteCore'</span>) ?&gt;<span class="html-tag">&lt;/title&gt;</span>
+
+    <span class="html-comment">&lt;!-- Include the built CSS file --&gt;</span>
+    <span class="html-tag">&lt;link</span> <span class="html-attr">rel=</span><span class="html-value">"stylesheet"</span> <span class="html-attr">href=</span><span class="html-value">"/assets/app.css"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;/head&gt;</span></code></pre>
+    </section>
+
+</main>
+
+<script src="documentation.js"></script>
+</body>
+</html>

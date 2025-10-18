@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل منشئ الاستعلامات - phpLiteCore</title>
+    <link rel="stylesheet" href="documentation.css">
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle-btn">تبديل الوضع</button>
+
+<nav id="sidebar">
+    <h2>دليل الاستعلامات</h2>
+    <ul>
+        <li><a href="documentation.html">العودة للتوثيق الرئيسي</a></li>
+        <li><a href="#guide-intro" class="active">المقدمة (Active Record)</a></li>
+        <li>
+            <a href="#guide-retrieving">1. جلب البيانات (SELECT)</a>
+            <ul>
+                <li><a href="#guide-all-find">all, find, first</a></li>
+                <li><a href="#guide-chaining">بناء الاستعلامات (Chaining)</a></li>
+                <li><a href="#guide-aggregates">التجميع (Aggregates)</a></li>
+                <li><a href="#guide-pagination">تقسيم الصفحات (Paginate)</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#guide-where">2. جمل WHERE (شامل)</a>
+            <ul>
+                <li><a href="#guide-where-basic">Where (Basic & Array)</a></li>
+                <li><a href="#guide-where-or">orWhere</a></li>
+                <li><a href="#guide-where-nested">Where (Nested - Groups)</a></li>
+                <li><a href="#guide-where-in">whereIn / whereNotIn</a></li>
+                <li><a href="#guide-where-between">whereBetween / orWhereBetween</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#guide-like">3. جمل (LIKE)</a>
+            <ul>
+                <li><a href="#guide-like-starts">whereStarts</a></li>
+                <li><a href="#guide-like-has">whereHas (Contains)</a></li>
+                <li><a href="#guide-like-ends">whereEnds</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#guide-manipulation">4. الإضافة والتحديث والحذف</a>
+            <ul>
+                <li><a href="#guide-insert">الإنشاء (Insert)</a></li>
+                <li><a href="#guide-update">التحديث (Update)</a></li>
+                <li><a href="#guide-delete">الحذف (Delete)</a></li>
+            </ul>
+        </li>
+        <li><a href="#guide-raw">5. الاستعلامات الخام (Raw)</a></li>
+    </ul>
+</nav>
+
+<main>
+    <section id="guide-intro">
+        <h1>دليل منشئ الاستعلامات (Query Builder)</h1>
+        <p>
+            يغطي هذا الدليل بالتفصيل كيفية التفاعل مع قاعدة البيانات باستخدام نمط **Active Record الهجين** (دستور القسم 2) في إطار عمل phpLiteCore.
+        </p>
+        <p>
+            تعتمد الآلية على ملف <code>BaseModel.php</code> الذي يستخدم <code>BaseQueryBuilder.php</code> ومجموعة <code>Traits</code> (<code>QueryBuilderWhereTraits</code>, <code>QueryBuilderLikeTraits</code>) لتوفير واجهة مرنة.
+        </p>
+        <div class="alert alert-warning">
+            <strong>عقد البيانات (Data Contract):</strong> جميع دوال الاستعلام التي تعيد سجلات (مثل <code>get</code>, <code>first</code>, <code>paginate</code>) تقوم "بترطيب" (Hydrate) النتائج إلى <strong>كائنات (Objects)</strong> من نوع النموذج. تذكر دائماً استخدام <code>$user->name</code> وليس <code>$user['name']</code>.
+        </div>
+    </section>
+
+    <section id="guide-retrieving">
+        <h2>1. جلب البيانات (SELECT)</h2>
+
+        <h3 id="guide-all-find">all, find, first</h3>
+        <p>هذه هي الطرق الأساسية لجلب السجلات.</p>
+        <pre><code><span class="php-comment">// Get all records from the 'users' table</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">all</span>();
+
+<span class="php-comment">// Find a record by its primary key (e.g., 'id')</span>
+<span class="php-variable">$user</span> = <span class="php-class">User</span>::<span class="php-function">find</span>(<span class="php-number">1</span>);
+
+<span class="php-comment">// Get the *first* record matching a query</span>
+<span class="php-variable">$user</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)-><span class="php-function">first</span>();</code></pre>
+
+        <h3 id="guide-chaining">بناء الاستعلامات (Chaining)</h3>
+        <p>يمكنك بناء استعلامات معقدة عن طريق "سلسلة" (chaining) الدوال معاً.</p>
+
+        <pre><code><span class="php-variable">$activeAdmins</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)
+                     -><span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">orderBy</span>(<span class="php-string">'created_at'</span>, <span class="php-string">'DESC'</span>)
+                     -><span class="php-function">limit</span>(<span class="php-number">10</span>)
+                     -><span class="php-function">get</span>();</code></pre>
+
+        <h3 id="guide-aggregates">التجميع (Aggregates)</h3>
+        <p>يوفر المنشئ حالياً دالة <code>count()</code>.</p>
+        <pre><code><span class="php-comment">// Get the total count of all users</span>
+<span class="php-variable">$totalUsers</span> = <span class="php-class">User</span>::<span class="php-function">count</span>();
+
+<span class="php-comment">// Get the count of users matching a WHERE clause</span>
+<span class="php-variable">$adminCount</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)-><span class="php-function">count</span>();</code></pre>
+
+        <h3 id="guide-pagination">تقسيم الصفحات (Paginate)</h3>
+        <p>تقوم دالة <code>paginate()</code> تلقائياً بحساب الإجمالي وتقسيم الصفحات وجلب العناصر للصفحة الحالية.</p>
+
+        <pre><code><span class="php-variable">$itemsPerPage</span> = <span class="php-number">5</span>;
+<span class="php-variable">$currentPage</span> = <span class="php-variable">$_GET</span>[<span class="php-string">'page'</span>] ?? <span class="php-number">1</span>;
+
+<span class="php-comment">// Returns ['paginator' => Paginator, 'items' => [Post, ...]]</span>
+<span class="php-variable">$paginationData</span> = <span class="php-class">Post</span>::<span class="php-function">orderBy</span>(<span class="php-string">'created_at'</span>, <span class="php-string">'DESC'</span>)
+                      -><span class="php-function">paginate</span>(<span class="php-variable">$itemsPerPage</span>, <span class="php-variable">$currentPage</span>);
+
+<span class="php-variable">$posts</span> = <span class="php-variable">$paginationData</span>[<span class="php-string">'items'</span>];
+<span class="php-variable">$paginator</span> = <span class="php-variable">$paginationData</span>[<span class="php-string">'paginator'</span>];</code></pre>
+    </section>
+
+    <section id="guide-where">
+        <h2>2. جمل WHERE (شامل)</h2>
+        <p>
+            يقدم منشئ الاستعلامات واجهة مرنة لبناء جمل <code>WHERE</code> المعقدة، وذلك بفضل <code>QueryBuilderWhereTraits.php</code>.
+        </p>
+
+        <h3 id="guide-where-basic">Where (Basic & Array)</h3>
+        <p>
+            أبسط أشكال <code>where</code> تقبل عموداً وقيمة (يفترض المعامل '=' تلقائياً)، أو عموداً ومعاملاً وقيمة.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `role` = 'admin'</span>
+<span class="php-variable">$admins</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)-><span class="php-function">get</span>();
+
+<span class="php-comment">// WHERE `points` > 100</span>
+<span class="php-variable">$highScoreUsers</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'points'</span>, <span class="php-string">'&gt;'</span>, <span class="php-number">100</span>)-><span class="php-function">get</span>();</code></pre>
+        <p>
+            يمكنك أيضاً تمرير مصفوفة لإنشاء عدة شروط <code>AND</code> باستخدام المعامل '='.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `role` = 'admin' AND `status` = 'active'</span>
+<span class="php-variable">$activeAdmin</span> = <span class="php-class">User</span>::<span class="php-function">where</span>([
+    <span class="php-string">'role'</span> => <span class="php-string">'admin'</span>,
+    <span class="php-string">'status'</span> => <span class="php-string">'active'</span>
+])-><span class="php-function">first</span>();</code></pre>
+
+        <h3 id="guide-where-or">orWhere</h3>
+        <p>لربط الشروط باستخدام <code>OR</code>.</p>
+        <pre><code><span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">orWhere</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)
+                     -><span class="php-function">get</span>();
+<span class="php-comment">// SQL: SELECT * FROM `users` WHERE `status` = ? OR `role` = ?</span></code></pre>
+
+        <h3 id="guide-where-nested">Where (Nested - Groups)</h3>
+        <p>
+            لتجميع الشروط داخل أقواس <code>(...)</code>، يمكنك تمرير دالة (Closure) إلى <code>where</code> أو <code>orWhere</code>.
+            الدالة ستستقبل نسخة جديدة من منشئ الاستعلامات يمكنك استخدامها لإضافة الشروط المتداخلة.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `status` = 'active' AND (`role` = 'admin' OR `role` = 'moderator')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">where</span>(<span class="php-keyword">function</span> (<span class="php-variable">$query</span>) {
+                         <span class="php-variable">$query</span>-><span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)
+                               -><span class="php-function">orWhere</span>(<span class="php-string">'role'</span>, <span class="php-string">'moderator'</span>);
+                     })
+                     -><span class="php-function">get</span>();</code></pre>
+        <p>
+            يمكنك استخدام <code>orWhere</code> مع دالة لإنشاء مجموعة <code>OR (...)</code>.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `status` = 'active' OR (`created_at` > '2025-01-01' AND `role` = 'guest')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">orWhere</span>(<span class="php-keyword">function</span> (<span class="php-variable">$query</span>) {
+                         <span class="php-variable">$query</span>-><span class="php-function">where</span>(<span class="php-string">'created_at'</span>, <span class="php-string">'&gt;'</span>, <span class="php-string">'2025-01-01'</span>)
+                               -><span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'guest'</span>);
+                     })
+                     -><span class="php-function">get</span>();</code></pre>
+
+        <h3 id="guide-where-in">whereIn / whereNotIn</h3>
+        <p>للتحقق مما إذا كانت قيمة العمود موجودة ضمن مصفوفة قيم.</p>
+        <pre><code><span class="php-variable">$ids</span> = [<span class="php-number">1</span>, <span class="php-number">5</span>, <span class="php-number">10</span>];
+
+<span class="php-comment">// WHERE `id` IN (1, 5, 10)</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereIn</span>(<span class="php-string">'id'</span>, <span class="php-variable">$ids</span>)-><span class="php-function">get</span>();
+
+<span class="php-comment">// WHERE `status` NOT IN ('banned', 'pending')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereNotIn</span>(<span class="php-string">'status'</span>, [<span class="php-string">'banned'</span>, <span class="php-string">'pending'</span>])-><span class="php-function">get</span>(); <span class="php-comment">//</span>
+
+<span class="php-comment">// You can also use orWhereIn / orWhereNotIn</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'active'</span>, <span class="php-number">1</span>)
+                     -><span class="php-function">orWhereIn</span>(<span class="php-string">'role'</span>, [<span class="php-string">'admin'</span>, <span class="php-string">'superadmin'</span>])-><span class="php-function">get</span>(); <span class="php-comment">//</span></code></pre>
+
+        <h3 id="guide-where-between">whereBetween / orWhereBetween</h3>
+        <p>للتحقق مما إذا كانت قيمة العمود تقع ضمن نطاق معين.</p>
+        <pre><code><span class="php-comment">// WHERE `points` BETWEEN 100 AND 200</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereBetween</span>(<span class="php-string">'points'</span>, <span class="php-number">100</span>, <span class="php-number">200</span>)-><span class="php-function">get</span>();
+
+<span class="php-comment">// WHERE `level` < 10 OR `points` BETWEEN 500 AND 1000</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'level'</span>, <span class="php-string">'&lt;'</span>, <span class="php-number">10</span>)
+                     -><span class="php-function">orWhereBetween</span>(<span class="php-string">'points'</span>, <span class="php-number">500</span>, <span class="php-number">1000</span>)-><span class="php-function">get</span>(); <span class="php-comment">//</span></code></pre>
+    </section>
+    <section id="guide-like">
+        <h2>3. جمل (LIKE)</h2>
+        [cite_start]<p>يوفر <code>QueryBuilderLikeTraits.php</code> [cite: 4] دوال مساعدة لعمليات <code>LIKE</code> الشائعة.</p>
+
+        <h3 id="guide-like-starts">whereStarts</h3>
+        <pre><code><span class="php-comment">// WHERE `name` LIKE 'Mu%'</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereStarts</span>(<span class="php-string">'name'</span>, <span class="php-string">'Mu'</span>)-><span class="php-function">get</span>(); <span class="php-comment">//</span></code></pre>
+
+        <h3 id="guide-like-has">whereHas (Contains)</h3>
+        <pre><code><span class="php-comment">// WHERE `email` LIKE '%@gmail.com%'</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereHas</span>(<span class="php-string">'email'</span>, <span class="php-string">'@gmail.com'</span>)-><span class="php-function">get</span>(); <span class="php-comment">//</span></code></pre>
+
+        <h3 id="guide-like-ends">whereEnds</h3>
+        <pre><code><span class="php-comment">// WHERE `avatar` LIKE '%.png'</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereEnds</span>(<span class="php-string">'avatar'</span>, <span class="php-string">'.png'</span>)-><span class="php-function">get</span>(); <span class="php-comment">//</span></code></pre>
+        <p>تدعم هذه الدوال أيضاً تمرير مصفوفة للبحث عن قيم متعددة باستخدام <code>OR</code>.</p>
+        <pre><code><span class="php-comment">// WHERE (`email` LIKE '%@yahoo.com%' OR `email` LIKE '%@hotmail.com%')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereHas</span>(<span class="php-string">'email'</span>, [<span class="php-string">'@yahoo.com'</span>, <span class="php-string">'@hotmail.com'</span>])-><span class="php-function">get</span>();</code></pre>
+    </section>
+
+    <section id="guide-manipulation">
+        <h2>4. الإضافة والتحديث والحذف</h2>
+
+        <h3 id="guide-insert">الإنشاء (Insert)</h3>
+        <p>تتم عملية الإنشاء عن طريق إنشاء كائن <code>new Model()</code> واستدعاء <code>save()</code>.</p>
+        <pre><code><span class="php-comment">// 1. Create a new Post object</span>
+<span class="php-variable">$post</span> = <span class="php-keyword">new</span> <span class="php-class">Post</span>([
+    <span class="php-string">'title'</span>   => <span class="php-string">'New Post Title'</span>,
+    <span class="php-string">'body'</span>    => <span class="php-string">'This is the post body.'</span>,
+    <span class="php-string">'user_id'</span> => <span class="php-number">1</span>,
+]);
+
+<span class="php-comment">// 2. Save (executes INSERT)</span>
+<span class="php-variable">$post</span>-><span class="php-function">save</span>();
+
+<span class="php-comment">// The $post object now contains the new 'id'</span>
+<span class="php-function">echo</span> <span class="php-string">"New post created with ID: "</span> . <span class="php-variable">$post</span>->id;</code></pre>
+
+        <h3 id="guide-update">التحديث (Update)</h3>
+        <p>تتم عملية التحديث عن طريق <code>find()</code>، تعديل الخصائص، ثم استدعاء <code>save()</code>.</p>
+        <pre><code><span class="php-comment">// 1. Find an existing post</span>
+<span class="php-variable">$post</span> = <span class="php-class">Post</span>::<span class="php-function">find</span>(<span class="php-number">10</span>);
+
+<span class="php-keyword">if</span> (<span class="php-variable">$post</span>) {
+    <span class="php-comment">// 2. Modify properties</span>
+    <span class="php-variable">$post</span>->title = <span class="php-string">'This is the Updated Title'</span>;
+    <span class="php-variable">$post</span>->status = <span class="php-string">'published'</span>;
+
+    <span class="php-comment">// 3. Save (executes UPDATE only for changed fields)</span>
+    <span class="php-variable">$post</span>-><span class="php-function">save</span>();
+}</code></pre>
+
+        <h3 id="guide-delete">الحذف (Delete)</h3>
+        <p>يمكن الحذف باستخدام دالة ثابتة مرتبطة بـ <code>where()</code>.</p>
+        <pre><code><span class="php-comment">// Delete a specific post by ID</span>
+<span class="php-variable">$affectedRows</span> = <span class="php-class">Post</span>::<span class="php-function">where</span>(<span class="php-string">'id'</span>, <span class="php-string">'='</span>, <span class="php-number">10</span>)-><span class="php-function">delete</span>();
+
+<span class="php-comment">// Delete all posts by a specific user</span>
+<span class="php-variable">$affectedRows</span> = <span class="php-class">Post</span>::<span class="php-function">where</span>(<span class="php-string">'user_id'</span>, <span class="php-number">5</span>)-><span class="php-function">delete</span>();</code></pre>
+    </section>
+
+    <section id="guide-raw">
+        <h2>5. الاستعلامات الخام (Raw)</h2>
+        <p>في الحالات المعقدة جداً، يمكنك استخدام كائن <code>Database</code> مباشرة للقيام باستعلامات خام (Raw).</p>
+        <div class="alert alert-warning">
+            <strong>تحذير:</strong> استخدم دائماً معاملات الربط (Bindings) لمنع هجمات SQL Injection.
+        </div>
+        <pre><code><span class="php-comment">// Use the '$app->db' service instance</span>
+
+<span class="php-comment">// SELECT query with bindings</span>
+<span class="php-variable">$sql</span> = <span class="php-string">"SELECT * FROM users WHERE role = ? AND status = ?"</span>;
+<span class="php-variable">$bindings</span> = [<span class="php-string">'admin'</span>, <span class="php-string">'active'</span>];
+
+<span class="php-variable">$statement</span> = <span class="php-variable">$this</span>->app->db-><span class="php-function">raw</span>(<span class="php-variable">$sql</span>, <span class="php-variable">$bindings</span>);
+<span class="php-variable">$results</span> = <span class="php-variable">$statement</span>-><span class="php-function">fetchAll</span>(\PDO::FETCH_ASSOC);
+
+<span class="php-comment">// INSERT/UPDATE query (returns affected row count)</span>
+<span class="php-variable">$sql</span> = <span class="php-string">"UPDATE users SET last_login = NOW() WHERE id = ?"</span>;
+<span class="php-variable">$statement</span> = <span class="php-variable">$this</span>->app->db-><span class="php-function">raw</span>(<span class="php-variable">$sql</span>, [<span class="php-number">1</span>]);
+<span class="php-variable">$affected</span> = <span class="php-variable">$statement</span>-><span class="php-function">rowCount</span>();</code></pre>
+    </section>
+
+</main>
+
+<script src="documentation.js"></script>
+</body>
+</html>

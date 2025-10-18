@@ -1,0 +1,219 @@
+:root {
+    --color-bg: #ffffff;
+    --color-text: #222;
+    --color-heading: #004080;
+    --color-link: #0066cc;
+    --color-border: #e0e0e0;
+    --color-code-bg: #f9f9f9;
+    --color-code-text: #333;
+    --color-nav-bg: #f8f8f8;
+    --color-nav-text: #333;
+    --color-nav-active: #004080;
+    --color-nav-active-text: #ffffff;
+    --shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+html[data-theme='dark'] {
+    --color-bg: #1e1e1e;
+    --color-text: #e0e0e0;
+    --color-heading: #80c0ff;
+    --color-link: #58a6ff;
+    --color-border: #333;
+    --color-code-bg: #2a2a2a;
+    --color-code-text: #e0e0e0;
+    --color-nav-bg: #222;
+    --color-nav-text: #e0e0e0;
+    --color-nav-active: #80c0ff;
+    --color-nav-active-text: #1a1a1a;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.7;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    display: flex;
+}
+
+#sidebar {
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    background-color: var(--color-nav-bg);
+    border-left: 1px solid var(--color-border);
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+    z-index: 10;
+}
+
+#sidebar h2 {
+    font-size: 1.5rem;
+    color: var(--color-heading);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 10px;
+}
+
+#sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar ul ul {
+    padding-right: 20px;
+}
+
+#sidebar li a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: var(--color-nav-text);
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+
+#sidebar li a:hover {
+    background-color: var(--color-border);
+}
+
+#sidebar li a.active {
+    background-color: var(--color-nav-active);
+    color: var(--color-nav-active-text);
+    font-weight: bold;
+}
+
+main {
+    margin-right: 320px; /* sidebar width + padding */
+    padding: 40px;
+    max-width: 900px;
+    width: 100%;
+}
+
+section {
+    margin-bottom: 60px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 30px;
+}
+
+h1, h2, h3 {
+    color: var(--color-heading);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 10px;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; border-bottom: none; }
+
+pre {
+    background-color: var(--color-code-bg);
+    color: var(--color-code-text);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    overflow-x: auto;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.95rem;
+    direction: ltr;
+    text-align: left;
+}
+
+code {
+    background-color: var(--color-code-bg);
+    padding: 3px 6px;
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+    font-family: "Courier New", Courier, monospace;
+}
+
+a {
+    color: var(--color-link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.button-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--color-heading);
+    color: var(--color-bg);
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+.button-link:hover {
+    opacity: 0.85;
+    text-decoration: none;
+}
+
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 0.9rem;
+}
+.alert-warning {
+    background-color: #fffaf0;
+    border: 1px solid #ffde7a;
+    color: #7a5c00;
+}
+html[data-theme='dark'] .alert-warning {
+    background-color: #3d2f00;
+    border-color: #a8934f;
+    color: #fff5cc;
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 8px 12px;
+    background-color: var(--color-code-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* --- Syntax Highlighting (Task 3) --- */
+pre code .php-comment,
+pre code .html-comment {
+    color: #6a9955; /* Green */
+}
+pre code .php-keyword {
+    color: #c586c0; /* Magenta (new, if, use, public, function) */
+}
+pre code .php-variable {
+    color: #9cdcfe; /* Light blue ($var, $this) */
+}
+pre code .php-string {
+    color: #ce9178; /* Orange ('string') */
+}
+pre code .php-function {
+    color: #dcdcaa; /* Yellow (functionCall(), compact()) */
+}
+pre code .php-class {
+    color: #4ec9b0; /* Teal (ClassName) */
+}
+pre code .php-number {
+    color: #b5cea8; /* Olive (1, 422) */
+}
+pre code .html-tag {
+    color: #569cd6; /* Blue (<div>, <h1>) */
+}
+pre code .html-attr {
+    color: #9cdcfe; /* Light blue (href=, class=) */
+}
+pre code .html-value {
+    color: #ce9178; /* Orange ("...") */
+}
