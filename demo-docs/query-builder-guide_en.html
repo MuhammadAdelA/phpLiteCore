@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Builder Guide - phpLiteCore</title>
+    <link rel="stylesheet" href="documentation.css">
+    <style>
+        /* Add LTR specific styles if needed, e.g., for sidebar positioning */
+        body { direction: ltr; }
+        #sidebar { left: 0; right: auto; border-right: 1px solid var(--color-border); border-left: none; }
+        main { margin-left: 320px; margin-right: auto; } /* Adjust margin for LTR */
+        #sidebar ul ul { padding-left: 20px; padding-right: 0; }
+        .theme-toggle { right: 20px; left: auto; }
+    </style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle-btn">Toggle Mode</button>
+
+<nav id="sidebar">
+    <h2>Query Builder Guide</h2>
+    <ul>
+        <li><a href="documentation_en.html">Back to Main Documentation</a></li>
+        <li><a href="#guide-intro" class="active">Introduction (Active Record)</a></li>
+        <li>
+            <a href="#guide-retrieving">1. Retrieving Data (SELECT)</a>
+            <ul>
+                <li><a href="#guide-all-find">all, find, first</a></li>
+                <li><a href="#guide-chaining">Building Queries (Chaining)</a></li>
+                <li><a href="#guide-aggregates">Aggregates</a></li>
+                <li><a href="#guide-pagination">Pagination (Paginate)</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#guide-where">2. WHERE Clauses (Full)</a>
+            <ul>
+                <li><a href="#guide-where-basic">Where (Basic & Array)</a></li>
+                <li><a href="#guide-where-or">orWhere</a></li>
+                <li><a href="#guide-where-nested">Where (Nested - Groups)</a></li>
+                <li><a href="#guide-where-in">whereIn / whereNotIn</a></li>
+                <li><a href="#guide-where-between">whereBetween / orWhereBetween</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#guide-like">3. LIKE Clauses</a>
+            <ul>
+                <li><a href="#guide-like-starts">whereStarts</a></li>
+                <li><a href="#guide-like-has">whereHas (Contains)</a></li>
+                <li><a href="#guide-like-ends">whereEnds</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#guide-manipulation">4. Insert, Update, Delete</a>
+            <ul>
+                <li><a href="#guide-insert">Creating (Insert)</a></li>
+                <li><a href="#guide-update">Updating (Update)</a></li>
+                <li><a href="#guide-delete">Deleting (Delete)</a></li>
+            </ul>
+        </li>
+        <li><a href="#guide-raw">5. Raw Queries</a></li>
+    </ul>
+</nav>
+
+<main>
+    <section id="guide-intro">
+        <h1>Query Builder Guide</h1>
+        <p>
+            This guide covers in detail how to interact with the database using the **Hybrid Active Record** pattern (Constitution Section 2) in the phpLiteCore framework.
+        </p>
+        <p>
+            The mechanism relies on <code>BaseModel.php</code> which utilizes <code>BaseQueryBuilder.php</code> and a set of <code>Traits</code> (<code>QueryBuilderWhereTraits</code>, <code>QueryBuilderLikeTraits</code>) to provide a fluent interface.
+        </p>
+        <div class="alert alert-warning">
+            <strong>Data Contract:</strong> All query methods that return records (like <code>get</code>, <code>first</code>, <code>paginate</code>) hydrate the results into **Objects** of the model type. Always remember to use <code>$user->name</code>, not <code>$user['name']</code>.
+        </div>
+    </section>
+
+    <section id="guide-retrieving">
+        <h2>1. Retrieving Data (SELECT)</h2>
+
+        <h3 id="guide-all-find">all, find, first</h3>
+        <p>These are the basic methods for fetching records.</p>
+        <pre><code><span class="php-comment">// Get all records from the 'users' table</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">all</span>();
+
+<span class="php-comment">// Find a record by its primary key (e.g., 'id')</span>
+<span class="php-variable">$user</span> = <span class="php-class">User</span>::<span class="php-function">find</span>(<span class="php-number">1</span>);
+
+<span class="php-comment">// Get the *first* record matching a query</span>
+<span class="php-variable">$user</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)-><span class="php-function">first</span>();</code></pre>
+
+        <h3 id="guide-chaining">Building Queries (Chaining)</h3>
+        <p>You can build complex queries by chaining methods together, terminating with <code>get()</code> (to fetch multiple records) or <code>first()</code> (to fetch a single record).</p>
+
+        <pre><code><span class="php-variable">$activeAdmins</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)
+                     -><span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">orderBy</span>(<span class="php-string">'created_at'</span>, <span class="php-string">'DESC'</span>)
+                     -><span class="php-function">limit</span>(<span class="php-number">10</span>)
+                     -><span class="php-function">get</span>();
+
+<span class="php-keyword">foreach</span> (<span class="php-variable">$activeAdmins</span> <span class="php-keyword">as</span> <span class="php-variable">$admin</span>) {
+    <span class="php-function">echo</span> <span class="php-variable">$admin</span>->name;
+}</code></pre>
+
+        <h3 id="guide-aggregates">Aggregates</h3>
+        <p>The builder currently provides a <code>count()</code> method.</p>
+        <pre><code><span class="php-comment">// Get the total count of all users</span>
+<span class="php-variable">$totalUsers</span> = <span class="php-class">User</span>::<span class="php-function">count</span>();
+
+<span class="php-comment">// Get the count of users matching a WHERE clause</span>
+<span class="php-variable">$adminCount</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)-><span class="php-function">count</span>();</code></pre>
+
+        <h3 id="guide-pagination">Pagination (Paginate)</h3>
+        <p>The <code>paginate()</code> method automatically calculates the total, slices the results, and fetches items for the current page.</p>
+
+        <pre><code><span class="php-comment">// Inside PostController::index()</span>
+<span class="php-variable">$itemsPerPage</span> = <span class="php-number">5</span>;
+<span class="php-variable">$currentPage</span> = <span class="php-variable">$_GET</span>[<span class="php-string">'page'</span>] ?? <span class="php-number">1</span>;
+
+<span class="php-comment">// This returns a structured array: ['paginator' => Paginator, 'items' => [Post, ...]]</span>
+<span class="php-variable">$paginationData</span> = <span class="php-class">Post</span>::<span class="php-function">orderBy</span>(<span class="php-string">'created_at'</span>, <span class="php-string">'DESC'</span>)
+                      -><span class="php-function">paginate</span>(<span class="php-variable">$itemsPerPage</span>, <span class="php-variable">$currentPage</span>);
+
+<span class="php-comment">// Get the post objects for the current page</span>
+<span class="php-variable">$posts</span> = <span class="php-variable">$paginationData</span>[<span class="php-string">'items'</span>];
+
+<span class="php-comment">// Get the Paginator object to render links</span>
+<span class="php-variable">$paginator</span> = <span class="php-variable">$paginationData</span>[<span class="php-string">'paginator'</span>];</code></pre>
+    </section>
+
+    <section id="guide-where">
+        <h2>2. WHERE Clauses (Full)</h2>
+        <p>
+            The query builder offers a flexible interface for constructing complex <code>WHERE</code> clauses, thanks to <code>QueryBuilderWhereTraits.php</code>.
+        </p>
+
+        <h3 id="guide-where-basic">Where (Basic & Array)</h3>
+        <p>
+            The simplest form of <code>where</code> accepts a column and value (implicitly assuming '='), or a column, operator, and value.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `role` = 'admin'</span>
+<span class="php-variable">$admins</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)-><span class="php-function">get</span>();
+
+<span class="php-comment">// WHERE `points` > 100</span>
+<span class="php-variable">$highScoreUsers</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'points'</span>, <span class="php-string">'&gt;'</span>, <span class="php-number">100</span>)-><span class="php-function">get</span>();</code></pre>
+        <p>
+            You can also pass an array to create multiple <code>AND</code> conditions using the '=' operator.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `role` = 'admin' AND `status` = 'active'</span>
+<span class="php-variable">$activeAdmin</span> = <span class="php-class">User</span>::<span class="php-function">where</span>([
+    <span class="php-string">'role'</span> => <span class="php-string">'admin'</span>,
+    <span class="php-string">'status'</span> => <span class="php-string">'active'</span>
+])-><span class="php-function">first</span>();</code></pre>
+
+        <h3 id="guide-where-or">orWhere</h3>
+        <p>To chain conditions using <code>OR</code>.</p>
+        <pre><code><span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">orWhere</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)
+                     -><span class="php-function">get</span>();
+<span class="php-comment">// SQL: SELECT * FROM `users` WHERE `status` = ? OR `role` = ?</span></code></pre>
+
+        <h3 id="guide-where-nested">Where (Nested - Groups)</h3>
+        <p>
+            To group constraints within parentheses <code>(...)</code>, pass a Closure to <code>where</code> or <code>orWhere</code>.
+            The Closure will receive a new query builder instance that you can use to add the nested constraints.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `status` = 'active' AND (`role` = 'admin' OR `role` = 'moderator')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">where</span>(<span class="php-keyword">function</span> (<span class="php-variable">$query</span>) {
+                         <span class="php-variable">$query</span>-><span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)
+                               -><span class="php-function">orWhere</span>(<span class="php-string">'role'</span>, <span class="php-string">'moderator'</span>);
+                     })
+                     -><span class="php-function">get</span>();</code></pre>
+        <p>
+            Use <code>orWhere</code> with a Closure to create an <code>OR (...)</code> group.
+        </p>
+        <pre><code><span class="php-comment">// WHERE `status` = 'active' OR (`created_at` > '2025-01-01' AND `role` = 'guest')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'status'</span>, <span class="php-string">'active'</span>)
+                     -><span class="php-function">orWhere</span>(<span class="php-keyword">function</span> (<span class="php-variable">$query</span>) {
+                         <span class="php-variable">$query</span>-><span class="php-function">where</span>(<span class="php-string">'created_at'</span>, <span class="php-string">'&gt;'</span>, <span class="php-string">'2025-01-01'</span>)
+                               -><span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'guest'</span>);
+                     })
+                     -><span class="php-function">get</span>();</code></pre>
+
+        <h3 id="guide-where-in">whereIn / whereNotIn</h3>
+        <p>To check if a column's value is within an array of values.</p>
+        <pre><code><span class="php-variable">$ids</span> = [<span class="php-number">1</span>, <span class="php-number">5</span>, <span class="php-number">10</span>];
+
+<span class="php-comment">// WHERE `id` IN (1, 5, 10)</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereIn</span>(<span class="php-string">'id'</span>, <span class="php-variable">$ids</span>)-><span class="php-function">get</span>();
+
+<span class="php-comment">// WHERE `status` NOT IN ('banned', 'pending')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereNotIn</span>(<span class="php-string">'status'</span>, [<span class="php-string">'banned'</span>, <span class="php-string">'pending'</span>])-><span class="php-function">get</span>();
+
+<span class="php-comment">// You can also use orWhereIn / orWhereNotIn</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'active'</span>, <span class="php-number">1</span>)
+                     -><span class="php-function">orWhereIn</span>(<span class="php-string">'role'</span>, [<span class="php-string">'admin'</span>, <span class="php-string">'superadmin'</span>])-><span class="php-function">get</span>();</code></pre>
+
+        <h3 id="guide-where-between">whereBetween / orWhereBetween</h3>
+        <p>To check if a column's value is within a given range.</p>
+        <pre><code><span class="php-comment">// WHERE `points` BETWEEN 100 AND 200</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereBetween</span>(<span class="php-string">'points'</span>, <span class="php-number">100</span>, <span class="php-number">200</span>)-><span class="php-function">get</span>();
+
+<span class="php-comment">// WHERE `level` < 10 OR `points` BETWEEN 500 AND 1000</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'level'</span>, <span class="php-string">'&lt;'</span>, <span class="php-number">10</span>)
+                     -><span class="php-function">orWhereBetween</span>(<span class="php-string">'points'</span>, <span class="php-number">500</span>, <span class="php-number">1000</span>)-><span class="php-function">get</span>();</code></pre>
+    </section>
+
+    <section id="guide-like">
+        <h2>3. LIKE Clauses</h2>
+        <p><code>QueryBuilderLikeTraits.php</code> provides helper methods for common <code>LIKE</code> operations.</p>
+
+        <h3 id="guide-like-starts">whereStarts</h3>
+        <pre><code><span class="php-comment">// WHERE `name` LIKE 'Jo%'</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereStarts</span>(<span class="php-string">'name'</span>, <span class="php-string">'Jo'</span>)-><span class="php-function">get</span>();</code></pre>
+
+        <h3 id="guide-like-has">whereHas (Contains)</h3>
+        <pre><code><span class="php-comment">// WHERE `email` LIKE '%@example.com%'</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereHas</span>(<span class="php-string">'email'</span>, <span class="php-string">'@example.com'</span>)-><span class="php-function">get</span>();</code></pre>
+
+        <h3 id="guide-like-ends">whereEnds</h3>
+        <pre><code><span class="php-comment">// WHERE `filename` LIKE '%.pdf'</span>
+<span class="php-variable">$files</span> = <span class="php-class">File</span>::<span class="php-function">whereEnds</span>(<span class="php-string">'filename'</span>, <span class="php-string">'.pdf'</span>)-><span class="php-function">get</span>();</code></pre>
+        <p>These methods also support passing an array to search for multiple values using <code>OR</code>.</p>
+        <pre><code><span class="php-comment">// WHERE (`email` LIKE '%@yahoo.com%' OR `email` LIKE '%@hotmail.com%')</span>
+<span class="php-variable">$users</span> = <span class="php-class">User</span>::<span class="php-function">whereHas</span>(<span class="php-string">'email'</span>, [<span class="php-string">'@yahoo.com'</span>, <span class="php-string">'@hotmail.com'</span>])-><span class="php-function">get</span>();</code></pre>
+    </section>
+
+    <section id="guide-manipulation">
+        <h2>4. Insert, Update, Delete</h2>
+
+        <h3 id="guide-insert">Creating (Insert)</h3>
+        <p>Create a <code>new Model()</code> instance and call <code>save()</code>.</p>
+        <pre><code><span class="php-comment">// 1. Create a new Post object</span>
+<span class="php-variable">$post</span> = <span class="php-keyword">new</span> <span class="php-class">Post</span>([
+    <span class="php-string">'title'</span>   => <span class="php-string">'New Post Title'</span>,
+    <span class="php-string">'body'</span>    => <span class="php-string">'This is the post body.'</span>,
+    <span class="php-string">'user_id'</span> => <span class="php-number">1</span>,
+]);
+
+<span class="php-comment">// 2. Save (executes INSERT)</span>
+<span class="php-variable">$post</span>-><span class="php-function">save</span>();
+
+<span class="php-comment">// The $post object now contains the new 'id'</span>
+<span class="php-function">echo</span> <span class="php-string">"New post created with ID: "</span> . <span class="php-variable">$post</span>->id;</code></pre>
+
+        <h3 id="guide-update">Updating (Update)</h3>
+        <p>Use <code>find()</code>, modify properties, then call <code>save()</code>.</p>
+        <pre><code><span class="php-comment">// 1. Find an existing post</span>
+<span class="php-variable">$post</span> = <span class="php-class">Post</span>::<span class="php-function">find</span>(<span class="php-number">10</span>);
+
+<span class="php-keyword">if</span> (<span class="php-variable">$post</span>) {
+    <span class="php-comment">// 2. Modify properties</span>
+    <span class="php-variable">$post</span>->title = <span class="php-string">'This is the Updated Title'</span>;
+    <span class="php-variable">$post</span>->status = <span class="php-string">'published'</span>;
+
+    <span class="php-comment">// 3. Save (executes UPDATE only for changed fields)</span>
+    <span class="php-variable">$post</span>-><span class="php-function">save</span>();
+}</code></pre>
+
+        <h3 id="guide-delete">Deleting (Delete)</h3>
+        <p>Use the static <code>delete()</code> method chained after a <code>where()</code> clause.</p>
+        <pre><code><span class="php-comment">// Delete a specific post by ID</span>
+<span class="php-variable">$affectedRows</span> = <span class="php-class">Post</span>::<span class="php-function">where</span>(<span class="php-string">'id'</span>, <span class="php-string">'='</span>, <span class="php-number">10</span>)-><span class="php-function">delete</span>();
+
+<span class="php-comment">// Delete all posts by a specific user</span>
+<span class="php-variable">$affectedRows</span> = <span class="php-class">Post</span>::<span class="php-function">where</span>(<span class="php-string">'user_id'</span>, <span class="php-number">5</span>)-><span class="php-function">delete</span>();</code></pre>
+    </section>
+
+    <section id="guide-raw">
+        <h2>5. Raw Queries</h2>
+        <p>For very complex scenarios not covered by the builder, you can use the <code>Database</code> instance directly for raw queries.</p>
+        <div class="alert alert-warning">
+            <strong>Warning:</strong> Raw queries bypass automatic protection. Always use bindings to prevent SQL injection vulnerabilities.
+        </div>
+        <pre><code><span class="php-comment">// Use the '$app->db' service instance</span>
+
+<span class="php-comment">// SELECT query with bindings</span>
+<span class="php-variable">$sql</span> = <span class="php-string">"SELECT * FROM users WHERE role = ? AND status = ?"</span>;
+<span class="php-variable">$bindings</span> = [<span class="php-string">'admin'</span>, <span class="php-string">'active'</span>];
+
+<span class="php-variable">$statement</span> = <span class="php-variable">$this</span>->app->db-><span class="php-function">raw</span>(<span class="php-variable">$sql</span>, <span class="php-variable">$bindings</span>);
+<span class="php-variable">$results</span> = <span class="php-variable">$statement</span>-><span class="php-function">fetchAll</span>(\PDO::FETCH_ASSOC);
+
+<span class="php-comment">// INSERT/UPDATE query (returns affected row count)</span>
+<span class="php-variable">$sql</span> = <span class="php-string">"UPDATE users SET last_login = NOW() WHERE id = ?"</span>;
+<span class="php-variable">$statement</span> = <span class="php-variable">$this</span>->app->db-><span class="php-function">raw</span>(<span class="php-variable">$sql</span>, [<span class="php-number">1</span>]);
+<span class="php-variable">$affected</span> = <span class="php-variable">$statement</span>-><span class="php-function">rowCount</span>();</code></pre>
+    </section>
+
+</main>
+
+<script src="documentation.js"></script>
+</body>
+</html>
