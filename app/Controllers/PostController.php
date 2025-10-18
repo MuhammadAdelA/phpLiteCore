@@ -16,6 +16,8 @@ class PostController extends BaseController
      * Display a list of all posts with pagination.
      * (Compliant with Active Record and Translation)
      *
+     * @return void
+     * @throws ViewNotFoundException
      * @throws Exception
      */
     public function index(): void
@@ -49,19 +51,26 @@ class PostController extends BaseController
      * Show a single post by its ID.
      * (Compliant with Active Record and Translation)
      *
-     * @param int|string $id The ID from the URL.
+     * @param int|string $id The ID from the URL (will be URL-encoded).
      * @return void
+     * @throws ViewNotFoundException
      * @throws Exception
      */
     public function show(int|string $id): void
     {
+
+        $decodedId = urldecode($id);
+
         // 1. Use Active Record (Constitution Sec 2)
-        $post = Post::find($id);
+        // Use the decoded ID for the database query
+        $post = Post::find($decodedId);
 
         // 2. Handle not found with translated message (Constitution Sec 1.5)
         if (!$post) {
-            $notFoundMessage = $this->app->translator->get('messages.posts.not_found', ['id' => $id]);
+            // Use the decoded ID for the error message
+            $notFoundMessage = $this->app->translator->get('messages.posts.not_found', ['id' => $decodedId]);
             Response::notFound($notFoundMessage);
+            return; // Explicitly return after notFound
         }
 
         // 3. Prepare translated variables
