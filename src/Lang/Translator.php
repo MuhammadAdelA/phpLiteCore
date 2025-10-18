@@ -38,8 +38,9 @@ class Translator
      *
      * @param string $locale The language code (e.g., 'en', 'ar').
      * @param string|null $customLangPath Optional custom path to the base language directory.
+     * FIX: Explicitly mark $customLangPath as nullable using '?string' for PHP 8+ compatibility.
      */
-    public function __construct(string $locale = 'en', string $customLangPath = null)
+    public function __construct(string $locale = 'en', ?string $customLangPath = null) // <<< FIX IS HERE
     {
         $this->locale = $locale;
         $this->langPath = $customLangPath
@@ -137,11 +138,13 @@ class Translator
 
         foreach ($keys as $segment) {
             if (!is_array($current) || !isset($current[$segment])) {
-                return $key; // Return the key segment if not found
+                // Return the original full key if not found, not just the segment
+                return $key;
             }
             $current = $current[$segment];
         }
 
-        return $current; // Return the found value (could be string or array)
+        // Return the found value (could be string or array)
+        return $current;
     }
 }
