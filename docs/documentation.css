@@ -4,10 +4,8 @@
     --color-heading: #004080;
     --color-link: #0066cc;
     --color-border: #e0e0e0;
-    --color-code-bg: #f1f1f1; /* Kept the slightly darker background */
-    /* --- ADJUSTED: Darker text for light mode code blocks --- */
-    --color-code-text: #000000; /* Was #333 */
-    /* --- END ADJUSTMENT --- */
+    --color-code-bg: #000000;
+    --color-code-text: #333;
     --color-nav-bg: #f8f8f8;
     --color-nav-text: #333;
     --color-nav-active: #004080;
