@@ -37,19 +37,78 @@ body {
     display: flex;
 }
 
+/* Default RTL Styles */
 #sidebar {
     width: 280px;
     height: 100vh;
     position: fixed;
     top: 0;
-    right: 0;
+    right: 0; /* RTL default */
     background-color: var(--color-nav-bg);
-    border-left: 1px solid var(--color-border);
+    border-left: 1px solid var(--color-border); /* RTL default */
+    border-right: none;
     padding: 20px;
     overflow-y: auto;
     box-shadow: var(--shadow);
     z-index: 10;
 }
+
+#sidebar ul ul {
+    padding-right: 20px; /* RTL default */
+    padding-left: 0;
+}
+
+main {
+    margin-right: 320px; /* RTL default: sidebar width + padding */
+    margin-left: auto;
+    padding: 40px;
+    max-width: 900px;
+    width: 100%;
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px; /* RTL default */
+    right: auto;
+    padding: 8px 12px;
+    background-color: var(--color-code-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* LTR Overrides for English pages */
+html[lang="en"] body {
+    direction: ltr; /* Apply LTR direction */
+}
+
+html[lang="en"] #sidebar {
+    left: 0; /* LTR position */
+    right: auto;
+    border-right: 1px solid var(--color-border); /* LTR border */
+    border-left: none;
+}
+
+html[lang="en"] #sidebar ul ul {
+    padding-left: 20px; /* LTR padding */
+    padding-right: 0;
+}
+
+html[lang="en"] main {
+    margin-left: 320px; /* LTR margin */
+    margin-right: auto;
+}
+
+html[lang="en"] .theme-toggle {
+    right: 20px; /* LTR position */
+    left: auto;
+}
+
+
+/* --- Common Styles (unchanged) --- */
 
 #sidebar h2 {
     font-size: 1.5rem;
@@ -62,10 +121,6 @@ body {
     list-style: none;
     padding: 0;
     margin: 0;
-}
-
-#sidebar ul ul {
-    padding-right: 20px;
 }
 
 #sidebar li a {
@@ -85,13 +140,6 @@ body {
     background-color: var(--color-nav-active);
     color: var(--color-nav-active-text);
     font-weight: bold;
-}
-
-main {
-    margin-right: 320px; /* sidebar width + padding */
-    padding: 40px;
-    max-width: 900px;
-    width: 100%;
 }
 
 section {
@@ -119,8 +167,8 @@ pre {
     overflow-x: auto;
     font-family: "Courier New", Courier, monospace;
     font-size: 0.95rem;
-    direction: ltr;
-    text-align: left;
+    text-align: left; /* Always LTR for code */
+    direction: ltr;   /* Always LTR for code */
 }
 
 code {
@@ -172,48 +220,35 @@ html[data-theme='dark'] .alert-warning {
     color: #fff5cc;
 }
 
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    padding: 8px 12px;
-    background-color: var(--color-code-bg);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 100;
-}
-
-/* --- Syntax Highlighting (Task 3) --- */
+/* --- Syntax Highlighting --- */
 pre code .php-comment,
 pre code .html-comment {
     color: #6a9955; /* Green */
 }
 pre code .php-keyword {
-    color: #c586c0; /* Magenta (new, if, use, public, function) */
+    color: #c586c0; /* Magenta */
 }
 pre code .php-variable {
-    color: #9cdcfe; /* Light blue ($var, $this) */
+    color: #9cdcfe; /* Light blue */
 }
 pre code .php-string {
-    color: #ce9178; /* Orange ('string') */
+    color: #ce9178; /* Orange */
 }
 pre code .php-function {
-    color: #dcdcaa; /* Yellow (functionCall(), compact()) */
+    color: #dcdcaa; /* Yellow */
 }
 pre code .php-class {
-    color: #4ec9b0; /* Teal (ClassName) */
+    color: #4ec9b0; /* Teal */
 }
 pre code .php-number {
-    color: #b5cea8; /* Olive (1, 422) */
+    color: #b5cea8; /* Olive */
 }
 pre code .html-tag {
-    color: #569cd6; /* Blue (<div>, <h1>) */
+    color: #569cd6; /* Blue */
 }
 pre code .html-attr {
-    color: #9cdcfe; /* Light blue (href=, class=) */
+    color: #9cdcfe; /* Light blue */
 }
 pre code .html-value {
-    color: #ce9178; /* Orange ("...") */
+    color: #ce9178; /* Orange */
 }

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>phpLiteCore Framework Documentation</title>
+    <link rel="stylesheet" href="documentation.css">
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle-btn">Toggle Mode</button>
+
+<nav id="sidebar">
+    <h2>phpLiteCore Docs</h2>
+    <ul>
+        <li><a href="#intro" class="active">Introduction & Philosophy</a></li>
+        <li><a href="#structure">Core Structure</a></li>
+        <li><a href="#routing">Routing System</a></li>
+        <li><a href="#controllers">Controllers</a></li>
+        <li>
+            <a href="#models">Models & Database</a>
+            <ul>
+                <li><a href="#models-intro">1. Overview</a></li>
+                <li><a href="query-builder-guide_en.html" target="_blank">2. <strong>Query Builder Guide (Full)</strong></a></li>
+            </ul>
+        </li>
+        <li><a href="#views">Views & Templates</a></li>
+        <li><a href="#translation">Translation System (i18n)</a></li>
+        <li><a href="#validation">Input Validation</a></li>
+        <li><a href="#errors">Error Handling</a></li>
+        <li><a href="#assets">Asset Management</a></li>
+    </ul>
+</nav>
+
+<main>
+
+    <section id="intro">
+        <h1>Introduction & Philosophy</h1>
+        <p>
+            <code>phpLiteCore</code> is a modern, lightweight, and fast PHP framework for building web applications of any size.
+        </p>
+        <p>
+            The framework follows a clear design philosophy as defined in its constitution (Section 2):
+        </p>
+        <ul>
+            <li><strong>Front Controller:</strong> All requests go through a single <code>index.php</code> file, with <code>.htaccess</code> directing everything to it.</li>
+            <li><strong>Strict Separation of Concerns (MVC):</strong> Logic is completely separated from presentation. Controllers fetch and prepare data, Views only display it.</li>
+            <li><strong>Hybrid Active Record Pattern:</strong> A powerful way to interact with the database, combining the simplicity of Active Record with the flexibility of a Query Builder.</li>
+        </ul>
+    </section>
+
+    <section id="structure">
+        <h1>Core Structure</h1>
+        <p>The framework uses a clear file structure to separate responsibilities (Constitution Section 3 & 4):</p>
+        <ul>
+            <li><code>/app</code>: Contains your application-specific code (<code>Controllers</code>, <code>Models</code>).</li>
+            <li><code>/src</code>: Contains the framework's core code (<code>Database</code>, <code>Routing</code>, <code>Lang</code>, etc.).</li>
+            <li><code>/resources</code>: Source files before compilation (<code>js</code>, <code>scss</code>, <code>lang</code>).</li>
+            <li><code>/public</code>: The only web-accessible directory. Contains only built assets.</li>
+            <li><code>/views</code>: All template files (<code>layouts</code>, <code>partials</code>, <code>themes</code>).</li>
+            <li><code>/routes</code>: The <code>web.php</code> file for defining routes.</li>
+        </ul>
+    </section>
+
+    <section id="routing">
+        <h1>Routing System</h1>
+        <p>
+            All web routes are defined in the <code>routes/web.php</code> file. This file registers routes to the <code>$router</code> object.
+        </p>
+        <p>
+            <code>Router.php</code> matches the current URL against the registered routes and dispatches the appropriate controller action.
+        </p>
+
+        <h3>Route Examples</h3>
+
+        <p><strong>Basic Routes (GET / POST):</strong></p>
+        <pre><code><span class="php-comment">// routes/web.php</span>
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/'</span>, [<span class="php-string">'HomeController'</span>, <span class="php-string">'index'</span>]);
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/about'</span>, [<span class="php-string">'AboutController'</span>, <span class="php-string">'index'</span>]);
+<span class="php-variable">$router</span>-><span class="php-function">post</span>(<span class="php-string">'/posts'</span>, [<span class="php-string">'PostController'</span>, <span class="php-string">'store'</span>]);</code></pre>
+
+        <p><strong>Dynamic Routes (and Order):</strong></p>
+        <div class="alert alert-warning">
+            <strong>Important (Route Order):</strong> Static routes (like <code>/posts/create</code>) must always be defined <strong>before</strong> dynamic routes (like <code>/posts/{id}</code>). Otherwise, the router will mistakenly treat "create" as an ID value.
+        </div>
+
+        <pre><code><span class="php-comment">// routes/web.php (Correct Example)</span>
+
+<span class="php-comment">// (Correct) Static route first</span>
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/posts/create'</span>, [<span class="php-string">'PostController'</span>, <span class="php-string">'create'</span>]);
+
+<span class="php-comment">// (Correct) Dynamic route second</span>
+<span class="php-variable">$router</span>-><span class="php-function">get</span>(<span class="php-string">'/posts/{id}'</span>, [<span class="php-string">'PostController'</span>, <span class="php-string">'show'</span>]);</code></pre>
+    </section>
+
+    <section id="controllers">
+        <h1>Controllers</h1>
+        <p>
+            Controllers reside in <code>app/Controllers</code> and are responsible for handling request logic (Constitution Section 2 - MVC).
+        </p>
+        <p>
+            All controllers should extend <code>BaseController</code>. This gives them access to the application instance (<code>$this->app</code>) and the template rendering method <code>$this->view()</code>.
+        </p>
+
+        <h3>Full Example: <code>HomeController.php</code></h3>
+        <p>
+            This is a perfect example demonstrating "Strict Separation of Concerns" (Constitution Section 2).
+        </p>
+
+        <pre><code><span class="php-keyword">&lt;?php</span>
+<span class="php-keyword">namespace</span> App\Controllers;
+
+<span class="php-keyword">use</span> <span class="php-class">App\Models\User</span>;
+
+<span class="php-keyword">class</span> <span class="php-class">HomeController</span> <span class="php-keyword">extends</span> <span class="php-class">BaseController</span>
+{
+    <span class="php-keyword">public</span> <span class="php-keyword">function</span> <span class="php-function">index</span>(): <span class="php-keyword">void</span>
+    {
+        <span class="php-comment">// 1. Business Logic</span>
+        <span class="php-variable">$user</span> = <span class="php-class">User</span>::<span class="php-function">find</span>(<span class="php-number">1</span>);
+
+        <span class="php-comment">// 2. Prepare ALL translated variables for the view</span>
+        <span class="php-variable">$pageTitle</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.home.page_title'</span>);
+        <span class="php-variable">$heroSubtitle</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(
+            <span class="php-string">'messages.home.hero_subtitle'</span>,
+            [<span class="php-string">'name'</span> => <span class="php-variable">$user</span>->name ?? <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.guest'</span>)]
+        );
+        <span class="php-variable">$versionLabel</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.home.version_label'</span>);
+
+        <span class="php-comment">// 3. Render the view, passing all final translated strings.</span>
+        <span class="php-variable">$this</span>-><span class="php-function">view</span>(<span class="php-string">'home'</span>, <span class="php-function">compact</span>(
+            <span class="php-string">'pageTitle'</span>,
+            <span class="php-string">'heroSubtitle'</span>,
+            <span class="php-string">'versionLabel'</span>
+        ));
+    }
+}</code></pre>
+    </section>
+
+    <section id="models">
+        <h1 id="models-intro">Models & Database</h1>
+        <p>
+            The framework uses the **"Hybrid Active Record"** pattern (Constitution Section 2).
+        </p>
+        <p>
+            This is achieved by having all models (like <code>User.php</code> and <code>Post.php</code>) extend <code>src/Database/Model/BaseModel.php</code>.
+        </p>
+        <p>
+            Due to the extensive nature of this component, a separate, detailed guide is provided.
+        </p>
+        <a href="query-builder-guide_en.html" target="_blank" class="button-link">Go to: <strong>Comprehensive Query Builder Guide</strong></a>
+        <p style="margin-top: 20px;">
+            The new guide explains in detail how to perform:
+        </p>
+        <ul>
+            <li>Basic Retrievals (<code>find</code>, <code>all</code>, <code>first</code>).</li>
+            <li>All types of <code>WHERE</code> clauses (<code>where</code>, <code>orWhere</code>, <code>whereIn</code>, <code>whereBetween</code>, Nested).</li>
+            <li><code>LIKE</code> clauses (<code>whereStarts</code>, <code>whereHas</code>).</li>
+            <li>Aggregates and Ordering (<code>count</code>, <code>orderBy</code>, <code>limit</code>).</li>
+            <li>Pagination (<code>paginate</code>).</li>
+            <li>Creation, Updates, and Deletion (<code>save</code>, <code>delete</code>).</li>
+        </ul>
+    </section>
+
+    <section id="views">
+        <h1>Views & Templates</h1>
+        <p>
+            Views follow the "Strict Separation" rule (Constitution Section 2 - MVC):
+        </p>
+        <ul>
+            <li><strong>Only</strong> responsible for displaying variables passed to them.</li>
+            <li>Absolutely no logic (like translator calls or DB access) allowed within views.</li>
+            <li>Always use <code>&lt;?= htmlspecialchars(...) ?&gt;</code> when outputting variables to prevent XSS.</li>
+        </ul>
+
+        <h4>Example: View File <code>views/themes/default/post.php</code></h4>
+        <div class="alert alert-warning">
+            <strong>Data Contract Check (1.6.1):</strong> Notice the use of <code>$post->title</code> (object access) because it receives an Object from <code>PostController</code>.
+        </div>
+
+        <pre><code><span class="html-tag">&lt;article&gt;</span>
+    <span class="html-tag">&lt;h1&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$post</span>->title) ?&gt;<span class="html-tag">&lt;/h1&gt;</span>
+    <span class="html-tag">&lt;p&gt;</span>&lt;?= <span class="php-function">nl2br</span>(<span class="php-function">htmlspecialchars</span>(<span class="php-variable">$post</span>->body)) ?&gt;<span class="html-tag">&lt;/p&gt;</span>
+    <span class="html-tag">&lt;hr&gt;</span>
+
+    <span class="html-comment">&lt;!-- Uses translated variables passed from the controller --&gt;</span>
+    <span class="html-tag">&lt;small&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$publishedOnText</span>) ?&gt; &lt;?= <span class="php-function">date</span>(<span class="php-string">'Y-m-d'</span>, <span class="php-function">strtotime</span>(<span class="php-variable">$post</span>->created_at)) ?&gt;<span class="html-tag">&lt;/small&gt;</span>
+
+<span class="html-tag">&lt;/article&gt;</span>
+<span class="html-tag">&lt;a</span> <span class="html-attr">href=</span><span class="html-value">"/posts"</span><span class="html-tag">&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$backLinkText</span>) ?&gt;<span class="html-tag">&lt;/a&gt;</span></code></pre>
+    </section>
+
+    <section id="translation">
+        <h1>Translation System (i18n)</h1>
+        <p>
+            Translation is **mandatory** for all user-facing text (Constitution Section 1.5).
+        </p>
+        <p>
+            The framework uses a modular system with lazy loading.
+        </p>
+
+        <h3>"Dot Notation" Mechanism</h3>
+        <p>
+            To access a translated string, use <code>$translator->get('filename.key')</code>.
+        </p>
+
+        <h4>Example 1: Nested Key</h4>
+        <pre><code><span class="php-comment">// Key 'page_title' inside 'home' array in 'messages.php'</span>
+<span class="php-variable">$title</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.home.page_title'</span>);
+<span class="php-comment">// $title = "Welcome to phpLiteCore"</span></code></pre>
+
+        <h4>Example 2: Lazy Loading</h4>
+        <pre><code><span class="php-comment">// The translator will automatically load "validation.php"</span>
+<span class="php-variable">$error</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'validation.required'</span>);
+<span class="php-comment">// $error = "The {{field}} field is required."</span></code></pre>
+
+        <h4>Example 3: Passing Placeholders</h4>
+        <pre><code><span class="php-comment">// Key: 'messages.posts.not_found' => 'Post with ID {{id}} not found.'</span>
+<span class="php-variable">$id</span> = <span class="php-function">urldecode</span>(<span class="php-variable">$id_from_url</span>);
+
+<span class="php-variable">$message</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(
+    <span class="php-string">'messages.posts.not_found'</span>,
+    [<span class="php-string">'id'</span> => <span class="php-variable">$id</span>]
+);
+
+<span class="php-comment">// $message = "Post with ID {decoded_id} not found."</span></code></pre>
+    </section>
+
+    <section id="validation">
+        <h1>Input Validation</h1>
+        <p>
+            The framework provides a simple <code>Validator</code> class (in <code>src/Validation/Validator.php</code>) which is now connected to the translation service.
+        </p>
+
+        <h3>Example: From <code>PostController</code></h3>
+        <pre><code><span class="php-comment">// Inside the store() method in PostController</span>
+
+<span class="php-keyword">try</span> {
+    <span class="php-variable">$rules</span> = [
+        <span class="php-string">'title'</span> => <span class="php-string">'required|min:5'</span>,
+        <span class="php-string">'body'</span>  => <span class="php-string">'required|min:10'</span>,
+    ];
+
+    <span class="php-variable">$validatedData</span> = <span class="php-class">Validator</span>::<span class="php-function">validate</span>(<span class="php-variable">$_POST</span>, <span class="php-variable">$rules</span>);
+
+    <span class="php-comment">// (Success) Create the post...</span>
+    <span class="php-variable">$post</span> = <span class="php-keyword">new</span> <span class="php-class">Post</span>(<span class="php-variable">$validatedData</span>);
+    <span class="php-variable">$post</span>-><span class="php-function">save</span>();
+    <span class="php-class">Response</span>::<span class="php-function">redirect</span>(<span class="php-string">'/posts'</span>);
+
+} <span class="php-keyword">catch</span> (<span class="php-class">ValidationException</span> <span class="php-variable">$e</span>) {
+    <span class="php-comment">// (Failure) $e->getErrors() will contain the translated errors</span>
+    <span class="php-function">http_response_code</span>(<span class="php-number">422</span>);
+    <span class="php-function">echo</span> <span class="php-function">json_encode</span>([<span class="php-string">'errors'</span> => <span class="php-variable">$e</span>-><span class="php-function">getErrors</span>()]);
+}</code></pre>
+    </section>
+
+    <section id="errors">
+        <h1>Error Handling</h1>
+        <p>
+            Error handling is managed by <code>src/Bootstrap/ErrorHandler.php</code> (Constitution Section 2).
+        </p>
+
+        <h3>Production Environment (<code>ENV=production</code>)</h3>
+        <p>
+            The system hides details, logs the error, emails the developer, and displays a generic, translated error page.
+        </p>
+
+        <h3>404 Not Found Errors</h3>
+        <p>
+            Trigger a translated 404 page from any controller using <code>Response::notFound()</code>.
+        </p>
+
+        <pre><code><span class="php-comment">// Use the default translated 404 message</span>
+<span class="php-class">Response</span>::<span class="php-function">notFound</span>();
+
+<span class="php-comment">// Use a custom (must be pre-translated) message</span>
+<span class="php-variable">$message</span> = <span class="php-variable">$this</span>->app->translator-><span class="php-function">get</span>(<span class="php-string">'messages.posts.not_found'</span>, [<span class="php-string">'id'</span> => <span class="php-variable">$id</span>]);
+<span class="php-class">Response</span>::<span class="php-function">notFound</span>(<span class="php-variable">$message</span>);</code></pre>
+    </section>
+
+    <section id="assets">
+        <h1>Asset Management</h1>
+        <p>
+            The framework relies on <strong>Webpack</strong>, <strong>NPM</strong>, and <strong>SCSS</strong> (Constitution Section 2).
+        </p>
+        <p>
+            Dependencies are defined in <code>package.json</code>, and build settings are in <code>webpack.config.js</code>.
+        </p>
+
+        <h3>Workflow</h3>
+        <ol>
+            <li>Modify source files: <code>resources/js/app.js</code> or <code>resources/scss/app.scss</code>.</li>
+            <li>Run <code>npm run dev</code> (for development) or <code>npm run build</code> (for production).</li>
+            <li>Webpack builds the final files into <code>public/assets/app.js</code> and <code>public/assets/app.css</code>.</li>
+        </ol>
+
+        <pre><code><span class="html-comment">&lt;!-- views/partials/header.php --&gt;</span>
+<span class="html-tag">&lt;head&gt;</span>
+    <span class="html-tag">&lt;meta</span> <span class="html-attr">charset=</span><span class="html-value">"UTF-8"</span><span class="html-tag">&gt;</span>
+    <span class="html-tag">&lt;title&gt;</span>&lt;?= <span class="php-function">htmlspecialchars</span>(<span class="php-variable">$pageTitle</span> ?? <span class="php-string">'phpLiteCore'</span>) ?&gt;<span class="html-tag">&lt;/title&gt;</span>
+
+    <span class="html-comment">&lt;!-- Include the built CSS file --&gt;</span>
+    <span class="html-tag">&lt;link</span> <span class="html-attr">rel=</span><span class="html-value">"stylesheet"</span> <span class="html-attr">href=</span><span class="html-value">"/assets/app.css"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;/head&gt;</span></code></pre>
+    </section>
+
+</main>
+
+<script src="documentation.js"></script>
+</body>
+</html>
