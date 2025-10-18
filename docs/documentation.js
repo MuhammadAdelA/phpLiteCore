@@ -3,28 +3,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Theme Toggler ---
     const toggleButton = document.getElementById('theme-toggle-btn');
     if (toggleButton) {
-        const lightModeIcon = '🌙'; // Icon shown in light mode (to switch to dark)
-        const darkModeIcon = '☀️'; // Icon shown in dark mode (to switch to light)
-
         // Read theme from local storage or default to light
         const currentTheme = localStorage.getItem('theme') || 'light';
+        const docLang = document.documentElement.lang; // Get current page language ('ar' or 'en')
         document.documentElement.setAttribute('data-theme', currentTheme);
 
-        // --- UPDATED: Set initial button ICON based on theme ---
-        toggleButton.textContent = currentTheme === 'dark' ? darkModeIcon : lightModeIcon;
+        // --- NEW: Set initial button text based on language and theme ---
+        const setText = (theme, lang) => {
+            if (lang === 'ar') {
+                toggleButton.textContent = theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن';
+            } else { // Default to English
+                toggleButton.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+            }
+        };
+        setText(currentTheme, docLang);
+        // --- END NEW ---
 
         // Add click listener to toggle theme
         toggleButton.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             if (theme === 'light') {
                 theme = 'dark';
-                toggleButton.textContent = darkModeIcon; // Show sun icon
             } else {
                 theme = 'light';
-                toggleButton.textContent = lightModeIcon; // Show moon icon
             }
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
+            // --- NEW: Update text based on new theme and language ---
+            setText(theme, docLang);
+            // --- END NEW ---
         });
     }
 
@@ -35,7 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebar && mainContent) {
         const sections = mainContent.querySelectorAll('section');
         const navLinks = sidebar.querySelectorAll('li a');
+        // --- NEW: Identify if it's a sub-page (like query builder guide) ---
         const isSubPage = window.location.pathname.includes('query-builder-guide');
+        // --- END NEW ---
 
         const onScroll = () => {
             let currentSectionId = '';
@@ -51,21 +60,23 @@ document.addEventListener('DOMContentLoaded', () => {
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 // Check if the link's hash corresponds to the current section
+                // Make sure to compare only the hash part for section links
                 const linkHash = link.hash; // Gets the part starting with #
                 if (linkHash && linkHash === `#${currentSectionId}`) {
                     link.classList.add('active');
                 }
             });
 
-            // Ensure the main link is active if no section is matched (top of page)
+            // --- NEW: Ensure the main link is active if no section is matched (top of page) ---
             // Or if it's a sub-page without sections scrolled yet
             if (!currentSectionId && !isSubPage) {
-                const firstLink = sidebar.querySelector('li a[href*="#intro"]'); // More specific selector
+                const firstLink = sidebar.querySelector('li a[href="#intro"]');
                 if(firstLink) firstLink.classList.add('active');
             } else if (!currentSectionId && isSubPage) {
-                const firstLink = sidebar.querySelector('li a[href*="#guide-intro"]'); // More specific selector
+                const firstLink = sidebar.querySelector('li a[href="#guide-intro"]');
                 if(firstLink) firstLink.classList.add('active');
             }
+            // --- END NEW ---
         };
 
         // Attach scroll listener only if sections exist
@@ -74,13 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Run once on load to set the initial active link
             onScroll();
         } else {
-            // Fallback for pages without sections
-            const firstLinkSelector = isSubPage ? 'li a[href*="#guide-intro"]' : 'li a[href*="#intro"]';
+            // Fallback for pages without sections (e.g., initial load of query builder guide)
+            // --- MODIFIED: More robust check for the correct first link ---
+            const firstLinkSelector = isSubPage ? 'li a[href="#guide-intro"]' : 'li a[href="#intro"]';
             const firstLink = sidebar.querySelector(firstLinkSelector);
             if (firstLink) {
                 navLinks.forEach(a => a.classList.remove('active'));
                 firstLink.classList.add('active');
             }
+            // --- END MODIFIED ---
         }
     }
 });
