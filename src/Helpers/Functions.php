@@ -19,7 +19,6 @@ function render_http_error_page(int $error_code, string $error_title, string $er
     http_response_code($error_code);
 
     // Define the path for the custom error page in the theme.
-    // In a more advanced implementation, 'default' would come from a config file.
     $customErrorViewPath = PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'error-pages' . DIRECTORY_SEPARATOR . $error_code . '.php';
 
     // Define the path for the default system error page.
@@ -73,8 +72,29 @@ function set_language(string $default = DEFAULT_LANG): string
             'samesite' => 'Lax',
         ]);
 
-        // Determine redirect location safely
-        $location = filter_input(INPUT_GET, 'location', FILTER_SANITIZE_URL) ?: '/';
+        // 1. Get the current URL's path (e.g., /posts)
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+
+        // 2. Get the current query string (e.g., page=2&lang=ar)
+        $queryString = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+
+        // 3. Parse the query string into an array
+        $queryParams = [];
+        if ($queryString) {
+            parse_str($queryString, $queryParams);
+        }
+
+        // 4. Remove the 'lang' parameter from the array
+        unset($queryParams['lang']);
+
+        // 5. Re-build the query string (if any params are left)
+        $location = $path;
+        if (!empty($queryParams)) {
+            // This will result in (e.g., /posts?page=2)
+            $location .= '?' . http_build_query($queryParams);
+        }
+
+        // (The old line was: $location = filter_input(INPUT_GET, 'location', FILTER_SANITIZE_URL) ?: '/';)
         header("Location: $location");
         exit;
     }

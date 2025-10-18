@@ -122,25 +122,26 @@ class Response // Add ArrayAccess if you need header manipulation like $response
      * Renders the default, translated 404 error page using the helper function.
      * Terminates script execution.
      *
-     * @param string $message Optional custom message key (will be translated if key exists).
-     * If the key doesn't exist, the provided string is used as fallback.
+     * @param string $message Optional custom message (which MUST be pre-translated by the controller).
+     * If empty, the default 404 message will be used.
      * @return void
      */
     #[NoReturn] public static function notFound(string $message = ''): void
     {
         // Instantiate the translator using the current language constant (LANG).
-        // Fallback to default language if LANG is not defined.
         $currentLang = defined('LANG') ? LANG : ($_ENV['DEFAULT_LANG'] ?? 'en');
         $translator = new Translator($currentLang);
 
         // Get standard translated strings for 404.
         $errorTitle = $translator->get('messages.error_404_title');
         $defaultMessage = $translator->get('messages.error_404_message');
-        $homeLinkText = $translator->get('messages.home_link_text'); // Get the translated home link text
+        $homeLinkText = $translator->get('messages.home_link_text');
 
-        // If a custom message key was provided, try to translate it.
-        // If translation fails for the custom key, use the provided message string itself.
-        $finalMessage = $message ? $translator->get($message, [], $message) : $defaultMessage;
+
+        // Use the provided $message directly if it exists (it's already translated).
+        // Otherwise, fall back to the default translated message.
+        // This stops the "re-translation" bug.
+        $finalMessage = $message ?: $defaultMessage;
 
         // Use the global helper function to render the standard HTTP error page.
         // This function sets the status code and exits.
@@ -148,19 +149,7 @@ class Response // Add ArrayAccess if you need header manipulation like $response
             404, // Status code
             $errorTitle,
             $finalMessage,
-            $homeLinkText // Pass the translated text
+            $homeLinkText
         );
     }
-
-    // --- ArrayAccess methods (Optional: Implement if needed) ---
-    /*
-    #[ReturnTypeWillChange]
-    public function offsetExists(mixed $offset): bool { ... }
-    #[ReturnTypeWillChange]
-    public function offsetGet(mixed $offset): mixed { ... }
-    #[ReturnTypeWillChange]
-    public function offsetSet(mixed $offset, mixed $value): void { ... }F
-    #[ReturnTypeWillChange]
-    public function offsetUnset(mixed $offset): void { ... }
-    */
 }

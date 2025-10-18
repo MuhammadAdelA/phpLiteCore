@@ -8,12 +8,12 @@
         <?php foreach ($posts as $post): ?>
             <article class="post-item">
                 <h2>
-                    <a href="/posts/<?= htmlspecialchars($post['id']) ?>">
-                        <?= htmlspecialchars($post['title']) ?>
+                    <a href="/posts/<?= htmlspecialchars($post->id) ?>">
+                        <?= htmlspecialchars($post->title) ?>
                     </a>
                 </h2>
-                <p><?= htmlspecialchars(substr($post['body'], 0, 150)) ?>...</p>
-                <small><?= htmlspecialchars($publishedOnText) ?> <?= date('F j, Y', strtotime($post['created_at'])) ?></small>
+                <p><?= htmlspecialchars(substr($post->body, 0, 150)) ?>...</p>
+                <small><?= htmlspecialchars($publishedOnText) ?> <?= date('F j, Y', strtotime($post->created_at)) ?></small>
             </article>
         <?php endforeach; ?>
     <?php endif; ?>

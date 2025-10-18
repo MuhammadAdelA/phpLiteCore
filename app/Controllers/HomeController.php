@@ -25,15 +25,13 @@ class HomeController extends BaseController
         // 2. Prepare ALL translated variables for the view using correct keys.
         // Ensure keys match the structure in resources/lang/xx/messages.php
 
-        // Corrected Keys: Using 'messages.key' format assuming 'messages.php' is the file.
-        // If your structure is nested like 'home' => [...], use 'messages.home.key'.
-
         $pageTitle = $this->app->translator->get('messages.home.page_title', [], 'Welcome to phpLiteCore');
 
         $heroTitle = $this->app->translator->get('messages.home.hero_title', [], 'Installation Successful!');
         $heroSubtitle = $this->app->translator->get(
             'messages.home.hero_subtitle',
-            ['name' => $user->name ?? $this->app->translator->get('messages.guest')] // Assuming 'guest' is a top-level key in messages.php
+            // Use the top-level 'guest' key for the fallback
+            ['name' => $user->name ?? $this->app->translator->get('messages.guest')]
         );
         $heroDescription = $this->app->translator->get('messages.home.hero_description');
 
@@ -43,14 +41,15 @@ class HomeController extends BaseController
 
         $cardCodeTitle = $this->app->translator->get('messages.home.card_code_title');
         $cardCodeText = $this->app->translator->get('messages.home.card_code_text');
-        $cardCodeButton = $this->app->translator->get('messages.home.card_code_button'); // Assuming this key exists
+        $cardCodeButton = $this->app->translator->get('messages.home.card_code_button');
 
         $cardCommunityTitle = $this->app->translator->get('messages.home.card_community_title');
         $cardCommunityText = $this->app->translator->get('messages.home.card_community_text');
         $cardCommunityButton = $this->app->translator->get('messages.home.card_community_button');
 
-        $frameworkRunning = $this->app->translator->get('messages.framework_running'); // Assuming this is top-level
-        $versionLabel = $this->app->translator->get('messages.version_label'); // Assuming this is top-level
+        $frameworkRunning = $this->app->translator->get('messages.framework_running');
+        $versionLabel = $this->app->translator->get('messages.home.version_label');
+
 
         // 3. Render the view, passing all final translated strings.
         $this->view('home', compact(
@@ -67,8 +66,8 @@ class HomeController extends BaseController
             'cardCommunityTitle',
             'cardCommunityText',
             'cardCommunityButton',
-            'frameworkRunning', // Pass this variable too
-            'versionLabel'      // Pass this variable too
+            'frameworkRunning',
+            'versionLabel'
         ));
     }
 }

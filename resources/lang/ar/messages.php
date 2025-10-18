@@ -4,7 +4,7 @@ return [
     // General
     'guest' => 'زائر',
     'welcome' => 'أهلاً بك، {{name}}!',
-    'home_link_text' => 'العودة للصفحة الرئيسية', // Key for error pages
+    'home_link_text' => 'العودة للصفحة الرئيسية',
 
     // Home Page Keys Nested under 'home'
     'home' => [
@@ -24,7 +24,13 @@ return [
         'version_label' => 'الإصدار:',
     ],
 
-    // Post-specific keys (NEW)
+    // About Page Keys (NEW)
+    'about' => [
+        'page_title' => 'من نحن',
+        'page_content' => 'هذه هي صفحة "من نحن"، بدعم من phpLiteCore.',
+    ],
+
+    // Post-specific keys
     'posts' => [
         'index_title' => 'كل المقالات',
         'create_title' => 'إنشاء مقالة جديدة',

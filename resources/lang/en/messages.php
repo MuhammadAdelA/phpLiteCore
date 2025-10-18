@@ -3,27 +3,33 @@ return [
     // General
     'guest' => 'Guest',
     'welcome' => 'Welcome, {{name}}!',
-    'home_link_text' => 'Back to Home Page', // Key for error pages
+    'home_link_text' => 'Back to Home Page',
 
     // Home Page Keys Nested under 'home'
     'home' => [
         'page_title' => 'Welcome to phpLiteCore',
         'hero_title' => 'Installation Successful!',
-        'hero_subtitle' => 'Welcome {{name}} to the world of phpLiteCore.', // Adjusted slightly for flow
+        'hero_subtitle' => 'Welcome {{name}} to the world of phpLiteCore.',
         'hero_description' => 'A simple PHP framework for beginners, powerful for professionals. You are now ready to build fast and lightweight web applications.',
         'card_docs_title' => 'Read the Docs',
         'card_docs_text' => 'Start by reading our comprehensive documentation to understand the core concepts and features.',
         'card_docs_button' => 'Get Started',
         'card_code_title' => 'Explore the Code',
         'card_code_text' => 'The best way to learn is by doing. Start by editing routes/web.php',
-        'card_code_button' => 'Open File', // Or 'Edit File' might be clearer
+        'card_code_button' => 'Open File',
         'card_community_title' => 'Join the Community',
         'card_community_text' => 'Contribute, report issues, or just say hi on our GitHub repository.',
         'card_community_button' => 'View on GitHub',
         'version_label' => 'Version:',
     ],
 
-    // Post-specific keys (NEW)
+    // About Page Keys (NEW)
+    'about' => [
+        'page_title' => 'About Us',
+        'page_content' => 'This is the about us page, powered by phpLiteCore.',
+    ],
+
+    // Post-specific keys
     'posts' => [
         'index_title' => 'All Posts',
         'create_title' => 'Create New Post',
