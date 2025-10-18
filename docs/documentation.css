@@ -4,7 +4,7 @@
     --color-heading: #004080;
     --color-link: #0066cc;
     --color-border: #e0e0e0;
-    --color-code-bg: #000000;
+    --color-code-bg: #f1f1f1; /* Kept the slightly darker background */
     --color-code-text: #333;
     --color-nav-bg: #f8f8f8;
     --color-nav-text: #333;
