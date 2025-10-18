@@ -35,7 +35,7 @@
                             <small><?= htmlspecialchars($cardDocsText) ?></small>
                         </li>
                         <li class="d-flex align-items-center ms-3">
-                            <a href="#" class="btn btn-outline-light btn-sm"><?= htmlspecialchars($cardDocsButton) ?></a>
+                            <a href="//phplitecore/demo-docs/documentation.html" class="btn btn-outline-light btn-sm"><?= htmlspecialchars($cardDocsButton) ?></a>
                         </li>
                     </ul>
                 </div>

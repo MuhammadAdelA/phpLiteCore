@@ -6,6 +6,14 @@ return [
     'welcome' => 'أهلاً بك، {{name}}!',
     'home_link_text' => 'العودة للصفحة الرئيسية',
 
+    // Navigation (NEW)
+    'nav' => [
+        'home' => 'الرئيسية',
+        'posts' => 'المقالات',
+        'create_post' => 'إنشاء مقالة',
+        'about' => 'من نحن',
+    ],
+
     // Home Page Keys Nested under 'home'
     'home' => [
         'page_title' => 'أهلاً بك في phpLiteCore',
@@ -24,7 +32,7 @@ return [
         'version_label' => 'الإصدار:',
     ],
 
-    // About Page Keys (NEW)
+    // About Page Keys
     'about' => [
         'page_title' => 'من نحن',
         'page_content' => 'هذه هي صفحة "من نحن"، بدعم من phpLiteCore.',
@@ -34,10 +42,13 @@ return [
     'posts' => [
         'index_title' => 'كل المقالات',
         'create_title' => 'إنشاء مقالة جديدة',
+        'edit_title' => 'تعديل مقالة: {{title}}', // NEW
         'not_found' => 'المقالة ذات المعرف {{id}} غير موجودة.',
         'no_posts' => 'لم يتم العثور على مقالات.',
-        'back_link' => 'العودة للرئيسية',
+        'back_link' => 'العودة للمقالات', // Changed
         'create_button' => 'إنشاء المقالة',
+        'update_button' => 'تحديث المقالة', // NEW
+        'edit_button' => 'تعديل', // NEW
         'cancel_button' => 'إلغاء',
         'form_title' => 'عنوان المقالة',
         'form_content' => 'محتوى المقالة',

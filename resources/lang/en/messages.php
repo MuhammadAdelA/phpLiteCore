@@ -5,6 +5,14 @@ return [
     'welcome' => 'Welcome, {{name}}!',
     'home_link_text' => 'Back to Home Page',
 
+    // Navigation (NEW)
+    'nav' => [
+        'home' => 'Home',
+        'posts' => 'Posts',
+        'create_post' => 'Create Post',
+        'about' => 'About',
+    ],
+
     // Home Page Keys Nested under 'home'
     'home' => [
         'page_title' => 'Welcome to phpLiteCore',
@@ -23,7 +31,7 @@ return [
         'version_label' => 'Version:',
     ],
 
-    // About Page Keys (NEW)
+    // About Page Keys
     'about' => [
         'page_title' => 'About Us',
         'page_content' => 'This is the about us page, powered by phpLiteCore.',
@@ -33,10 +41,13 @@ return [
     'posts' => [
         'index_title' => 'All Posts',
         'create_title' => 'Create New Post',
+        'edit_title' => 'Edit Post: {{title}}', // NEW for edit page title
         'not_found' => 'Post with ID {{id}} not found.',
         'no_posts' => 'No posts found.',
-        'back_link' => 'Back to Home',
+        'back_link' => 'Back to Posts', // Changed from Back to Home for consistency
         'create_button' => 'Create Post',
+        'update_button' => 'Update Post', // NEW
+        'edit_button' => 'Edit', // NEW for link on show page
         'cancel_button' => 'Cancel',
         'form_title' => 'Post Title',
         'form_content' => 'Post Content',

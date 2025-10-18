@@ -1,7 +1,6 @@
 <?php
 
 // This file returns a function that defines the routes.
-// This approach is clean and prevents variables from leaking into the global scope.
 
 /** @var PhpLiteCore\Routing\Router $router */
 
@@ -12,18 +11,26 @@ $router->get('/about', ['AboutController', 'index']);
 
 // --- Post Routes ---
 
-// (FIX) The 'create' route MUST be defined *before* the dynamic '{id}' route
-// to ensure '/posts/create' is not captured as an ID.
+// (Compliant) Show create form (Must be before dynamic {id})
 $router->get('/posts/create', ['PostController', 'create']);
 
 // (Compliant) List all posts
 $router->get('/posts', ['PostController', 'index']);
 
-// (Compliant) Show a single post (now correctly handles IDs only)
+// --- NEW: Edit Routes ---
+// Show the edit form for a specific post
+$router->get('/posts/{id}/edit', ['PostController', 'edit']);
+
+// Handle the update submission for a specific post
+$router->post('/posts/{id}', ['PostController', 'update']);
+// --- END NEW ---
+
+// (Compliant) Show a single post (Must be after specific routes like 'create' and 'edit')
 $router->get('/posts/{id}', ['PostController', 'show']);
 
 // (Compliant) Store a new post
 $router->post('/posts', ['PostController', 'store']);
+
 
 // IMPORTANT: Only register test routes in the development environment
 if (defined('ENV') && ENV === 'development') {

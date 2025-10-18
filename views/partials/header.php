@@ -12,9 +12,9 @@
 
     <header class="mb-4">
         <nav class="nav nav-pills">
-            <a class="nav-link" href="/">Home</a>
-            <a class="nav-link" href="/posts">Posts</a>
-            <a class="nav-link" href="/about">About</a>
+            <a class="nav-link" href="/"><?= htmlspecialchars($navHome) ?></a>
+            <a class="nav-link" href="/posts"><?= htmlspecialchars($navPosts) ?></a>
+            <a class="nav-link" href="/posts/create"><?= htmlspecialchars($navCreatePost) ?></a> <a class="nav-link" href="/about"><?= htmlspecialchars($navAbout) ?></a>
         </nav>
     </header>
 
