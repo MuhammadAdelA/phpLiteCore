@@ -55,13 +55,17 @@
 
 ## 📖 Documentation
 
-* *(Coming Soon - Link to the generated documentation HTML files)*
+**View the live documentation:**
+
+**[https://muhammadadela.github.io/phpLiteCore/](https://muhammadadela.github.io/phpLiteCore/)**
+
+*(Includes guides for both English and Arabic, covering core concepts, routing, database interaction, translation, and more.)*
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) guide.
+Contributions are welcome! [cite_start]Please read the [CONTRIBUTING.md](CONTRIBUTING.md) guide. [cite: 1]
 
 ---
 
