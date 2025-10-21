@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Routing;
 
-use mysql_xdevapi\Exception;
 use PhpLiteCore\Bootstrap\Application;
 use PhpLiteCore\Http\Response;
 // Import the specific exceptions
