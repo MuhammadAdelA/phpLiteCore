@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhpLiteCore\Routing;
 
 use PhpLiteCore\Bootstrap\Application;
+use PhpLiteCore\Container\Container;
 use PhpLiteCore\Http\Response;
 // Import the specific exceptions
 use PhpLiteCore\Routing\Exceptions\ControllerNotFoundException;
@@ -36,6 +37,12 @@ class Router
     protected array $middleware = [];
 
     /**
+     * The container instance for dependency injection.
+     * @var Container|null
+     */
+    protected ?Container $container = null;
+
+    /**
      * Add a new GET route to the collection.
      * @param string $uri The URI pattern (e.g., '/users', '/posts/{id}').
      * @param array $action The controller and method array [ControllerName::class, 'methodName'].
@@ -63,6 +70,16 @@ class Router
     public function addMiddleware(object $middleware): void
     {
         $this->middleware[] = $middleware;
+    }
+
+    /**
+     * Set the container instance for dependency injection.
+     * @param Container $container The container instance.
+     * @return void
+     */
+    public function setContainer(Container $container): void
+    {
+        $this->container = $container;
     }
 
     /**
@@ -174,8 +191,24 @@ class Router
             throw new ControllerNotFoundException("Controller class {$fullControllerName} not found.");
         }
 
-        // Instantiate the controller, passing the application instance (dependency injection).
-        $controllerInstance = new $fullControllerName($app);
+        // Try to instantiate the controller using the container if available
+        if ($this->container !== null) {
+            try {
+                // First, bind Application class to the container if not already bound
+                if (!$this->container->has(Application::class)) {
+                    $this->container->instance(Application::class, $app);
+                }
+
+                // Try to auto-wire the controller using the container
+                $controllerInstance = $this->container->make($fullControllerName);
+            } catch (\ReflectionException $e) {
+                // Fallback to the old way if container instantiation fails
+                $controllerInstance = new $fullControllerName($app);
+            }
+        } else {
+            // Fallback: Instantiate the controller, passing the application instance (dependency injection).
+            $controllerInstance = new $fullControllerName($app);
+        }
 
         // Check if the action method exists on the controller instance.
         if (!method_exists($controllerInstance, $method)) {
