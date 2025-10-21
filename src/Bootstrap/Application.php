@@ -3,6 +3,7 @@ namespace PhpLiteCore\Bootstrap;
 
 use Dotenv\Dotenv;
 use PhpLiteCore\Auth\Auth;       // 1. Added use statement
+use PhpLiteCore\Container\Container;
 use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Model\BaseModel;
 use PhpLiteCore\Lang\Translator;
@@ -57,10 +58,6 @@ class Application
         // Register this instance as the singleton immediately.
         self::$instance = $this;
 
-        // Boot the BaseModel with the application instance FIRST.
-        // Needs to happen before potential model usage during bootstrapping.
-        BaseModel::setApp($this);
-
         // Now, proceed with the rest of the bootstrap process.
         $this->bootstrap();
     }
@@ -109,6 +106,9 @@ class Application
      */
     private function registerCoreServices(): void
     {
+        // --- Create the Service Container ---
+        $container = new Container();
+
         // --- Session Service ---
         // Must be started *before* any output is sent by the application.
         // It reads SESSION_* variables from $_ENV, so Dotenv must be loaded first.
@@ -158,6 +158,19 @@ class Application
         // --- Router Service ---
         // No direct dependencies on other services during instantiation.
         $this->router = new Router();
+
+        // --- Register core services in the Container ---
+        $container->instance('db', $this->db);
+        $container->instance(Router::class, $this->router);
+        $container->instance(Translator::class, $this->translator);
+
+        // --- Inject Container into BaseModel ---
+        // BaseModel uses the container to resolve the database service
+        BaseModel::setContainer($container);
+
+        // --- Inject Container into Router ---
+        // Router uses the container to instantiate controllers
+        $this->router->setContainer($container);
 
         // --- Register Global Middleware ---
         $this->registerMiddleware();

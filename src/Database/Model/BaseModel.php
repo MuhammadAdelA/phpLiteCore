@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Model;
 
-use PhpLiteCore\Bootstrap\Application;
+use PhpLiteCore\Container\Container;
 use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
 
 /**
@@ -24,9 +24,9 @@ use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
  */
 abstract class BaseModel
 {
-    /** * @var Application The static application instance, providing access to services like the database.
+    /** * @var Container The static container instance, providing access to services like the database.
      */
-    protected static Application $app;
+    protected static Container $container;
 
     /** * @var string The table associated with the model. Can be overridden in child classes.
      */
@@ -41,13 +41,13 @@ abstract class BaseModel
     protected array $original = [];
 
     /**
-     * Sets the application instance for all models to use.
+     * Sets the container instance for all models to use.
      * This should be called once during the application bootstrap.
-     * @param Application $app
+     * @param Container $container
      */
-    public static function setApp(Application $app): void
+    public static function setContainer(Container $container): void
     {
-        static::$app = $app;
+        static::$container = $container;
     }
 
     /**
@@ -202,7 +202,8 @@ abstract class BaseModel
      */
     public static function query(): BaseQueryBuilder
     {
-        return static::$app->db->queryBuilder()
+        $db = static::$container->get('db');
+        return $db->queryBuilder()
             ->from((new static())->table)
             ->setModel(static::class);
     }
