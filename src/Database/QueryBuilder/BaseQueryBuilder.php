@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Database\QueryBuilder;
 
-namespace PhpLiteCore\Database\QueryBuilder;
-
 use PDO;
 use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Grammar\GrammarInterface;

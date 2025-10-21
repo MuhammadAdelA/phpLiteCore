@@ -43,7 +43,10 @@ class Database
             $config['username'],
             $config['password'],
             // Set error mode to exception for robust error handling.
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]
         );
 
         // Use MySqlGrammar by default; this can be replaced via the setter.
