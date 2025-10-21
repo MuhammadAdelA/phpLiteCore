@@ -2,6 +2,7 @@
 <hr>
 
 <form action="/posts" method="POST">
+    <?= csrf_field() ?>
     <div class="mb-3">
         <label for="title" class="form-label"><?= e($formTitle) ?></label>
         <input type="text" class="form-control" id="title" name="title" required minlength="5">

@@ -154,3 +154,16 @@ if (!function_exists('e')) {
         return htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
+
+/**
+ * Generate a hidden CSRF token field for forms.
+ * 
+ * @return string The HTML for the hidden CSRF token field.
+ */
+if (!function_exists('csrf_field')) {
+    function csrf_field(): string
+    {
+        $token = \PhpLiteCore\Http\Middleware\CsrfMiddleware::token();
+        return '<input type="hidden" name="_token" value="' . e($token) . '">';
+    }
+}
