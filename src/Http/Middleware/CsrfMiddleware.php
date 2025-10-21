@@ -141,9 +141,12 @@ class CsrfMiddleware
         if (class_exists('\PhpLiteCore\Bootstrap\Application')) {
             try {
                 $app = \PhpLiteCore\Bootstrap\Application::getInstance();
-                return $app->session;
-            } catch (\Exception $e) {
-                // If Application is not initialized, fall back to creating a new Session
+                // Check if session property is initialized
+                if (isset($app->session)) {
+                    return $app->session;
+                }
+            } catch (\Throwable $e) {
+                // If Application is not initialized properly, fall back to creating a new Session
             }
         }
 
