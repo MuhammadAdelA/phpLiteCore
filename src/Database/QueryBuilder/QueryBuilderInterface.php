@@ -220,6 +220,14 @@ interface QueryBuilderInterface
      *
      * @return int
      */
+    public function count(): int;
+
+    /**
+     * Count how many records match the query.
+     *
+     * @deprecated Use count() instead. This method will be removed in a future release.
+     * @return int
+     */
     public function found(): int;
 
     /*public function having(string $column, string $operator, mixed $value): static;

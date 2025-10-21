@@ -99,6 +99,8 @@
 <span class="php-comment">// Get the count of users matching a WHERE clause</span>
 <span class="php-variable">$adminCount</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)-><span class="php-function">count</span>();</code></pre>
 
+        <p><strong>ملاحظة:</strong> دالة <code>found()</code> مهملة وسيتم إزالتها في إصدار مستقبلي. يرجى استخدام <code>count()</code> بدلاً منها.</p>
+
         <h3 id="guide-pagination">تقسيم الصفحات (Paginate)</h3>
         <p>تقوم دالة <code>paginate()</code> تلقائياً بحساب الإجمالي وتقسيم الصفحات وجلب العناصر للصفحة الحالية.</p>
 

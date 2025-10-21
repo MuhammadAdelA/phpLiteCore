@@ -189,24 +189,34 @@ class BaseQueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Execute a query as a "count" query.
+     * Execute a query as a "count" query using a safe subquery approach.
+     * 
+     * This method builds: SELECT COUNT(*) AS aggregate FROM (<current select SQL>) AS sub
+     * and reuses existing WHERE bindings via getBindings().
      *
-     * @param string $columns The column to count, defaults to '*'.
+     * @param string $columns The column to count, defaults to '*' (unused in subquery approach).
      * @return int The total number of matching records.
      */
     public function count(string $columns = '*'): int
     {
+        // Build the current SELECT query SQL (without LIMIT/OFFSET for accurate count)
         $clone = clone $this;
-        // When running an aggregate, we don't want to hydrate the result into a model.
-        $clone->modelClass = null;
-        $clone->aggregate = ['function' => 'COUNT', 'columns' => [$columns]];
-        $clone->columns = [];
-
-        $result = $clone->get(); // This will now return a simple array
-
-        // --- THE FIX IS HERE ---
-        // Access the result as an array element.
-        return (int) ($result[0]['aggregate'] ?? 0);
+        $clone->limit = null;
+        $clone->offset = null;
+        
+        // Get the inner SQL and bindings
+        $innerSql = $clone->toSql();
+        $bindings = $clone->getWhereBindings();
+        
+        // Wrap in a COUNT subquery
+        $sql = "SELECT COUNT(*) AS aggregate FROM ({$innerSql}) AS sub";
+        
+        // Execute with PDO and return the integer result
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($bindings);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return (int) ($result['aggregate'] ?? 0);
     }
 
     /**
