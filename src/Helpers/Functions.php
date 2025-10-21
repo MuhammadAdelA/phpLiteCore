@@ -133,3 +133,24 @@ function is_rtl(): bool
 {
     return HTML_DIR === "rtl";
 }
+
+/**
+ * Escape HTML special characters.
+ *
+ * This is a convenience wrapper around htmlspecialchars() with safe defaults.
+ * It uses ENT_QUOTES to escape both double and single quotes, ENT_SUBSTITUTE to replace
+ * invalid characters with a Unicode Replacement Character, and UTF-8 as the encoding.
+ *
+ * @param string|null $string The string to escape.
+ * @return string The escaped string, or an empty string if null is provided.
+ */
+if (!function_exists('e')) {
+    function e(?string $string): string
+    {
+        if ($string === null) {
+            return '';
+        }
+
+        return htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}

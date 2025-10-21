@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($error_code) ?> | <?= htmlspecialchars($error_title) ?></title>
+    <title><?= e($error_code) ?> | <?= e($error_title) ?></title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -87,13 +87,13 @@
         </svg>
     <?php endif; ?>
 
-    <h1 class="error-code"><?= htmlspecialchars($error_code) ?></h1>
-    <h2 class="error-title"><?= htmlspecialchars($error_title) ?></h2>
+    <h1 class="error-code"><?= e($error_code) ?></h1>
+    <h2 class="error-title"><?= e($error_title) ?></h2>
     <p class="error-message">
-        <?= htmlspecialchars($error_message) ?>
+        <?= e($error_message) ?>
     </p>
 
-    <a href="/" class="home-link"><?= htmlspecialchars($homeLinkText) ?></a>
+    <a href="/" class="home-link"><?= e($homeLinkText) ?></a>
 </div>
 </body>
 </html>

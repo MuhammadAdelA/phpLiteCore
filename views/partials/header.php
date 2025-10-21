@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'phpLiteCore') ?></title>
+    <title><?= e($pageTitle ?? 'phpLiteCore') ?></title>
 
     <link rel="stylesheet" href="/assets/app.css">
 </head>
@@ -12,9 +12,9 @@
 
     <header class="mb-4">
         <nav class="nav nav-pills">
-            <a class="nav-link" href="/"><?= htmlspecialchars($navHome) ?></a>
-            <a class="nav-link" href="/posts"><?= htmlspecialchars($navPosts) ?></a>
-            <a class="nav-link" href="/posts/create"><?= htmlspecialchars($navCreatePost) ?></a> <a class="nav-link" href="/about"><?= htmlspecialchars($navAbout) ?></a>
+            <a class="nav-link" href="/"><?= e($navHome) ?></a>
+            <a class="nav-link" href="/posts"><?= e($navPosts) ?></a>
+            <a class="nav-link" href="/posts/create"><?= e($navCreatePost) ?></a> <a class="nav-link" href="/about"><?= e($navAbout) ?></a>
         </nav>
     </header>
 
