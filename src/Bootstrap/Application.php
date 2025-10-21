@@ -158,6 +158,20 @@ class Application
         // --- Router Service ---
         // No direct dependencies on other services during instantiation.
         $this->router = new Router();
+
+        // --- Register Global Middleware ---
+        $this->registerMiddleware();
+    }
+
+    /**
+     * Register global middleware to be executed on every request.
+     * @return void
+     */
+    private function registerMiddleware(): void
+    {
+        // Register CSRF protection middleware
+        $csrfMiddleware = new \PhpLiteCore\Http\Middleware\CsrfMiddleware($this->session);
+        $this->router->addMiddleware($csrfMiddleware);
     }
 
     /**

@@ -152,4 +152,20 @@ class Response // Add ArrayAccess if you need header manipulation like $response
             $homeLinkText
         );
     }
+
+    /**
+     * Static helper for 403 Forbidden response.
+     * Renders a simple 403 error page or message.
+     * Terminates script execution.
+     *
+     * @param string $message The error message to display.
+     * @return void
+     */
+    #[NoReturn] public static function forbidden(string $message = 'Forbidden'): void
+    {
+        http_response_code(403);
+        header('Content-Type: text/plain');
+        echo $message;
+        exit;
+    }
 }

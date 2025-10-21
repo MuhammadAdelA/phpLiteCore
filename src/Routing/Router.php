@@ -30,6 +30,12 @@ class Router
     protected string $controllerNamespace = 'App\\Controllers\\';
 
     /**
+     * The array of global middleware to run before routing.
+     * @var array
+     */
+    protected array $middleware = [];
+
+    /**
      * Add a new GET route to the collection.
      * @param string $uri The URI pattern (e.g., '/users', '/posts/{id}').
      * @param array $action The controller and method array [ControllerName::class, 'methodName'].
@@ -50,6 +56,16 @@ class Router
     }
 
     /**
+     * Register a global middleware to run before routing.
+     * @param object $middleware The middleware instance.
+     * @return void
+     */
+    public function addMiddleware(object $middleware): void
+    {
+        $this->middleware[] = $middleware;
+    }
+
+    /**
      * Resolve the current request URI and HTTP method against registered routes
      * and dispatch to the appropriate controller action.
      *
@@ -61,6 +77,9 @@ class Router
     {
         $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+        // Execute global middleware before routing
+        $this->runMiddleware($requestMethod);
 
         foreach ($this->routes as $route) {
             // Check if the request method matches the route's method.
@@ -84,6 +103,21 @@ class Router
 
         // If no route was matched after checking all registered routes, send a 404 response.
         Response::notFound('Page Not Found');
+    }
+
+    /**
+     * Execute all registered global middleware.
+     * 
+     * @param string $method The HTTP request method.
+     * @return void
+     */
+    protected function runMiddleware(string $method): void
+    {
+        foreach ($this->middleware as $middleware) {
+            if (method_exists($middleware, 'handle')) {
+                $middleware->handle($method);
+            }
+        }
     }
 
     /**
