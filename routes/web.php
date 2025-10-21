@@ -17,13 +17,12 @@ $router->get('/posts/create', ['PostController', 'create']);
 // (Compliant) List all posts
 $router->get('/posts', ['PostController', 'index']);
 
-// --- NEW: Edit Routes ---
+// --- Edit Routes ---
 // Show the edit form for a specific post
 $router->get('/posts/{id}/edit', ['PostController', 'edit']);
 
 // Handle the update submission for a specific post
 $router->post('/posts/{id}', ['PostController', 'update']);
-// --- END NEW ---
 
 // (Compliant) Show a single post (Must be after specific routes like 'create' and 'edit')
 $router->get('/posts/{id}', ['PostController', 'show']);
@@ -32,7 +31,16 @@ $router->get('/posts/{id}', ['PostController', 'show']);
 $router->post('/posts', ['PostController', 'store']);
 
 
-// IMPORTANT: Only register test routes in the development environment
+// --- Development Only Routes ---
 if (defined('ENV') && ENV === 'development') {
+    // Database Layer Tests
     $router->get('/run-db-tests', ['TestController', 'runDbTests']);
+
+    // --- NEW: Session Test Routes ---
+    $router->get('/test-session-set/{key}/{value}', ['TestController', 'testSessionSet']);
+    $router->get('/test-session-get/{key}', ['TestController', 'testSessionGet']);
+    $router->get('/test-session-flash-set/{key}/{message}', ['TestController', 'testSessionFlashSet']);
+    $router->get('/test-session-flash-get/{key}', ['TestController', 'testSessionFlashGet']);
+    $router->get('/test-session-destroy', ['TestController', 'testSessionDestroy']);
+    // --- END NEW ---
 }
