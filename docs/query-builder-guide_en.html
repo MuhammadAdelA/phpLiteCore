@@ -103,6 +103,8 @@
 <span class="php-comment">// Get the count of users matching a WHERE clause</span>
 <span class="php-variable">$adminCount</span> = <span class="php-class">User</span>::<span class="php-function">where</span>(<span class="php-string">'role'</span>, <span class="php-string">'admin'</span>)-><span class="php-function">count</span>();</code></pre>
 
+        <p><strong>Note:</strong> The <code>found()</code> method is deprecated and will be removed in a future release. Please use <code>count()</code> instead.</p>
+
         <h3 id="guide-pagination">Pagination (Paginate)</h3>
         <p>The <code>paginate()</code> method automatically calculates the total, slices the results, and fetches items for the current page.</p>
 

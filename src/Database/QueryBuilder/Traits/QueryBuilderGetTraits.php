@@ -68,6 +68,7 @@ trait QueryBuilderGetTraits
      * Count how many records match the query.
      * This is an alias for the count() method.
      *
+     * @deprecated Use count() instead. This method will be removed in a future release.
      * @return int
      */
     public function found(): int
