@@ -1,2 +1,2 @@
-<h1><?= htmlspecialchars($pageTitle); ?></h1>
-<p><?= htmlspecialchars($pageContent); ?></p>
+<h1><?= e($pageTitle); ?></h1>
+<p><?= e($pageContent); ?></p>

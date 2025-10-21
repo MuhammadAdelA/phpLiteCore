@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uncaught Exception: <?= htmlspecialchars($exception_class) ?></title>
+    <title>Uncaught Exception: <?= e($exception_class) ?></title>
     <style>
         /* CSS styles remain the same */
         body {
@@ -52,13 +52,13 @@
 <div class="container">
     <div class="header">
         <h1>Uncaught Exception</h1>
-        <h3><?= htmlspecialchars($exception_class) ?></h3>
+        <h3><?= e($exception_class) ?></h3>
     </div>
     <div class="content">
-        <p><b>Message:</b> <?= htmlspecialchars($message) ?></p>
-        <p><b>File:</b> <?= htmlspecialchars($file) ?> on line <b><?= $line ?></b></p>
+        <p><b>Message:</b> <?= e($message) ?></p>
+        <p><b>File:</b> <?= e($file) ?> on line <b><?= $line ?></b></p>
         <h3>Stack Trace:</h3>
-        <pre class="stack-trace"><?= htmlspecialchars($trace) ?></pre>
+        <pre class="stack-trace"><?= e($trace) ?></pre>
     </div>
     <div class="footer">
         <p>phpLiteCore Error Handler</p>
