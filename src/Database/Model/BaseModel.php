@@ -6,6 +6,9 @@ namespace PhpLiteCore\Database\Model;
 
 use PhpLiteCore\Container\Container;
 use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
+use PhpLiteCore\Database\Model\Relations\HasMany;
+use PhpLiteCore\Database\Model\Relations\HasOne;
+use PhpLiteCore\Database\Model\Relations\BelongsTo;
 
 /**
  * The Hybrid Base Model for the Active Record implementation.
@@ -219,5 +222,92 @@ abstract class BaseModel
     {
         // Forward static calls (like 'where', 'orderBy', etc.) to a new query builder instance.
         return static::query()->{$method}(...$arguments);
+    }
+
+    /**
+     * Helper: relation hasMany
+     *
+     * @param class-string $related
+     * @param string|null $foreignKey Column on the related table referencing this model (default: snake_case(model)_id)
+     * @param string $localKey Column on this model (default: 'id')
+     */
+    protected function hasMany(string $related, ?string $foreignKey = null, string $localKey = 'id'): HasMany
+    {
+        $relatedTable = (new $related())->table;
+        $foreignKey ??= $this->inferForeignKey();
+
+        // Get PDO from container
+        /** @var \PhpLiteCore\Database\Database $db */
+        $db = static::$container->get('db');
+
+        return new HasMany($db->getPdo(), $this->table, $relatedTable, $localKey, $foreignKey, $this->inferRelationName());
+    }
+
+    /**
+     * Helper: relation hasOne
+     */
+    protected function hasOne(string $related, ?string $foreignKey = null, string $localKey = 'id'): HasOne
+    {
+        $relatedTable = (new $related())->table;
+        $foreignKey ??= $this->inferForeignKey();
+
+        /** @var \PhpLiteCore\Database\Database $db */
+        $db = static::$container->get('db');
+
+        return new HasOne($db->getPdo(), $this->table, $relatedTable, $localKey, $foreignKey, $this->inferRelationName());
+    }
+
+    /**
+     * Helper: relation belongsTo
+     *
+     * @param class-string $related
+     * @param string|null $foreignKey Column on THIS model referencing owner's key (default: snake_case(related)_id)
+     * @param string $ownerKey Column on the related model (default: 'id')
+     */
+    protected function belongsTo(string $related, ?string $foreignKey = null, string $ownerKey = 'id'): BelongsTo
+    {
+        $relatedTable = (new $related())->table;
+        $foreignKey ??= $this->inferForeignKey($related);
+
+        /** @var \PhpLiteCore\Database\Database $db */
+        $db = static::$container->get('db');
+
+        // Note: For belongsTo, localKey is the FK on parent; foreignKey is the owner key on related.
+        return new BelongsTo($db->getPdo(), $this->table, $relatedTable, $foreignKey, $ownerKey, $this->inferRelationName());
+    }
+
+    /**
+     * Infer FK name as snake_case(model)_id (or snake_case(related)_id when $class provided).
+     */
+    protected function inferForeignKey(?string $class = null): string
+    {
+        $name = $class ? $this->shortClass($class) : $this->shortClass(static::class);
+        return $this->toSnakeCase($name) . '_id';
+    }
+
+    /**
+     * Infer relation name from the calling method.
+     */
+    protected function inferRelationName(): string
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        foreach ($trace as $frame) {
+            if (!empty($frame['function']) && $frame['function'] !== __FUNCTION__) {
+                return (string)$frame['function'];
+            }
+        }
+        return 'relation';
+    }
+
+    protected function shortClass(string $fqcn): string
+    {
+        $parts = explode('\\', $fqcn);
+        return end($parts) ?: $fqcn;
+    }
+
+    protected function toSnakeCase(string $name): string
+    {
+        $name = preg_replace('/(?<!^)[A-Z]/', '_$0', $name);
+        return strtolower((string)$name);
     }
 }

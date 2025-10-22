@@ -10,6 +10,7 @@ use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderGetTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderLikeTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderWhereTraits;
 use PhpLiteCore\Pagination\Paginator;
+use PhpLiteCore\Database\Model\EagerLoader;
 /**
  * BaseQueryBuilder provides a fluent interface to build and execute SQL queries.
  */
@@ -62,6 +63,12 @@ class BaseQueryBuilder implements QueryBuilderInterface
 
     /** @var array The bindings for the SET part of an insert/update query. */
     protected array $bindings = [];
+
+    /**
+     * Relations requested for eager loading.
+     * @var string[]
+     */
+    protected array $with = [];
 
     /**
      * BaseQueryBuilder constructor.
@@ -249,6 +256,33 @@ class BaseQueryBuilder implements QueryBuilderInterface
     public function getAggregate(): ?array
     {
         return $this->aggregate;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function with(string|array $relations): static
+    {
+        $rels = is_array($relations) ? $relations : [$relations];
+        // normalize and de-duplicate
+        $rels = array_values(array_unique(array_map('strval', $rels)));
+        $this->with = array_values(array_unique(array_merge($this->with, $rels)));
+        return $this;
+    }
+
+    /**
+     * Hook to run after fetching rows in get().
+     * Called by QueryBuilderGetTraits::get() before returning the results.
+     *
+     * @param array $rows
+     * @return array
+     */
+    protected function afterFetch(array $rows): array
+    {
+        if (!empty($rows) && !empty($this->with) && $this->modelClass) {
+            EagerLoader::load($this->pdo, $this->modelClass, $rows, $this->with);
+        }
+        return $rows;
     }
 
     /**
