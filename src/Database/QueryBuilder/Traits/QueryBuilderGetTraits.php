@@ -27,6 +27,12 @@ trait QueryBuilderGetTraits
     public function get(): array
     {
         $results = $this->runQuery();
+
+        // If BaseQueryBuilder defines afterFetch(), call it to allow eager loading on raw results.
+        if (method_exists($this, 'afterFetch')) {
+            $results = $this->afterFetch($results);
+        }
+
         if (!$this->modelClass) { return $results; }
 
         $models = [];

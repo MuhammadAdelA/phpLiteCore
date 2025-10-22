@@ -230,6 +230,14 @@ interface QueryBuilderInterface
      */
     public function found(): int;
 
+    /**
+     * Specify relations to eager load by name (matching relation methods on the model).
+     *
+     * @param string|array $relations
+     * @return static
+     */
+    public function with(string|array $relations): static;
+
     /*public function having(string $column, string $operator, mixed $value): static;
     public function orHaving(string $column, string $operator, mixed $value): static;
     public function havingIn(string $column, array $values, string $type): static;
