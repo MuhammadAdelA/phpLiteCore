@@ -10,12 +10,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class MakeControllerCommand extends Command
 {
-    protected static $defaultName = 'make:controller';
-    protected static $defaultDescription = 'Create a new controller class in app/Controllers';
+    public function __construct()
+    {
+        parent::__construct('make:controller');
+    }
 
     protected function configure(): void
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'Controller class name (e.g., PostController)');
+        $this
+            ->setDescription('Create a new controller class in app/Controllers')
+            ->addArgument('name', InputArgument::REQUIRED, 'Controller class name (e.g., PostController)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

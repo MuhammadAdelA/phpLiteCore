@@ -11,12 +11,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class MigrateRollbackCommand extends Command
 {
-    protected static $defaultName = 'migrate:rollback';
-    protected static $defaultDescription = 'Roll back the latest database migration';
-
     public function __construct(private readonly Application $app)
     {
-        parent::__construct();
+        parent::__construct('migrate:rollback');
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Roll back the latest database migration');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

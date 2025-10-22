@@ -11,17 +11,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class MakeMigrationCommand extends Command
 {
-    protected static $defaultName = 'make:migration';
-    protected static $defaultDescription = 'Create a new migration file';
-
     public function __construct(private readonly Application $app)
     {
-        parent::__construct();
+        parent::__construct('make:migration');
     }
 
     protected function configure(): void
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'Migration name (e.g., AddUsersIndexes)');
+        $this
+            ->setDescription('Create a new migration file')
+            ->addArgument('name', InputArgument::REQUIRED, 'Migration name (e.g., AddUsersIndexes)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

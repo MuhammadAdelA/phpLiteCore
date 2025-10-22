@@ -15,11 +15,18 @@ final class MigrationRunner
 
     private function ensureMigrationsTable(): void
     {
-        $sql = "CREATE TABLE IF NOT EXISTS `schema_migrations` (
-            `version` VARCHAR(255) PRIMARY KEY,
-            `applied_at` DATETIME NOT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-        $this->db->raw($sql);
+        try {
+            $sql = "CREATE TABLE IF NOT EXISTS `schema_migrations` (
+                `version` VARCHAR(255) PRIMARY KEY,
+                `applied_at` DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            $this->db->raw($sql);
+        } catch (\PDOException $e) {
+            // Table might already exist, ignore error
+            if ($e->getCode() !== '42S01') {
+                throw $e;
+            }
+        }
     }
 
     /**
@@ -44,14 +51,16 @@ final class MigrationRunner
             }
 
             $migration = $this->loadMigration($file);
-            $this->db->beginTransaction();
+            
             try {
+                // Note: DDL statements (CREATE, ALTER, DROP) cause implicit commit in MySQL
+                // So transactions are not effective for schema changes
                 $migration->up();
                 $this->recordVersion($version);
-                $this->db->commit();
                 $applied[] = $version;
             } catch (\Throwable $e) {
-                $this->db->rollBack();
+                // If migration failed, we don't record it
+                // User needs to fix the migration and try again
                 throw $e;
             }
         }
@@ -78,13 +87,14 @@ final class MigrationRunner
 
         $migration = $this->loadMigration($file);
 
-        $this->db->beginTransaction();
         try {
+            // Note: DDL statements (CREATE, ALTER, DROP) cause implicit commit in MySQL
+            // So transactions are not effective for schema changes
             $migration->down();
             $this->removeVersion($last);
-            $this->db->commit();
         } catch (\Throwable $e) {
-            $this->db->rollBack();
+            // Rollback failed, but we still need to handle it
+            // The version is not removed from the table, so user can try again
             throw $e;
         }
 

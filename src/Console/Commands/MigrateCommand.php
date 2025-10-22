@@ -11,12 +11,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class MigrateCommand extends Command
 {
-    protected static $defaultName = 'migrate';
-    protected static $defaultDescription = 'Apply pending database migrations';
-
     public function __construct(private readonly Application $app)
     {
-        parent::__construct();
+        parent::__construct('migrate');
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Apply pending database migrations');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

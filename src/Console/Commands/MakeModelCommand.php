@@ -10,12 +10,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class MakeModelCommand extends Command
 {
-    protected static $defaultName = 'make:model';
-    protected static $defaultDescription = 'Create a new model class in app/Models';
+    public function __construct()
+    {
+        parent::__construct('make:model');
+    }
 
     protected function configure(): void
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'Model class name (e.g., Post)');
+        $this
+            ->setDescription('Create a new model class in app/Models')
+            ->addArgument('name', InputArgument::REQUIRED, 'Model class name (e.g., Post)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

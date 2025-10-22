@@ -11,12 +11,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class SeedCommand extends Command
 {
-    protected static $defaultName = 'seed';
-    protected static $defaultDescription = 'Run all database seeders';
-
     public function __construct(private readonly Application $app)
     {
-        parent::__construct();
+        parent::__construct('seed');
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Run all database seeders');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
