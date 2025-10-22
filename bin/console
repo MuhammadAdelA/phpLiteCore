@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+use PhpLiteCore\Console\Kernel;
+
+const PHPLITECORE_ROOT = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR;
+
+require PHPLITECORE_ROOT . 'vendor/autoload.php';
+
+/** Bootstrap the application (loads env, builds $app) */
+/** @var \PhpLiteCore\Bootstrap\Application $app */
+$app = require PHPLITECORE_ROOT . 'init.php';
+
+$kernel = new Kernel($app);
+exit($kernel->run());
