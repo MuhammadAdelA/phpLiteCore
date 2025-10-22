@@ -31,11 +31,22 @@ jobs:
           extensions: pdo, exif, fileinfo, mbstring, mysqli, intl, gd, bcmath
           tools: composer:v2
 
+      - name: 🔒 Verify composer.lock is up-to-date with composer.json
+        run: |
+          # Try to update only the lock metadata in CI; if composer.lock would change, fail the job with a helpful message
+          composer update --lock --no-interaction --no-plugins || true
+          if ! git diff --quiet -- composer.lock; then
+            echo "❌ composer.lock is out of date with composer.json."
+            echo "Run 'composer update' locally and commit the updated composer.lock."
+            git --no-pager diff -- composer.lock
+            exit 1
+          fi
+
       - name: 📥 Cache Composer dependencies
         uses: actions/cache@v4
         with:
           path: vendor
-          key: ${{ runner.os }}-php-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock', '**/composer.json') }}
           restore-keys: |
             ${{ runner.os }}-php-${{ matrix.php-versions }}-
 
