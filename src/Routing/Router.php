@@ -19,10 +19,16 @@ class Router
 {
     /**
      * The array of registered routes.
-     * Each route contains method, uri, action, regex pattern, and parameter names.
-     * @var array
+     * Each route is a Route instance.
+     * @var Route[]
      */
     protected array $routes = [];
+
+    /**
+     * Named routes for easy lookup.
+     * @var array
+     */
+    protected array $namedRoutes = [];
 
     /**
      * The namespace prefix for controller classes.
@@ -43,23 +49,50 @@ class Router
     protected ?Container $container = null;
 
     /**
+     * Current group attributes (prefix, as, middleware).
+     * @var array
+     */
+    protected array $groupStack = [];
+
+    /**
      * Add a new GET route to the collection.
      * @param string $uri The URI pattern (e.g., '/users', '/posts/{id}').
      * @param array $action The controller and method array [ControllerName::class, 'methodName'].
+     * @return Route The route instance for fluent chaining
      */
-    public function get(string $uri, array $action): void
+    public function get(string $uri, array $action): Route
     {
-        $this->addRoute('GET', $uri, $action);
+        return $this->addRoute('GET', $uri, $action);
     }
 
     /**
      * Add a new POST route to the collection.
      * @param string $uri The URI pattern.
      * @param array $action The controller and method array.
+     * @return Route The route instance for fluent chaining
      */
-    public function post(string $uri, array $action): void
+    public function post(string $uri, array $action): Route
     {
-        $this->addRoute('POST', $uri, $action);
+        return $this->addRoute('POST', $uri, $action);
+    }
+
+    /**
+     * Create a route group with shared attributes.
+     * 
+     * @param array $attributes Group attributes (prefix, as, middleware)
+     * @param callable $callback Callback to register routes within the group
+     * @return void
+     */
+    public function group(array $attributes, callable $callback): void
+    {
+        // Push current group attributes onto the stack
+        $this->groupStack[] = $attributes;
+        
+        // Execute the callback to register routes
+        $callback($this);
+        
+        // Pop the group attributes from the stack
+        array_pop($this->groupStack);
     }
 
     /**
@@ -96,24 +129,27 @@ class Router
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         // Execute global middleware before routing
-        $this->runMiddleware($requestMethod);
+        $this->runGlobalMiddleware($requestMethod);
 
         foreach ($this->routes as $route) {
             // Check if the request method matches the route's method.
-            if ($route['method'] !== $requestMethod) {
+            if ($route->getMethod() !== $requestMethod) {
                 continue;
             }
 
             // Check if the request URI matches the route's regex pattern.
-            if (preg_match($route['regex'], $requestUri, $matches)) {
+            if (preg_match($route->getRegex(), $requestUri, $matches)) {
                 // Remove the full matched string (index 0) from the results.
                 array_shift($matches);
 
                 // Combine the extracted parameter values with their names if parameters exist.
-                $params = !empty($route['params']) ? array_combine($route['params'], $matches) : [];
+                $params = !empty($route->getParams()) ? array_combine($route->getParams(), $matches) : [];
 
-                // Call the controller action. This might throw specific exceptions handled above.
-                $this->callAction($app, $route['action'][0], $route['action'][1], $params);
+                // Execute route-specific middleware
+                $this->runRouteMiddleware($route, $requestMethod);
+
+                // Call the controller action.
+                $this->callAction($app, $route->getAction()[0], $route->getAction()[1], $params);
                 return; // Stop processing routes once a match is found and dispatched.
             }
         }
@@ -128,7 +164,7 @@ class Router
      * @param string $method The HTTP request method.
      * @return void
      */
-    protected function runMiddleware(string $method): void
+    protected function runGlobalMiddleware(string $method): void
     {
         foreach ($this->middleware as $middleware) {
             if (method_exists($middleware, 'handle')) {
@@ -138,37 +174,167 @@ class Router
     }
 
     /**
-     * Converts a route URI with placeholders (e.g., {id}) into a regex pattern
+     * Execute route-specific middleware.
+     * 
+     * @param Route $route The route instance
+     * @param string $method The HTTP request method
+     * @return void
+     */
+    protected function runRouteMiddleware(Route $route, string $method): void
+    {
+        foreach ($route->getMiddleware() as $middlewareClass) {
+            // Instantiate the middleware
+            if ($this->container !== null && $this->container->has($middlewareClass)) {
+                $middleware = $this->container->make($middlewareClass);
+            } else {
+                $middleware = new $middlewareClass();
+            }
+            
+            // Execute the middleware handle method
+            if (method_exists($middleware, 'handle')) {
+                $middleware->handle($method);
+            }
+        }
+    }
+
+    /**
+     * Converts a route URI with placeholders (e.g., {id}) into a Route object
      * and adds the route definition to the internal collection.
      *
      * @param string $method The HTTP method (GET, POST, etc.).
      * @param string $uri The URI pattern.
      * @param array $action The controller and method array.
-     * @return void
+     * @return Route The newly created route instance
      */
-    protected function addRoute(string $method, string $uri, array $action): void
+    protected function addRoute(string $method, string $uri, array $action): Route
     {
-        $params = [];
-        // Find all {param} occurrences in the URI, expecting alphanumeric names.
-        preg_match_all('/\{([a-zA-Z][a-zA-Z0-9_]*)\}/', $uri, $paramMatches);
-        if (!empty($paramMatches[1])) {
-            $params = $paramMatches[1]; // Store the names of the parameters.
+        // Apply group attributes if we're inside a group
+        $uri = $this->applyGroupPrefix($uri);
+        $route = new Route($method, $uri, $action);
+        
+        // Apply group middleware if any
+        $groupMiddleware = $this->getGroupMiddleware();
+        if (!empty($groupMiddleware)) {
+            $route->middleware($groupMiddleware);
         }
+        
+        // Store the route
+        $this->routes[] = $route;
+        
+        return $route;
+    }
 
-        // Convert the URI pattern into a valid regex pattern for matching.
-        // Replace {param} placeholders with a capturing group that matches any character except '/'.
-        $regex = preg_replace('/\{[a-zA-Z][a-zA-Z0-9_]*\}/', '([^/]+)', $uri);
-        // Add start (^) and end ($) anchors and delimiters (#).
-        $regex = '#^' . $regex . '$#';
+    /**
+     * Apply the group prefix to the given URI.
+     *
+     * @param string $uri The URI pattern
+     * @return string The URI with group prefix applied
+     */
+    protected function applyGroupPrefix(string $uri): string
+    {
+        $prefix = '';
+        foreach ($this->groupStack as $group) {
+            if (isset($group['prefix'])) {
+                $prefix .= '/' . trim($group['prefix'], '/');
+            }
+        }
+        
+        if ($prefix !== '') {
+            $uri = rtrim($prefix, '/') . '/' . ltrim($uri, '/');
+        }
+        
+        return $uri;
+    }
 
-        // Store the complete route definition.
-        $this->routes[] = [
-            'method' => strtoupper($method),
-            'uri'    => $uri,          // Original URI pattern
-            'action' => $action,       // Controller and method
-            'regex'  => $regex,        // Compiled regex pattern
-            'params' => $params,       // Names of parameters in order
+    /**
+     * Get all middleware from the group stack.
+     *
+     * @return array
+     */
+    protected function getGroupMiddleware(): array
+    {
+        $middleware = [];
+        foreach ($this->groupStack as $group) {
+            if (isset($group['middleware'])) {
+                $groupMiddleware = is_array($group['middleware']) 
+                    ? $group['middleware'] 
+                    : [$group['middleware']];
+                $middleware = array_merge($middleware, $groupMiddleware);
+            }
+        }
+        return $middleware;
+    }
+
+    /**
+     * Load routes from cache file.
+     * 
+     * @param string $cachePath Path to the cache file
+     * @return bool True if cache was loaded successfully
+     */
+    public function loadFromCache(string $cachePath): bool
+    {
+        if (!file_exists($cachePath)) {
+            return false;
+        }
+        
+        $cached = require $cachePath;
+        
+        if (!is_array($cached) || !isset($cached['routes'])) {
+            return false;
+        }
+        
+        // Reconstruct Route objects from cached data
+        foreach ($cached['routes'] as $routeData) {
+            $route = new Route(
+                $routeData['method'],
+                $routeData['uri'],
+                $routeData['action']
+            );
+            
+            if (isset($routeData['name'])) {
+                $route->name($routeData['name']);
+            }
+            
+            if (!empty($routeData['constraints'])) {
+                $route->where($routeData['constraints']);
+            }
+            
+            if (!empty($routeData['middleware'])) {
+                $route->middleware($routeData['middleware']);
+            }
+            
+            $this->routes[] = $route;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Save current routes to cache file.
+     * 
+     * @param string $cachePath Path to save the cache file
+     * @return bool True if cache was saved successfully
+     */
+    public function saveToCache(string $cachePath): bool
+    {
+        $routesData = array_map(function (Route $route) {
+            return $route->toArray();
+        }, $this->routes);
+        
+        $cacheData = [
+            'routes' => $routesData,
+            'timestamp' => time(),
         ];
+        
+        $content = '<?php return ' . var_export($cacheData, true) . ';';
+        
+        // Ensure directory exists
+        $dir = dirname($cachePath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        
+        return file_put_contents($cachePath, $content) !== false;
     }
 
     /**
