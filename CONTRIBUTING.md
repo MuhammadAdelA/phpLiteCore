@@ -111,3 +111,10 @@ You can run basic PHP syntax checks locally:
 ```bash
 # Find all PHP files and check syntax
 find . -name "*.php" -exec php -l {} \; | grep "Errors parsing"
+```
+---
+## 📄 composer.lock reminder
+When you modify composer.json (add/update/remove dependencies), run:
+composer update
+Commit the resulting composer.lock file together with composer.json.
+CI enforces that composer.lock matches composer.json and will fail otherwise.
