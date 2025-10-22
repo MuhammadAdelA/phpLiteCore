@@ -37,7 +37,7 @@ final class BelongsTo extends Relation
 
         // 2) Fetch related owners
         $placeholders = implode(',', array_fill(0, count($fks), '?'));
-        $sql = "SELECT * FROM `{$this->relatedTable}` WHERE `{$this->foreignKey}` IN ({$placeholders})";
+        $sql = "SELECT * FROM {$this->relatedTable} WHERE {$this->foreignKey} IN ({$placeholders})";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($fks);
         $owners = $stmt->fetchAll(PDO::FETCH_ASSOC);

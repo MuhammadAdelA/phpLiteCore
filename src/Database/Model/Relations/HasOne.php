@@ -29,7 +29,7 @@ final class HasOne extends Relation
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $sql = "SELECT * FROM `{$this->relatedTable}` WHERE `{$this->foreignKey}` IN ({$placeholders})";
+        $sql = "SELECT * FROM {$this->relatedTable} WHERE {$this->foreignKey} IN ({$placeholders})";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($ids);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

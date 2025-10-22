@@ -200,6 +200,14 @@ abstract class BaseModel
     }
 
     /**
+     * Get the table name for this model.
+     */
+    public function getTable(): string
+    {
+        return $this->table;
+    }
+
+    /**
      * Begins a new query for this model.
      * @return BaseQueryBuilder
      */
@@ -233,7 +241,7 @@ abstract class BaseModel
      */
     protected function hasMany(string $related, ?string $foreignKey = null, string $localKey = 'id'): HasMany
     {
-        $relatedTable = (new $related())->table;
+        $relatedTable = (new $related())->getTable();
         $foreignKey ??= $this->inferForeignKey();
 
         // Get PDO from container
@@ -248,7 +256,7 @@ abstract class BaseModel
      */
     protected function hasOne(string $related, ?string $foreignKey = null, string $localKey = 'id'): HasOne
     {
-        $relatedTable = (new $related())->table;
+        $relatedTable = (new $related())->getTable();
         $foreignKey ??= $this->inferForeignKey();
 
         /** @var \PhpLiteCore\Database\Database $db */
@@ -266,7 +274,7 @@ abstract class BaseModel
      */
     protected function belongsTo(string $related, ?string $foreignKey = null, string $ownerKey = 'id'): BelongsTo
     {
-        $relatedTable = (new $related())->table;
+        $relatedTable = (new $related())->getTable();
         $foreignKey ??= $this->inferForeignKey($related);
 
         /** @var \PhpLiteCore\Database\Database $db */
@@ -290,10 +298,12 @@ abstract class BaseModel
      */
     protected function inferRelationName(): string
     {
-        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+        // Skip frames until we find one that's not inferRelationName, hasMany, hasOne, or belongsTo
         foreach ($trace as $frame) {
-            if (!empty($frame['function']) && $frame['function'] !== __FUNCTION__) {
-                return (string)$frame['function'];
+            $func = $frame['function'] ?? '';
+            if ($func && !in_array($func, ['inferRelationName', 'hasMany', 'hasOne', 'belongsTo'], true)) {
+                return (string)$func;
             }
         }
         return 'relation';
