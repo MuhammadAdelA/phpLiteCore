@@ -34,18 +34,14 @@ class Layout extends View
 
     /**
      * Renders the layout and injects the content view into it.
-     * Executes associated View Composers before rendering the layout.
+     * Executes associated View Composers before rendering the content view.
      *
      * @return string The fully rendered HTML.
      * @throws ViewNotFoundException
      */
     public function render(): string
     {
-        // 1. Render the content view first using the parent's render method.
-        // The result is stored in $content. $this->data still holds the original data passed.
-        $content = parent::render();
-
-        // --- 2. Execute View Composers ---
+        // --- 1. Execute View Composers BEFORE rendering the content view ---
         // Get the application instance (needed for the composer's dependencies, e.g., translator)
         $app = Application::getInstance();
 
@@ -74,6 +70,11 @@ class Layout extends View
             }
         }
         // --- END Composer Execution ---
+
+        // 2. Render the content view using the parent's render method.
+        // The composer data is now available in $this->data, so it will be passed to the content view.
+        // The result is stored in $content.
+        $content = parent::render();
 
         // 3. Find the path to the layout file itself.
         $layoutPath = $this->buildLayoutPath();
