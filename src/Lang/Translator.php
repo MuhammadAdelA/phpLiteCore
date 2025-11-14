@@ -1,150 +1,170 @@
 <?php
 
-namespace PhpLiteCore\Lang;
-
-use RuntimeException;
+use JetBrains\PhpStorm\NoReturn;
+use JetBrains\PhpStorm\Pure;
 
 /**
- * Class Translator
+ * Renders a generic HTTP error page.
+ * This is a self-contained function to avoid dependencies on the View class.
  *
- * Handles loading and retrieval of language strings from translation files
- * organized in subdirectories per locale.
- *
- * @package PhpLiteCore\Lang
+ * @param int    $error_code    The HTTP status code (e.g., 404, 500).
+ * @param string $error_title   The title of the error (e.g., 'Not Found').
+ * @param string $error_message The user-friendly message to display.
+ * @param string $homeLinkText  The translated text for the "home" button.
+ * @return void
  */
-class Translator
+#[NoReturn]
+function render_http_error_page(int $error_code, string $error_title, string $error_message, string $homeLinkText): void
 {
-    /**
-     * The current locale code (e.g., 'en', 'ar').
-     * @var string
-     */
-    protected string $locale;
+    http_response_code($error_code);
 
-    /**
-     * The absolute path to the base language files directory.
-     * @var string
-     */
-    protected string $langPath;
+    // Define the path for the custom error page in the theme.
+    $customErrorViewPath = PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'error-pages' . DIRECTORY_SEPARATOR . $error_code . '.php';
 
-    /**
-     * The array of loaded translation messages for the current locale.
-     * Messages are stored under keys representing the file they came from (e.g., 'messages').
-     * @var array
-     */
-    protected array $messages = [];
+    // Define the path for the default system error page.
+    $defaultErrorViewPath = PHPLITECORE_ROOT . 'views' . DIRECTORY_SEPARATOR . 'system' . DIRECTORY_SEPARATOR . 'http_error.php';
 
-    /**
-     * Translator constructor.
-     *
-     * @param string $locale The language code (e.g., 'en', 'ar').
-     * @param string|null $customLangPath Optional custom path to the base language directory.
-     * FIX: Explicitly mark $customLangPath as nullable using '?string' for PHP 8+ compatibility.
-     */
-    public function __construct(string $locale = 'en', ?string $customLangPath = null) // <<< FIX IS HERE
-    {
-        $this->locale = $locale;
-        $this->langPath = $customLangPath
-            ?? PHPLITECORE_ROOT . 'resources' . DIRECTORY_SEPARATOR . 'lang';
-
-        // Load the default 'messages' file initially.
-        $this->loadMessagesFromFile('messages');
+    // Check if a custom error page exists.
+    if (file_exists($customErrorViewPath)) {
+        $viewToRender = $customErrorViewPath;
+    } else {
+        $viewToRender = $defaultErrorViewPath;
     }
 
-    /**
-     * Loads translation messages from a specific file within the locale's directory.
-     *
-     * Handles errors based on the application environment.
-     *
-     * @param string $filename The name of the file to load (without .php extension, e.g., 'messages').
-     * @return void
-     * @throws RuntimeException If the translation file is not found in 'development'.
-     */
-    protected function loadMessagesFromFile(string $filename): void
-    {
-        // Construct the path to the file inside the locale directory.
-        $file = $this->langPath . DIRECTORY_SEPARATOR . $this->locale . DIRECTORY_SEPARATOR . $filename . '.php';
+    // Extract variables for the chosen view file.
+    extract(compact('error_code', 'error_title', 'error_message', 'homeLinkText'));
 
-        if (is_file($file)) {
-            // Store messages under a key matching the filename.
-            $this->messages[$filename] = require $file;
-            return;
+    // Use output buffering to capture the view.
+    ob_start();
+    require $viewToRender;
+    echo ob_get_clean();
+
+    exit;
+}
+
+/**
+ * @param string $lang
+ * @return string
+ */
+function getDirection(string $lang): string {
+    return in_array($lang, ['ar', 'he', 'fa']) ? 'rtl' : 'ltr';
+}
+/**
+ * Determine and return the language code.
+ *
+ * @param string $default Default language code.
+ * @return string Selected language code.
+ */
+function set_language(string $default = DEFAULT_LANG): string
+{
+    // Get and validate 'lang' from GET
+    $requested = filter_input(INPUT_GET, 'lang');
+
+    if ($requested && is_lang($requested)) {
+        $lang = $requested;
+
+        // Set cookie for 30 days with secure options
+        setcookie('lang', $lang, [
+            'expires'  => time() + 30 * 24 * 60 * 60,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+
+        // --- FIX START: Rebuild the current URL without the 'lang' parameter ---
+        // 1. Get the current URL's path (e.g., /posts)
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+
+        // 2. Get the current query string (e.g., page=2&lang=ar)
+        $queryString = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+
+        // 3. Parse the query string into an array
+        $queryParams = [];
+        if ($queryString) {
+            parse_str($queryString, $queryParams);
         }
 
-        // Handle missing file based on environment.
-        if (defined('ENV') && ENV === 'development') {
-            throw new RuntimeException("Translation file not found: {$file}");
-        }
+        // 4. Remove the 'lang' parameter from the array
+        unset($queryParams['lang']);
 
-        error_log("Translation file not found: {$file}");
-        // Ensure the key exists even if the file is missing in production.
-        $this->messages[$filename] = [];
+        // 5. Re-build the query string (if any params are left)
+        $location = $path;
+        if (!empty($queryParams)) {
+            // This will result in (e.g., /posts?page=2)
+            $location .= '?' . http_build_query($queryParams);
+        }
+        // --- FIX END ---
+
+        header("Location: $location");
+        exit;
     }
 
-    /**
-     * Retrieves a translated message by its key (e.g., 'messages.welcome').
-     *
-     * Supports dot notation: the first segment is the filename, the rest is the nested key.
-     * If the key format is invalid or not found, returns the key itself.
-     * Supports placeholder replacement.
-     *
-     * @param string $key The key (e.g., 'messages.welcome' or just 'welcome' which defaults to 'messages.welcome').
-     * @param array $replace Associative array of placeholder => value pairs.
-     * @param string|null $default A default value to return if the key is not found (optional).
-     * @return string The translated message, the default value, or the key itself.
-     */
-    public function get(string $key, array $replace = [], ?string $default = null): string
-    {
-        // Assume 'messages' file if no file is specified in the key.
-        if (!str_contains($key, '.')) {
-            $key = 'messages.' . $key;
-        }
-
-        [$file, $messageKey] = explode('.', $key, 2);
-
-        // Load the file if it hasn't been loaded yet.
-        // This enables lazy-loading of files like 'validation.php' or 'auth.php'
-        if (!isset($this->messages[$file])) {
-            $this->loadMessagesFromFile($file);
-        }
-
-        $message = $this->findByDotNotation($this->messages[$file] ?? [], $messageKey);
-
-        // If the key was not found, return the default value or the original full key.
-        if ($message === $messageKey) { // findByDotNotation returns the key segment if not found
-            return $default ?? $key;
-        }
-
-        // Replace placeholders if the message is a string.
-        if (is_string($message)) {
-            foreach ($replace as $placeholder => $value) {
-                $message = str_replace("{{{$placeholder}}}", (string)$value, $message);
-            }
-        }
-
-        return (string) $message;
+    // Check if cookie exists and is valid
+    if (isset($_COOKIE['lang']) && is_lang($_COOKIE['lang'])) {
+        $lang = $_COOKIE['lang'];
+    } else {
+        // Set default cookie for 1 year
+        setcookie('lang', $default, [
+            'expires'  => time() + 365 * 24 * 60 * 60,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        $lang = $default;
     }
 
-    /**
-     * Finds a translation value within a specific message array using dot notation.
-     *
-     * @param array $messagesArray The array of messages for a specific file.
-     * @param string $key The dot-separated key within that file.
-     * @return mixed The found value, or the key itself if not found.
-     */
-    protected function findByDotNotation(array $messagesArray, string $key): mixed
-    {
-        $current = $messagesArray;
-        $keys = explode('.', $key);
+    return $lang;
+}
 
-        foreach ($keys as $segment) {
-            if (!is_array($current) || !isset($current[$segment])) {
-                // Return the original full key if not found, not just the segment
-                return $key;
-            }
-            $current = $current[$segment];
+/**
+ * Check if the given language code is supported.
+ *
+ * @param string $lang Language code to validate.
+ * @return bool Returns true if supported, false otherwise.
+ */
+#[Pure] function is_lang(string $lang): bool
+{
+    $supported_languages = ['ar', 'en'];
+    return in_array($lang, $supported_languages, true);
+}
+
+function is_rtl(): bool
+{
+    return HTML_DIR === "rtl";
+}
+
+/**
+ * Escape HTML special characters.
+ *
+ * This is a convenience wrapper around htmlspecialchars() with safe defaults.
+ * It uses ENT_QUOTES to escape both double and single quotes, ENT_SUBSTITUTE to replace
+ * invalid characters with a Unicode Replacement Character, and UTF-8 as the encoding.
+ *
+ * @param string|null $string The string to escape.
+ * @return string The escaped string, or an empty string if null is provided.
+ */
+if (!function_exists('e')) {
+    function e(?string $string): string
+    {
+        if ($string === null) {
+            return '';
         }
 
-        // Return the found value (could be string or array)
-        return $current;
+        return htmlspecialchars($string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+/**
+ * Generate a hidden CSRF token field for forms.
+ *
+ * @return string The HTML for the hidden CSRF token field.
+ */
+if (!function_exists('csrf_field')) {
+    function csrf_field(): string
+    {
+        $token = \PhpLiteCore\Http\Middleware\CsrfMiddleware::token();
+        return '<input type="hidden" name="_token" value="' . e($token) . '">';
     }
 }
