@@ -2,7 +2,7 @@
 return [
     // General
     'guest' => 'Guest',
-    'welcome' => 'Welcome, {{name}}!',
+    'welcome' => 'Welcome, :name!',
     'home_link_text' => 'Back to Home Page',
 
     // Navigation (NEW)
@@ -17,7 +17,7 @@ return [
     'home' => [
         'page_title' => 'Welcome to phpLiteCore',
         'hero_title' => 'Installation Successful!',
-        'hero_subtitle' => 'Welcome {{name}} to the world of phpLiteCore.',
+        'hero_subtitle' => 'Welcome :name to the world of phpLiteCore.',
         'hero_description' => 'A simple PHP framework for beginners, powerful for professionals. You are now ready to build fast and lightweight web applications.',
         'card_docs_title' => 'Read the Docs',
         'card_docs_text' => 'Start by reading our comprehensive documentation to understand the core concepts and features.',
@@ -41,8 +41,8 @@ return [
     'posts' => [
         'index_title' => 'All Posts',
         'create_title' => 'Create New Post',
-        'edit_title' => 'Edit Post: {{title}}', // NEW for edit page title
-        'not_found' => 'Post with ID {{id}} not found.',
+        'edit_title' => 'Edit Post: :title', // NEW for edit page title
+        'not_found' => 'Post with ID :id not found.',
         'no_posts' => 'No posts found.',
         'back_link' => 'Back to Posts', // Changed from Back to Home for consistency
         'create_button' => 'Create Post',

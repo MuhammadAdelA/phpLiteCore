@@ -3,7 +3,7 @@
 return [
     // General
     'guest' => 'زائر',
-    'welcome' => 'أهلاً بك، {{name}}!',
+    'welcome' => 'أهلاً بك، :name!',
     'home_link_text' => 'العودة للصفحة الرئيسية',
 
     // Navigation (NEW)
@@ -18,7 +18,7 @@ return [
     'home' => [
         'page_title' => 'أهلاً بك في phpLiteCore',
         'hero_title' => 'تم التثبيت بنجاح!',
-        'hero_subtitle' => 'أهلاً بك {{name}} في عالم phpLiteCore.',
+        'hero_subtitle' => 'أهلاً بك :name في عالم phpLiteCore.',
         'hero_description' => 'إطار عمل PHP بسيط للمبتدئين، وقوي للمحترفين. أنت الآن جاهز لبناء تطبيقات ويب سريعة وخفيفة.',
         'card_docs_title' => 'اقرأ التوثيق',
         'card_docs_text' => 'ابدأ بقراءة التوثيق الشامل لفهم المفاهيم والميزات الأساسية.',
@@ -42,8 +42,8 @@ return [
     'posts' => [
         'index_title' => 'كل المقالات',
         'create_title' => 'إنشاء مقالة جديدة',
-        'edit_title' => 'تعديل مقالة: {{title}}', // NEW
-        'not_found' => 'المقالة ذات المعرف {{id}} غير موجودة.',
+        'edit_title' => 'تعديل مقالة: :title', // NEW
+        'not_found' => 'المقالة ذات المعرف :id غير موجودة.',
         'no_posts' => 'لم يتم العثور على مقالات.',
         'back_link' => 'العودة للمقالات', // Changed
         'create_button' => 'إنشاء المقالة',
