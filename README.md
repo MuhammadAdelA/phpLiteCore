@@ -61,6 +61,10 @@
 
 *(Includes guides for both English and Arabic, covering core concepts, routing, database interaction, translation, and more.)*
 
+**Network Configuration:**
+
+If you need to configure network access for GitHub Actions or work behind firewalls, see the **[Network Configuration Guide](NETWORK_CONFIGURATION.md)** for detailed setup instructions.
+
 ---
 
 ## 🤝 Contributing

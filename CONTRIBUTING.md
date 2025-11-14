@@ -112,6 +112,17 @@ You can run basic PHP syntax checks locally:
 # Find all PHP files and check syntax
 find . -name "*.php" -exec php -l {} \; | grep "Errors parsing"
 ```
+
+---
+
+## 🌐 Network Configuration
+
+If you're working in an environment with firewall restrictions or need to configure GitHub Actions/Copilot coding agents for external resource access, see the **[Network Configuration Guide](NETWORK_CONFIGURATION.md)** for detailed instructions on:
+- Configuring Actions setup steps
+- Adding URLs to custom allowlists
+- Proxy configuration
+- Troubleshooting network issues
+
 ---
 ## 📄 composer.lock reminder
 When you modify composer.json (add/update/remove dependencies), run:

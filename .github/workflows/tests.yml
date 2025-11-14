@@ -1,5 +1,8 @@
 name: PHP Code Quality Checks
 
+# This workflow requires access to external resources (Composer, NPM, GitHub Actions).
+# For network configuration in restricted environments, see NETWORK_CONFIGURATION.md
+
 on:
   push:
     branches: [ "master" ]
@@ -16,6 +19,9 @@ jobs:
         php-versions: ['8.3']
 
     steps:
+      # === Setup Steps (run before any firewall is enabled) ===
+      # These steps access external resources and should complete before network restrictions
+      
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
