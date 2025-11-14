@@ -1,0 +1,15 @@
+parameters:
+    level: 6
+    paths:
+        - src
+        - app
+    excludePaths:
+        - vendor
+        - tests
+    ignoreErrors:
+        # Ignore errors for dynamic properties on models
+        - '#Access to an undefined property PhpLiteCore\\Database\\Model\\BaseModel::\$[a-zA-Z0-9_]+#'
+        # Ignore magic method calls on BaseModel
+        - '#Call to an undefined static method PhpLiteCore\\Database\\Model\\BaseModel::(where|orderBy|limit|get|first)#'
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

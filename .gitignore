@@ -34,7 +34,12 @@ node_modules/
 # Coverage reports
 coverage/
 clover.xml
-phpunit.xml
+
+# PHP CS Fixer
+.php-cs-fixer.cache
+
+# PHPStan
+.phpstan.cache
 
 # Laravel specific (if needed later)
 storage/
