@@ -40,7 +40,7 @@ class Translator
      * @param string|null $customLangPath Optional custom path to the base language directory.
      * FIX: Explicitly mark $customLangPath as nullable using '?string' for PHP 8+ compatibility.
      */
-    public function __construct(string $locale = 'en', ?string $customLangPath = null) // <<< FIX APPLIED
+    public function __construct(string $locale = 'en', ?string $customLangPath = null) // <<< FIX IS HERE
     {
         $this->locale = $locale;
         $this->langPath = $customLangPath
