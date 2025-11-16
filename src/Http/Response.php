@@ -168,4 +168,22 @@ class Response // Add ArrayAccess if you need header manipulation like $response
         echo $message;
         exit;
     }
+
+    /**
+     * Static helper for 429 Too Many Requests response.
+     * Sends a rate limit exceeded response with Retry-After header.
+     * Terminates script execution.
+     *
+     * @param string $message The error message to display.
+     * @param int $retryAfter Number of seconds to wait before retrying.
+     * @return void
+     */
+    #[NoReturn] public static function tooManyRequests(string $message = 'Too Many Requests', int $retryAfter = 60): void
+    {
+        http_response_code(429);
+        header('Content-Type: text/plain');
+        header('Retry-After: ' . $retryAfter);
+        echo $message;
+        exit;
+    }
 }

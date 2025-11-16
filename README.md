@@ -1,5 +1,10 @@
 # phpLiteCore PHP Framework
 
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.3-blue.svg)](https://www.php.net/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Tests](https://github.com/MuhammadAdelA/phpLiteCore/workflows/PHP%20Code%20Quality%20Checks/badge.svg)](https://github.com/MuhammadAdelA/phpLiteCore/actions)
+[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg)](https://muhammadadela.github.io/phpLiteCore/)
+
 **phpLiteCore** is a modern, lightweight, and fast PHP framework designed for building web applications of any size. It focuses on simplicity, speed, and a clean architecture, providing core essentials without unnecessary bloat.
 
 ---
@@ -67,9 +72,41 @@ If you need to configure network access for GitHub Actions or work behind firewa
 
 ---
 
+## 🛡️ Security
+
+Security is a top priority for phpLiteCore. If you discover a security vulnerability, please review our [Security Policy](SECURITY.md) for responsible disclosure guidelines.
+
+---
+
+## 🧪 Code Quality
+
+phpLiteCore maintains high code quality standards:
+
+- **PSR-12 Compliant**: All code follows PSR-12 coding standards
+- **Static Analysis**: Uses PHPStan for type safety
+- **Automated Tests**: Comprehensive test suite with Pest PHP
+- **Code Style**: Automated formatting with PHP CS Fixer
+
+### Running Quality Checks
+
+```bash
+# Run tests
+./vendor/bin/pest
+
+# Run static analysis (requires PHPStan)
+composer require --dev phpstan/phpstan
+./vendor/bin/phpstan analyse
+
+# Fix code style (requires PHP CS Fixer)
+composer require --dev friendsofphp/php-cs-fixer
+./vendor/bin/php-cs-fixer fix
+```
+
+---
+
 ## 🤝 Contributing
 
-Contributions are welcome! [cite_start]Please read the [CONTRIBUTING.md](CONTRIBUTING.md) guide. [cite: 1]
+Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) guide and our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
