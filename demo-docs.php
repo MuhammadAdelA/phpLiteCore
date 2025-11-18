@@ -215,7 +215,7 @@
             يعتمد الإطار على فلسفة تصميم واضحة كما هو محدد في دستوره (القسم 2):
         </p>
         <ul>
-            <li><strong>المتحكم الأمامي (Front Controller):</strong> جميع الطلبات تمر عبر ملف <code>index.php</code> واحد، ويقوم <code>.htaccess</code> بتوجيه كل شيء إليه.</li>
+            <li><strong>المتحكم الأمامي (Front Controller):</strong> جميع الطلبات تمر عبر ملف <code>public/index.php</code> واحد، ويقوم <code>public/.htaccess</code> بتوجيه كل شيء إليه. يجب أن يكون مجلد <code>public/</code> هو الجذر الرئيسي لخادم الويب (document root).</li>
             <li><strong>الفصل الصارم للمسؤوليات (MVC):</strong> يتم فصل المنطق عن العرض بشكل كامل. المتحكمات (Controllers) تحضر البيانات وتمررها، وملفات العرض (Views) تعرضها فقط.</li>
             <li><strong>نمط Active Record الهجين:</strong> طريقة قوية للتعامل مع قاعدة البيانات تجمع بين بساطة Active Record وقوة منشئ الاستعلامات (Query Builder).</li>
         </ul>
@@ -228,7 +228,7 @@
             <li><code>/app</code>: يحتوي على كود التطبيق الخاص بك (<code>Controllers</code> و <code>Models</code>).</li>
             <li><code>/src</code>: يحتوي على نواة (Core) إطار العمل (<code>Database</code>, <code>Routing</code>, <code>Lang</code>, etc.).</li>
             <li><code>/resources</code>: ملفات المصدر قبل البناء (<code>js</code>, <code>scss</code>, <code>lang</code>).</li>
-            <li><code>/public</code>: المجلد الوحيد المتاح للويب. يحتوي فقط على الأصول (Assets) المبنية.</li>
+            <li><code>/public</code>: الجذر الرئيسي لخادم الويب (document root). يحتوي على المتحكم الأمامي (<code>index.php</code>) وقواعد إعادة التوجيه (<code>.htaccess</code>) والأصول المبنية (<code>assets/</code>).</li>
             <li><code>/views</code>: جميع ملفات قوالب العرض (<code>layouts</code>, <code>partials</code>, <code>themes</code>).</li>
             <li><code>/routes</code>: ملف <code>web.php</code> لتعريف المسارات.</li>
         </ul>

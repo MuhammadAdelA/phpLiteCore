@@ -50,7 +50,8 @@
     * Import the `phplitecore.sql` file into your MySQL database.
 
 5.  **Configure Web Server:**
-    * Point your web server's document root to the **project root directory** (where `index.php` and `.htaccess` reside).
+    * **Recommended (Secure):** Point your web server's document root to the **`public/` directory**. This ensures only the public assets are accessible.
+    * **Alternative (Backward Compatible):** Point to the project root directory. The `.htaccess` file will redirect requests to `public/`, but this is less secure.
     * Ensure `mod_rewrite` (or equivalent for your server) is enabled.
 
 6.  **Run:**

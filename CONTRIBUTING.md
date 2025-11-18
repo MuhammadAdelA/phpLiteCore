@@ -73,7 +73,9 @@ To maintain consistency, please place files according to this structure (based o
     * `app/ViewComposers/` → Logic for injecting data into specific layouts/views.
 * `src/` → Core framework code (Namespaced under `PhpLiteCore`). Subdirectories like `Database`, `Routing`, `Lang`, `View`, etc.
 * `routes/` → Route definitions (`web.php`).
-* `public/` → Publicly accessible web root **ONLY** for built assets.
+* `public/` → **Web root directory** - Point your web server here for security:
+    * `public/index.php` → Front controller (application entry point).
+    * `public/.htaccess` → Rewrite rules for the web server.
     * `public/assets/` → Compiled CSS and JS files from Webpack.
 * `resources/` → Source files before compilation:
     * `resources/js/` → Source JavaScript.
