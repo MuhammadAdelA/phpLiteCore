@@ -66,6 +66,10 @@
 
 *(Includes guides for both English and Arabic, covering core concepts, routing, database interaction, translation, and more.)*
 
+**CLI Commands:**
+
+For a complete reference of all available CLI commands including route management, configuration caching, database migrations, and code generation, see the **[CLI Commands Guide](CLI_COMMANDS.md)**.
+
 **Network Configuration:**
 
 If you need to configure network access for GitHub Actions or work behind firewalls, see the **[Network Configuration Guide](NETWORK_CONFIGURATION.md)** for detailed setup instructions.
