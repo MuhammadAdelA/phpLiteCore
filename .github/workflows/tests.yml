@@ -75,8 +75,8 @@ jobs:
       - name: 🔬 Run Static Analysis (PHPStan)
         run: composer run-script analyse
 
-      - name: Make sure tests-results is there
-        run: mkdir -p vendor/pestphp/pest/.temp && touch vendor/pestphp/pest/.temp/test-results
+      - name: Setup test cache directories
+        run: mkdir -p .phpunit.cache vendor/pestphp/pest/.temp && touch .phpunit.cache/test-results vendor/pestphp/pest/.temp/test-results
 
       - name: 🧪 Run Pest Tests with Coverage
         run: composer run-script test:coverage

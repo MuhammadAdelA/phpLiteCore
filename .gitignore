@@ -30,7 +30,7 @@ node_modules/
 
 # PHPUnit
 .phpunit.result.cache
-.phpunit.cache
+.phpunit.cache/
 
 # Coverage reports
 coverage/
