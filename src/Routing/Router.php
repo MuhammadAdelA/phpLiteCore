@@ -212,6 +212,9 @@ class Router
         $uri = $this->applyGroupPrefix($uri);
         $route = new Route($method, $uri, $action);
         
+        // Set the router reference so route can register itself when named
+        $route->setRouter($this);
+        
         // Apply group middleware if any
         $groupMiddleware = $this->getGroupMiddleware();
         if (!empty($groupMiddleware)) {
@@ -222,6 +225,64 @@ class Router
         $this->routes[] = $route;
         
         return $route;
+    }
+
+    /**
+     * Register a named route for lookup.
+     * This is called internally by Route::name() to track named routes.
+     * 
+     * @param string $name The route name
+     * @param Route $route The route instance
+     * @return void
+     */
+    public function registerNamedRoute(string $name, Route $route): void
+    {
+        $this->namedRoutes[$name] = $route;
+    }
+
+    /**
+     * Get a route by its name.
+     * 
+     * @param string $name The route name
+     * @return Route|null The route instance or null if not found
+     */
+    public function getNamedRoute(string $name): ?Route
+    {
+        return $this->namedRoutes[$name] ?? null;
+    }
+
+    /**
+     * Generate a URL for a named route with optional parameters.
+     * 
+     * @param string $name The route name
+     * @param array $params The route parameters
+     * @return string The generated URL
+     * @throws \InvalidArgumentException If route not found or parameters are missing
+     */
+    public function route(string $name, array $params = []): string
+    {
+        $route = $this->getNamedRoute($name);
+        
+        if ($route === null) {
+            throw new \InvalidArgumentException("Route [{$name}] not found.");
+        }
+        
+        $uri = $route->getUri();
+        $routeParams = $route->getParams();
+        
+        // Check if all required parameters are provided
+        foreach ($routeParams as $param) {
+            if (!isset($params[$param])) {
+                throw new \InvalidArgumentException("Missing required parameter [{$param}] for route [{$name}].");
+            }
+        }
+        
+        // Replace placeholders with actual values
+        foreach ($params as $key => $value) {
+            $uri = preg_replace('/\{' . preg_quote($key, '/') . '\}/', (string)$value, $uri, 1);
+        }
+        
+        return $uri;
     }
 
     /**
@@ -290,6 +351,9 @@ class Router
                 $routeData['uri'],
                 $routeData['action']
             );
+            
+            // Set router reference so the route can register itself when named
+            $route->setRouter($this);
             
             if (isset($routeData['name'])) {
                 $route->name($routeData['name']);

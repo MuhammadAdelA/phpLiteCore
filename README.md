@@ -14,7 +14,7 @@
 * ⚡ **Ultra-lightweight and Fast:** Minimal core for optimal performance.
 * 🧩 **Clean Architecture:** Adheres to MVC principles with strict separation of concerns.
 * 🧱 **Hybrid Active Record:** Simplifies database interactions (Querying & Manipulation).
-* 🛣️ **Flexible Routing:** Supports GET, POST, and dynamic route parameters.
+* 🛣️ **Flexible Routing:** Supports GET, POST, dynamic route parameters, named routes, and reverse URL generation.
 * 🌍 **Built-in Translation (i18n):** Modular system supporting multiple languages (EN/AR included).
 * 🛡️ **Environment-Aware Error Handling:** Detailed errors in development, user-friendly messages & developer notifications (SMTP) in production.
 * 📦 **Asset Management Ready:** Integrated with NPM, Webpack, and SCSS for easy frontend workflows.
