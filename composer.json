@@ -50,7 +50,10 @@
     "lint": "find src app -name '*.php' -exec php -l {} \\;",
     "format": "php-cs-fixer fix",
     "format:check": "php-cs-fixer fix --dry-run --diff",
-    "analyse": "phpstan analyse",
+    "analyse": [
+      "@php vendor/bin/phpstan clear-result-cache",
+      "@php vendor/bin/phpstan analyse"
+    ]
     "quality": [
       "@lint",
       "@format:check",
