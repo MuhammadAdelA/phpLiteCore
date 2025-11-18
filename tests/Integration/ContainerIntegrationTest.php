@@ -1,10 +1,8 @@
 <?php
 
 use PhpLiteCore\Container\Container;
-use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Model\BaseModel;
 use PhpLiteCore\Routing\Router;
-use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
 
 test('BaseModel can resolve database from container', function () {
     $container = new Container();
@@ -17,9 +15,9 @@ test('BaseModel can resolve database from container', function () {
     $container->instance('db', $mockDb);
 
     // Set the container on a test model class
-    $testModelClass = new class extends BaseModel {
+    $testModelClass = new class () extends BaseModel {
         protected string $table = 'test_table';
-        
+
         // Override query to just verify container resolves db
         public static function testContainerResolve(): mixed
         {
@@ -31,7 +29,7 @@ test('BaseModel can resolve database from container', function () {
 
     // Verify the container can resolve the db service
     $db = $testModelClass::testContainerResolve();
-    
+
     expect($db)->toBe($mockDb)
         ->and($container->has('db'))->toBeTrue();
 });
@@ -55,7 +53,7 @@ test('Container can be used to bind and resolve custom services', function () {
     $container = new Container();
 
     // Bind a custom service
-    $container->singleton('custom-service', fn() => new stdClass());
+    $container->singleton('custom-service', fn () => new stdClass());
 
     $service1 = $container->get('custom-service');
     $service2 = $container->get('custom-service');
@@ -69,7 +67,7 @@ test('Container binds core services correctly in Application bootstrap', functio
     // Simulate binding core services
     $container->instance('db', new stdClass());
     $container->instance(Router::class, new Router());
-    
+
     expect($container->has('db'))->toBeTrue()
         ->and($container->has(Router::class))->toBeTrue()
         ->and($container->get('db'))->toBeInstanceOf(stdClass::class)

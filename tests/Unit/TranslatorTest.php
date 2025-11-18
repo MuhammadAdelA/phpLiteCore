@@ -4,7 +4,7 @@ use PhpLiteCore\Lang\Translator;
 
 beforeEach(function () {
     // Define PHPLITECORE_ROOT constant if not already defined
-    if (!defined('PHPLITECORE_ROOT')) {
+    if (! defined('PHPLITECORE_ROOT')) {
         define('PHPLITECORE_ROOT', dirname(__DIR__, 2) . DIRECTORY_SEPARATOR);
     }
 });
@@ -59,23 +59,23 @@ describe('Translator Fallback Locale', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/fr', 0777, true);
         mkdir($testLangPath . '/en', 0777, true);
-        
+
         // Create French file with missing key
         file_put_contents($testLangPath . '/fr/messages.php', '<?php return ["hello" => "Bonjour"];');
-        
+
         // Create English file with the key
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["hello" => "Hello", "welcome" => "Welcome"];');
-        
+
         $translator = new Translator('fr', $testLangPath, 'en');
-        
+
         // This key exists only in fallback
         $result = $translator->get('welcome');
         expect($result)->toBe('Welcome');
-        
+
         // This key exists in both, should use primary
         $result = $translator->get('hello');
         expect($result)->toBe('Bonjour');
-        
+
         // Cleanup
         unlink($testLangPath . '/fr/messages.php');
         unlink($testLangPath . '/en/messages.php');
@@ -103,11 +103,11 @@ describe('Translator Pluralization', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/en', 0777, true);
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["files" => ":count file|:count files"];');
-        
+
         $translator = new Translator('en', $testLangPath);
         $result = $translator->getChoice('files', 1);
         expect($result)->toBe('1 file');
-        
+
         // Cleanup
         unlink($testLangPath . '/en/messages.php');
         rmdir($testLangPath . '/en');
@@ -118,11 +118,11 @@ describe('Translator Pluralization', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/en', 0777, true);
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["files" => ":count file|:count files"];');
-        
+
         $translator = new Translator('en', $testLangPath);
         $result = $translator->getChoice('files', 5);
         expect($result)->toBe('5 files');
-        
+
         // Cleanup
         unlink($testLangPath . '/en/messages.php');
         rmdir($testLangPath . '/en');
@@ -133,11 +133,11 @@ describe('Translator Pluralization', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/en', 0777, true);
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["items" => ":count item|:count items"];');
-        
+
         $translator = new Translator('en', $testLangPath);
         $result = $translator->getChoice('items', 0);
         expect($result)->toBe('0 items');
-        
+
         // Cleanup
         unlink($testLangPath . '/en/messages.php');
         rmdir($testLangPath . '/en');
@@ -148,11 +148,11 @@ describe('Translator Pluralization', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/en', 0777, true);
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["minutes" => ":count minute ago by :user|:count minutes ago by :user"];');
-        
+
         $translator = new Translator('en', $testLangPath);
         $result = $translator->getChoice('minutes', 5, ['user' => 'John']);
         expect($result)->toBe('5 minutes ago by John');
-        
+
         // Cleanup
         unlink($testLangPath . '/en/messages.php');
         rmdir($testLangPath . '/en');
@@ -163,11 +163,11 @@ describe('Translator Pluralization', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/en', 0777, true);
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["single" => "Only singular form"];');
-        
+
         $translator = new Translator('en', $testLangPath);
         $result = $translator->getChoice('single', 5);
         expect($result)->toBe('Only singular form');
-        
+
         // Cleanup
         unlink($testLangPath . '/en/messages.php');
         rmdir($testLangPath . '/en');
@@ -192,15 +192,15 @@ describe('Translator has() method', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/fr', 0777, true);
         mkdir($testLangPath . '/en', 0777, true);
-        
+
         file_put_contents($testLangPath . '/fr/messages.php', '<?php return ["hello" => "Bonjour"];');
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["hello" => "Hello", "welcome" => "Welcome"];');
-        
+
         $translator = new Translator('fr', $testLangPath, 'en');
-        
+
         // Key exists only in fallback
         expect($translator->has('welcome'))->toBeTrue();
-        
+
         // Cleanup
         unlink($testLangPath . '/fr/messages.php');
         unlink($testLangPath . '/en/messages.php');
@@ -227,11 +227,11 @@ describe('Translator edge cases', function () {
         $testLangPath = sys_get_temp_dir() . '/phplitecore_test_lang_' . uniqid();
         mkdir($testLangPath . '/en', 0777, true);
         file_put_contents($testLangPath . '/en/messages.php', '<?php return ["hours" => ":count hour|:count hours"];');
-        
+
         $translator = new Translator('en', $testLangPath);
         $result = $translator->getChoice('hours', 1.5);
         expect($result)->toBe('1.5 hours');
-        
+
         // Cleanup
         unlink($testLangPath . '/en/messages.php');
         rmdir($testLangPath . '/en');

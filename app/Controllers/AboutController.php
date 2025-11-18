@@ -23,7 +23,7 @@ class AboutController extends BaseController
         // 2. Render the view
         $this->view('about', [
             'pageTitle' => $pageTitle,
-            'pageContent' => $content
+            'pageContent' => $content,
         ]);
     }
 }

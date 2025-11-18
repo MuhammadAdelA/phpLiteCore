@@ -1,4 +1,5 @@
 <?php
+
 // File: src/Utils/FileUtils.php
 declare(strict_types=1);
 
@@ -22,6 +23,7 @@ class FileUtils
             if ($headers === false) {
                 return false;
             }
+
             return (bool) preg_match('#^HTTP/\d+\.\d+\s+200#', $headers[0]);
         }
 
@@ -41,19 +43,20 @@ class FileUtils
      */
     public static function ensureDirectories(string|array $paths): array
     {
-        $paths  = is_array($paths) ? $paths : [$paths];
+        $paths = is_array($paths) ? $paths : [$paths];
         $errors = [];
 
         foreach ($paths as $path) {
             $fullPath = self::resolveDirectoryPath($path, true);
 
-            if (!is_dir($fullPath) && !@mkdir($fullPath, 0755, true)) {
+            if (! is_dir($fullPath) && ! @mkdir($fullPath, 0755, true)) {
                 $errors[] = $path;
                 error_log("[FileUtils] Failed to create directory: {$fullPath}");
+
                 continue;
             }
 
-            if (!is_writable($fullPath)) {
+            if (! is_writable($fullPath)) {
                 $errors[] = $path;
                 error_log("[FileUtils] Directory not writable: {$fullPath}");
             }
@@ -72,9 +75,10 @@ class FileUtils
      */
     public static function copy(string $source, string $dest): void
     {
-        if (!is_readable($source)) {
+        if (! is_readable($source)) {
             $message = "Source not readable: {$source}";
             error_log("[FileUtils] {$message}");
+
             throw new RuntimeException($message);
         }
 
@@ -84,26 +88,31 @@ class FileUtils
             if (@symlink($linkTarget, $dest) === false) {
                 $message = "Failed to create symlink from {$source} to {$dest}";
                 error_log("[FileUtils] {$message}");
+
                 throw new RuntimeException($message);
             }
+
             return;
         }
 
         // Copy single file
         if (is_file($source)) {
-            if (!@copy($source, $dest)) {
+            if (! @copy($source, $dest)) {
                 $message = "Failed to copy file from {$source} to {$dest}";
                 error_log("[FileUtils] {$message}");
+
                 throw new RuntimeException($message);
             }
+
             return;
         }
 
         // Recursively copy directory
         if (is_dir($source)) {
-            if (!is_dir($dest) && !@mkdir($dest, 0755, true)) {
+            if (! is_dir($dest) && ! @mkdir($dest, 0755, true)) {
                 $message = "Failed to create directory: {$dest}";
                 error_log("[FileUtils] {$message}");
+
                 throw new RuntimeException($message);
             }
             $items = scandir($source);
@@ -116,11 +125,13 @@ class FileUtils
                     rtrim($dest, DIRECTORY_SEPARATOR)   . DIRECTORY_SEPARATOR . $item
                 );
             }
+
             return;
         }
 
         $message = "Source not a file or directory: {$source}";
         error_log("[FileUtils] {$message}");
+
         throw new RuntimeException($message);
     }
 
@@ -134,13 +145,14 @@ class FileUtils
     public static function cleanDirectory(string $dirPath): void
     {
         $fullPath = self::resolveDirectoryPath($dirPath);
-        $items    = glob($fullPath . '*');
+        $items = glob($fullPath . '*');
 
         foreach ($items as $item) {
             if (is_file($item)) {
-                if (!@unlink($item)) {
+                if (! @unlink($item)) {
                     $message = "Failed to remove file: {$item}";
                     error_log("[FileUtils] {$message}");
+
                     throw new RuntimeException($message);
                 }
                 error_log("[FileUtils] Successfully removed file: {$item}");
@@ -158,23 +170,25 @@ class FileUtils
     public static function deleteDirectory(string $dirPath): void
     {
         $fullPath = self::resolveDirectoryPath($dirPath);
-        $items    = glob($fullPath . '*', GLOB_MARK);
+        $items = glob($fullPath . '*', GLOB_MARK);
 
         foreach ($items as $item) {
             if (is_dir($item)) {
                 self::deleteDirectory($item);
             } else {
-                if (!@unlink($item)) {
+                if (! @unlink($item)) {
                     $message = "Failed to delete file: {$item}";
                     error_log("[FileUtils] {$message}");
+
                     throw new RuntimeException($message);
                 }
             }
         }
 
-        if (!@rmdir($fullPath)) {
+        if (! @rmdir($fullPath)) {
             $message = "Failed to remove directory: {$fullPath}";
             error_log("[FileUtils] {$message}");
+
             throw new RuntimeException($message);
         }
 
@@ -191,7 +205,7 @@ class FileUtils
     public static function resolveDirectoryPath(string $dirPath, bool $allowCreate = false): string
     {
         $normalized = rtrim(str_replace(PHPLITECORE_ROOT, '', $dirPath), DIRECTORY_SEPARATOR);
-        $fullPath   = rtrim(PHPLITECORE_ROOT, DIRECTORY_SEPARATOR)
+        $fullPath = rtrim(PHPLITECORE_ROOT, DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR
             . ltrim($normalized, DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR;
@@ -200,9 +214,10 @@ class FileUtils
             return $fullPath;
         }
 
-        if (!is_dir($fullPath)) {
+        if (! is_dir($fullPath)) {
             $message = "Directory does not exist: {$fullPath}";
             error_log("[FileUtils] {$message}");
+
             throw new RuntimeException($message);
         }
 
@@ -219,7 +234,7 @@ class FileUtils
     {
         // Normalize separators to forward slash for resolution
         $uniform = str_replace(['/', '\\'], '/', $path);
-        $parts   = explode('/', $uniform);
+        $parts = explode('/', $uniform);
         $resolved = [];
 
         foreach ($parts as $part) {
@@ -227,7 +242,7 @@ class FileUtils
                 continue;
             }
             if ($part === '..') {
-                if (!empty($resolved) && end($resolved) !== '..') {
+                if (! empty($resolved) && end($resolved) !== '..') {
                     array_pop($resolved);
                 } else {
                     $resolved[] = '..';

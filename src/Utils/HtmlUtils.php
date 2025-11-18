@@ -1,4 +1,5 @@
 <?php
+
 // File: src/Utils/HtmlUtils.php
 declare(strict_types=1);
 
@@ -19,7 +20,7 @@ class HtmlUtils
 
         // Build list items safely
         $liItems = array_map(
-            static fn(string $msg): string => sprintf('<li>%s</li>', htmlspecialchars($msg, ENT_QUOTES, 'UTF-8')),
+            static fn (string $msg): string => sprintf('<li>%s</li>', htmlspecialchars($msg, ENT_QUOTES, 'UTF-8')),
             $items
         );
 
@@ -46,9 +47,10 @@ class HtmlUtils
     public static function switchNameLang(): string
     {
         // DEFAULT_LANG should be defined, e.g. 'en', 'ar'
-        if (!defined('DEFAULT_LANG')) {
+        if (! defined('DEFAULT_LANG')) {
             return '';
         }
+
         return strtoupper(substr((string) DEFAULT_LANG, 0, 1));
     }
 
@@ -59,6 +61,6 @@ class HtmlUtils
      */
     public static function reverse_direction(): string
     {
-        return is_rtl() ? "ltr":"rtl";
+        return is_rtl() ? "ltr" : "rtl";
     }
 }

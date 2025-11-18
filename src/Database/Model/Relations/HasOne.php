@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Model\Relations;
@@ -25,6 +26,7 @@ final class HasOne extends Relation
             foreach ($parents as &$p) {
                 $this->attach($p, null);
             }
+
             return;
         }
 
@@ -38,8 +40,10 @@ final class HasOne extends Relation
         $firstByFk = [];
         foreach ($rows as $row) {
             $fk = $row[$this->foreignKey] ?? null;
-            if ($fk === null) continue;
-            if (!array_key_exists($fk, $firstByFk)) {
+            if ($fk === null) {
+                continue;
+            }
+            if (! array_key_exists($fk, $firstByFk)) {
                 $firstByFk[$fk] = $row;
             }
         }

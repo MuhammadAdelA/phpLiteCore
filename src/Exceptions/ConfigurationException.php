@@ -6,14 +6,14 @@ namespace PhpLiteCore\Exceptions;
 
 /**
  * Configuration Exception
- * 
+ *
  * Thrown when configuration is missing or invalid
  */
 class ConfigurationException extends PhpLiteCoreException
 {
     /**
      * Create exception for missing configuration
-     * 
+     *
      * @param string $key
      * @return static
      */
@@ -24,7 +24,7 @@ class ConfigurationException extends PhpLiteCoreException
 
     /**
      * Create exception for invalid configuration
-     * 
+     *
      * @param string $key
      * @param string $reason
      * @return static
@@ -32,7 +32,7 @@ class ConfigurationException extends PhpLiteCoreException
     public static function invalid(string $key, string $reason = ''): static
     {
         $message = "Configuration key '{$key}' is invalid";
-        
+
         if ($reason) {
             $message .= ": {$reason}";
         }

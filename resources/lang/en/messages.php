@@ -1,4 +1,5 @@
 <?php
+
 return [
     // General
     'guest' => 'Guest',

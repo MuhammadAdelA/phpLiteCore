@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Model\Relations;
@@ -32,6 +33,7 @@ final class BelongsTo extends Relation
             foreach ($parents as &$p) {
                 $this->attach($p, null);
             }
+
             return;
         }
 

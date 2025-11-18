@@ -5,7 +5,7 @@ use PhpLiteCore\Container\Container;
 test('Container can bind and resolve a simple class', function () {
     $container = new Container();
 
-    $container->bind('test', fn() => 'test-value');
+    $container->bind('test', fn () => 'test-value');
 
     expect($container->get('test'))->toBe('test-value');
 });
@@ -16,6 +16,7 @@ test('Container can bind a singleton', function () {
     $counter = 0;
     $container->singleton('counter', function () use (&$counter) {
         $counter++;
+
         return new stdClass();
     });
 
@@ -48,10 +49,10 @@ test('Container can resolve a class with constructor dependencies', function () 
     $container = new Container();
 
     // Create a simple test class that depends on stdClass
-    $testClass = new class($container) {
+    $testClass = new class ($container) {
         public static function create(Container $container): object
         {
-            return new class(new stdClass()) {
+            return new class (new stdClass()) {
                 public function __construct(public stdClass $dependency)
                 {
                 }
@@ -69,7 +70,7 @@ test('Container can resolve a class with constructor dependencies', function () 
 test('Container can check if a binding exists', function () {
     $container = new Container();
 
-    $container->bind('test', fn() => 'value');
+    $container->bind('test', fn () => 'value');
 
     expect($container->has('test'))->toBeTrue()
         ->and($container->has('nonexistent'))->toBeFalse();

@@ -45,7 +45,7 @@ class Database
             // Set error mode to exception for robust error handling.
             [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]
         );
 
@@ -87,6 +87,7 @@ class Database
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($bindings);
+
         return $stmt;
     }
 
@@ -101,6 +102,7 @@ class Database
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($bindings);
+
         return $this->pdo->lastInsertId();
     }
 

@@ -61,6 +61,18 @@ Please adhere to these conventions:
 * **Readability:** Separate logic into small, focused functions/methods.
 * **Comments:** Use PHPDoc blocks (`/** ... */`) for classes and methods. Use inline comments (`// ...`) to explain complex or non-obvious logic sections. Comments should be in **English**.
 
+### Automated Code Style Checks
+
+All contributions are automatically checked for code style compliance. Before submitting your PR:
+
+```bash
+# Check code style (won't modify files)
+composer format:check
+
+# Automatically fix code style issues
+composer format
+```
+
 ---
 
 ## 🗂️ Folder Structure Guide
@@ -102,16 +114,39 @@ Security is paramount:
 
 ## 🧪 Testing & Validation
 
-* If your change affects core functionality, consider adding a unit or feature test in the `tests/` directory.
-* Run existing tests if applicable.
-* Manually test your changes thoroughly in a development environment.
+### Quality Check Requirements
+
+**All PRs must pass the following automated checks:**
+
+1. **PHP Syntax Lint** - No syntax errors
+2. **Code Style (PHP CS Fixer)** - PSR-12 compliance
+3. **Static Analysis (PHPStan)** - Level 6 type safety checks
+4. **Tests (Pest)** - All tests must pass
+
+### Running Quality Checks Locally
+
+Before submitting your PR, run all quality checks:
+
+```bash
+# Run all checks at once
+composer quality
+
+# Or run checks individually:
+composer lint              # Check PHP syntax
+composer format:check      # Check code style
+composer analyse           # Run PHPStan static analysis
+composer test              # Run tests
+composer test:coverage     # Run tests with coverage
+```
+
+### Writing Tests
+
+* If your change affects core functionality, **add tests** in the `tests/` directory.
+* Follow the existing test structure (Unit, Feature, Integration).
+* Run tests locally before submitting your PR.
 * When fixing a bug, explain the original issue and how your fix resolves it in the PR description.
 
-You can run basic PHP syntax checks locally:
-```bash
-# Find all PHP files and check syntax
-find . -name "*.php" -exec php -l {} \; | grep "Errors parsing"
-```
+The CI pipeline will automatically run these checks on every push and pull request.
 
 ---
 

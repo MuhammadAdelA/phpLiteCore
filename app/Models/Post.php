@@ -13,7 +13,7 @@ class Post extends BaseModel
      */
     protected array $rules = [
         'title' => 'required|min:5',
-        'body'  => 'required|min:10',
+        'body' => 'required|min:10',
     ];
 
     // If your table name was different from 'posts', you would define it here:

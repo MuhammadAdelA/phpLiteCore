@@ -8,7 +8,7 @@ use DateTime;
 
 /**
  * Simple PSR-3 compatible Logger
- * 
+ *
  * Provides basic logging functionality with support for different log levels
  * and file-based storage.
  */
@@ -57,7 +57,7 @@ class Logger
 
     /**
      * Constructor
-     * 
+     *
      * @param string $logDirectory The directory where log files will be stored
      * @param string $minLevel The minimum log level to record (default: DEBUG)
      */
@@ -65,9 +65,9 @@ class Logger
     {
         $this->logDirectory = $logDirectory ?: (defined('PHPLITECORE_ROOT') ? PHPLITECORE_ROOT . 'storage/logs' : __DIR__ . '/../../storage/logs');
         $this->minLevel = $minLevel;
-        
+
         // Create log directory if it doesn't exist
-        if (!is_dir($this->logDirectory)) {
+        if (! is_dir($this->logDirectory)) {
             mkdir($this->logDirectory, 0755, true);
         }
 
@@ -182,7 +182,7 @@ class Logger
     public function log(string $level, string $message, array $context = []): void
     {
         // Check if this level should be logged
-        if (!$this->shouldLog($level)) {
+        if (! $this->shouldLog($level)) {
             return;
         }
 
@@ -195,7 +195,7 @@ class Logger
         $logEntry = "[{$timestamp}] {$levelUpper}: {$message}";
 
         // Add context if present
-        if (!empty($context)) {
+        if (! empty($context)) {
             $logEntry .= ' ' . json_encode($context);
         }
 
@@ -216,10 +216,10 @@ class Logger
     {
         // Build a replacement array with braces around the context keys
         $replace = [];
-        
+
         foreach ($context as $key => $val) {
             // Check that the value can be cast to string
-            if (!is_array($val) && (!is_object($val) || method_exists($val, '__toString'))) {
+            if (! is_array($val) && (! is_object($val) || method_exists($val, '__toString'))) {
                 $replace['{' . $key . '}'] = $val;
             }
         }
@@ -238,7 +238,7 @@ class Logger
     {
         $levelPriority = self::LEVELS[$level] ?? 0;
         $minPriority = self::LEVELS[$this->minLevel] ?? 0;
-        
+
         return $levelPriority >= $minPriority;
     }
 

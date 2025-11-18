@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 // Import PHPMailer and Translator classes at the top of the file
-use PHPMailer\PHPMailer\PHPMailer;
+use PhpLiteCore\Lang\Translator;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
-use PhpLiteCore\Lang\Translator; // Import the Translator class
+use PHPMailer\PHPMailer\PHPMailer; // Import the Translator class
 
 /**
  * A simple, environment-aware error and exception handler for phpLiteCore.
@@ -16,7 +16,11 @@ set_exception_handler(function (Throwable $e): void {
     // 1. Log the detailed error to a file regardless of the environment.
     $logMessage = sprintf(
         "Uncaught Exception: %s: \"%s\" in %s:%d\nStack trace:\n%s",
-        get_class($e), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString()
+        get_class($e),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine(),
+        $e->getTraceAsString()
     );
     // Use error_log() for standard PHP error logging.
     error_log($logMessage);
@@ -38,10 +42,10 @@ set_exception_handler(function (Throwable $e): void {
         // Prepare data for the detailed error view.
         $data = [
             'exception_class' => get_class($e),
-            'message'         => $message, // Use the potentially modified message
-            'file'            => $e->getFile(),
-            'line'            => $e->getLine(),
-            'trace'           => $e->getTraceAsString(),
+            'message' => $message, // Use the potentially modified message
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
         ];
 
         // Render the detailed error view.
@@ -54,19 +58,19 @@ set_exception_handler(function (Throwable $e): void {
         $developerEmail = $_ENV['DEVELOPER_EMAIL'] ?? null;
 
         // Proceed only if a developer email is configured in .env.
-        if (!empty($developerEmail)) {
+        if (! empty($developerEmail)) {
             $mail = new PHPMailer(true); // Enable exceptions for PHPMailer.
 
             try {
                 // Configure PHPMailer to use SMTP using settings from .env.
                 $mail->isSMTP();
-                $mail->Host       = $_ENV['SMTP_HOST'] ?? 'localhost';
-                $mail->SMTPAuth   = true;
-                $mail->Username   = $_ENV['SMTP_USERNAME'] ?? '';
-                $mail->Password   = $_ENV['SMTP_PASSWORD'] ?? '';
+                $mail->Host = $_ENV['SMTP_HOST'] ?? 'localhost';
+                $mail->SMTPAuth = true;
+                $mail->Username = $_ENV['SMTP_USERNAME'] ?? '';
+                $mail->Password = $_ENV['SMTP_PASSWORD'] ?? '';
                 $mail->SMTPSecure = $_ENV['SMTP_ENCRYPTION'] ?? PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port       = (int)($_ENV['SMTP_PORT'] ?? 587);
-                $mail->CharSet    = 'UTF-8'; // Ensure correct encoding for email body.
+                $mail->Port = (int)($_ENV['SMTP_PORT'] ?? 587);
+                $mail->CharSet = 'UTF-8'; // Ensure correct encoding for email body.
 
                 // Set sender and recipient.
                 $mail->setFrom($_ENV['SMTP_FROM_ADDRESS'] ?? 'noreply@example.com', $_ENV['SMTP_FROM_NAME'] ?? 'Error Reporter');
@@ -129,9 +133,9 @@ set_exception_handler(function (Throwable $e): void {
  * into ErrorExceptions, so they can be caught by the exception handler.
  */
 set_error_handler(
-/**
- * @throws ErrorException
- */
+    /**
+     * @throws ErrorException
+     */
     function (int $severity, string $message, string $file, int $line): bool {
         // Throw an ErrorException which will be caught by set_exception_handler.
         throw new ErrorException($message, 0, $severity, $file, $line);

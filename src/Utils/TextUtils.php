@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpLiteCore\Utils;
 
 class TextUtils

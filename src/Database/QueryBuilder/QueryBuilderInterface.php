@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\QueryBuilder;
@@ -335,5 +336,3 @@ interface QueryBuilderInterface
     public function rightJoinSub(callable $callback, string $table, string $first, string $operator, string $second, bool $where = false): static;*/
 
 }
-
-

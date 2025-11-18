@@ -67,6 +67,7 @@ class Paginator implements PaginatorInterface
         if ($this->currentPage < $this->totalPages) {
             return $this->perPage;
         }
+
         return $this->totalItems - (($this->totalPages - 1) * $this->perPage);
     }
 

@@ -46,7 +46,8 @@ function render_http_error_page(int $error_code, string $error_title, string $er
  * @param string $lang
  * @return string
  */
-function getDirection(string $lang): string {
+function getDirection(string $lang): string
+{
     return in_array($lang, ['ar', 'he', 'fa']) ? 'rtl' : 'ltr';
 }
 /**
@@ -65,9 +66,9 @@ function set_language(string $default = DEFAULT_LANG): string
 
         // Set cookie for 30 days with secure options
         setcookie('lang', $lang, [
-            'expires'  => time() + 30 * 24 * 60 * 60,
-            'path'     => '/',
-            'secure'   => isset($_SERVER['HTTPS']),
+            'expires' => time() + 30 * 24 * 60 * 60,
+            'path' => '/',
+            'secure' => isset($_SERVER['HTTPS']),
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
@@ -89,7 +90,7 @@ function set_language(string $default = DEFAULT_LANG): string
 
         // 5. Re-build the query string (if any params are left)
         $location = $path;
-        if (!empty($queryParams)) {
+        if (! empty($queryParams)) {
             // This will result in (e.g., /posts?page=2)
             $location .= '?' . http_build_query($queryParams);
         }
@@ -105,9 +106,9 @@ function set_language(string $default = DEFAULT_LANG): string
     } else {
         // Set default cookie for 1 year
         setcookie('lang', $default, [
-            'expires'  => time() + 365 * 24 * 60 * 60,
-            'path'     => '/',
-            'secure'   => isset($_SERVER['HTTPS']),
+            'expires' => time() + 365 * 24 * 60 * 60,
+            'path' => '/',
+            'secure' => isset($_SERVER['HTTPS']),
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
@@ -126,6 +127,7 @@ function set_language(string $default = DEFAULT_LANG): string
 #[Pure] function is_lang(string $lang): bool
 {
     $supported_languages = ['ar', 'en'];
+
     return in_array($lang, $supported_languages, true);
 }
 
@@ -144,7 +146,7 @@ function is_rtl(): bool
  * @param string|null $string The string to escape.
  * @return string The escaped string, or an empty string if null is provided.
  */
-if (!function_exists('e')) {
+if (! function_exists('e')) {
     function e(?string $string): string
     {
         if ($string === null) {
@@ -157,29 +159,31 @@ if (!function_exists('e')) {
 
 /**
  * Generate a hidden CSRF token field for forms.
- * 
+ *
  * @return string The HTML for the hidden CSRF token field.
  */
-if (!function_exists('csrf_field')) {
+if (! function_exists('csrf_field')) {
     function csrf_field(): string
     {
         $token = \PhpLiteCore\Http\Middleware\CsrfMiddleware::token();
+
         return '<input type="hidden" name="_token" value="' . e($token) . '">';
     }
 }
 
 /**
  * Generate a URL for a named route with optional parameters.
- * 
+ *
  * @param string $name The route name
  * @param array $params The route parameters (e.g., ['id' => 123])
  * @return string The generated URL
  * @throws \InvalidArgumentException If route not found or parameters are missing
  */
-if (!function_exists('route')) {
+if (! function_exists('route')) {
     function route(string $name, array $params = []): string
     {
         $app = \PhpLiteCore\Bootstrap\Application::getInstance();
+
         return $app->router->route($name, $params);
     }
 }

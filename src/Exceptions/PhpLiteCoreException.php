@@ -8,7 +8,7 @@ use Exception;
 
 /**
  * Base exception for phpLiteCore
- * 
+ *
  * All framework-specific exceptions should extend this class
  */
 class PhpLiteCoreException extends Exception
@@ -20,7 +20,7 @@ class PhpLiteCoreException extends Exception
 
     /**
      * Constructor
-     * 
+     *
      * @param string $message
      * @param int $code
      * @param array $context Additional context data
@@ -34,7 +34,7 @@ class PhpLiteCoreException extends Exception
 
     /**
      * Get the exception context
-     * 
+     *
      * @return array
      */
     public function getContext(): array
@@ -44,14 +44,14 @@ class PhpLiteCoreException extends Exception
 
     /**
      * Set additional context
-     * 
+     *
      * @param array $context
      * @return static
      */
     public function setContext(array $context): static
     {
         $this->context = $context;
-        
+
         return $this;
     }
 }

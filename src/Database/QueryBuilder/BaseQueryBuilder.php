@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\QueryBuilder;
@@ -6,18 +7,21 @@ namespace PhpLiteCore\Database\QueryBuilder;
 use PDO;
 use PhpLiteCore\Database\Database;
 use PhpLiteCore\Database\Grammar\GrammarInterface;
+use PhpLiteCore\Database\Model\EagerLoader;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderGetTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderLikeTraits;
 use PhpLiteCore\Database\QueryBuilder\Traits\QueryBuilderWhereTraits;
 use PhpLiteCore\Pagination\Paginator;
-use PhpLiteCore\Database\Model\EagerLoader;
+
 /**
  * BaseQueryBuilder provides a fluent interface to build and execute SQL queries.
  */
 class BaseQueryBuilder implements QueryBuilderInterface
 {
     // Ensure all necessary traits are being used by the class.
-    use QueryBuilderWhereTraits, QueryBuilderLikeTraits, QueryBuilderGetTraits;
+    use QueryBuilderWhereTraits;
+    use QueryBuilderLikeTraits;
+    use QueryBuilderGetTraits;
 
     /** @var PDO The active PDO connection instance. */
     protected PDO $pdo;
@@ -79,9 +83,9 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function __construct(PDO $pdo, GrammarInterface $grammar, Database $db)
     {
-        $this->pdo     = $pdo;
+        $this->pdo = $pdo;
         $this->grammar = $grammar;
-        $this->db      = $db;
+        $this->db = $db;
     }
 
     /**
@@ -89,8 +93,9 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function select(string ...$columns): static
     {
-        $this->type    = 'select';
+        $this->type = 'select';
         $this->columns = empty($columns) ? ['*'] : $columns;
+
         return $this;
     }
 
@@ -101,6 +106,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
     {
         $this->table = $table;
         $this->alias = $alias;
+
         return $this;
     }
 
@@ -109,10 +115,11 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function insert(array $data): string|false
     {
-        $this->type     = 'insert';
-        $this->columns  = array_keys($data);
+        $this->type = 'insert';
+        $this->columns = array_keys($data);
         $this->bindings = array_values($data);
         $sql = $this->toSql();
+
         return $this->db->insertAndGetId($sql, $this->bindings);
     }
 
@@ -121,9 +128,10 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     public function update(array $data): int
     {
-        $this->type     = 'update';
-        $this->columns  = array_keys($data);
+        $this->type = 'update';
+        $this->columns = array_keys($data);
         $this->bindings = array_values($data);
+
         return $this->execute();
     }
 
@@ -134,6 +142,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
     {
         $this->type = 'delete';
         $this->bindings = []; // DELETE statements have no SET bindings.
+
         return $this->execute();
     }
 
@@ -165,6 +174,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
     public function groupBy(string ...$columns): static
     {
         $this->groups = $columns;
+
         return $this;
     }
 
@@ -174,6 +184,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
     public function orderBy(string $column, string $direction = 'ASC'): static
     {
         $this->orders[] = [$column, $direction];
+
         return $this;
     }
 
@@ -183,6 +194,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
     public function limit(int $limit): static
     {
         $this->limit = $limit;
+
         return $this;
     }
 
@@ -192,12 +204,13 @@ class BaseQueryBuilder implements QueryBuilderInterface
     public function offset(int $offset): static
     {
         $this->offset = $offset;
+
         return $this;
     }
 
     /**
      * Execute a query as a "count" query using a safe subquery approach.
-     * 
+     *
      * This method builds: SELECT COUNT(*) AS aggregate FROM (<current select SQL>) AS sub
      * and reuses existing WHERE bindings via getBindings().
      *
@@ -210,19 +223,19 @@ class BaseQueryBuilder implements QueryBuilderInterface
         $clone = clone $this;
         $clone->limit = null;
         $clone->offset = null;
-        
+
         // Get the inner SQL and bindings
         $innerSql = $clone->toSql();
         $bindings = $clone->getWhereBindings();
-        
+
         // Wrap in a COUNT subquery
         $sql = "SELECT COUNT(*) AS aggregate FROM ({$innerSql}) AS sub";
-        
+
         // Execute with PDO and return the integer result
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($bindings);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         return (int) ($result['aggregate'] ?? 0);
     }
 
@@ -245,7 +258,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
 
         return [
             'paginator' => $paginator,
-            'items'     => $items,
+            'items' => $items,
         ];
     }
 
@@ -267,6 +280,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
         // normalize and de-duplicate
         $rels = array_values(array_unique(array_map('strval', $rels)));
         $this->with = array_values(array_unique(array_merge($this->with, $rels)));
+
         return $this;
     }
 
@@ -279,9 +293,10 @@ class BaseQueryBuilder implements QueryBuilderInterface
      */
     protected function afterFetch(array $rows): array
     {
-        if (!empty($rows) && !empty($this->with) && $this->modelClass) {
+        if (! empty($rows) && ! empty($this->with) && $this->modelClass) {
             EagerLoader::load($this->pdo, $this->modelClass, $rows, $this->with);
         }
+
         return $rows;
     }
 
@@ -295,7 +310,7 @@ class BaseQueryBuilder implements QueryBuilderInterface
             'insert' => $this->grammar->compileInsert($this),
             'update' => $this->grammar->compileUpdate($this),
             'delete' => $this->grammar->compileDelete($this),
-            default  => throw new \LogicException("Invalid query type [{$this->type}]"),
+            default => throw new \LogicException("Invalid query type [{$this->type}]"),
         };
     }
 }

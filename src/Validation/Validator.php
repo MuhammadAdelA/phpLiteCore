@@ -114,24 +114,27 @@ class Validator
                 if (empty($value)) {
                     $this->addError($field, static::$translator->get('validation.required', ['field' => $field]));
                 }
+
                 break;
 
             case 'email':
-                if (!empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                if (! empty($value) && ! filter_var($value, FILTER_VALIDATE_EMAIL)) {
                     $this->addError($field, static::$translator->get('validation.email', ['field' => $field]));
                 }
+
                 break;
 
             case 'min':
-                if (!empty($value) && mb_strlen((string)$value) < (int)$parameter) {
+                if (! empty($value) && mb_strlen((string)$value) < (int)$parameter) {
                     $this->addError(
                         $field,
                         static::$translator->get('validation.min', ['field' => $field, 'value' => $parameter])
                     );
                 }
+
                 break;
 
-            // Add more rules here (max, numeric, etc.)
+                // Add more rules here (max, numeric, etc.)
         }
     }
 
@@ -154,7 +157,7 @@ class Validator
      */
     public function fails(): bool
     {
-        return !empty($this->errors);
+        return ! empty($this->errors);
     }
 
     /**

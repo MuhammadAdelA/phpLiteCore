@@ -20,7 +20,7 @@ class Bootstrap5Renderer implements RendererInterface
      */
     public function render(PaginatorInterface $paginator): string
     {
-        if (!$paginator->hasPages()) {
+        if (! $paginator->hasPages()) {
             return '';
         }
 
@@ -93,7 +93,7 @@ class Bootstrap5Renderer implements RendererInterface
     {
         $text = '&laquo;'; // Previous symbol
 
-        if (!$paginator->hasPrevPage()) {
+        if (! $paginator->hasPrevPage()) {
             return $this->getDisabledLink($text);
         }
 
@@ -114,7 +114,7 @@ class Bootstrap5Renderer implements RendererInterface
     {
         $text = '&raquo;'; // Next symbol
 
-        if (!$paginator->hasNextPage()) {
+        if (! $paginator->hasNextPage()) {
             return $this->getDisabledLink($text);
 
         }

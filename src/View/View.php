@@ -34,11 +34,11 @@ class View
             'views',
             'themes',
             $theme,
-            str_replace('.', DIRECTORY_SEPARATOR, $view) . '.php'
+            str_replace('.', DIRECTORY_SEPARATOR, $view) . '.php',
         ];
         $this->path = implode(DIRECTORY_SEPARATOR, $pathSegments);
 
-        if (!file_exists($this->path)) {
+        if (! file_exists($this->path)) {
             throw new ViewNotFoundException("View file not found: {$this->path}");
         }
 

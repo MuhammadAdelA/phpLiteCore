@@ -4,8 +4,8 @@ namespace App\Controllers;
 
 use App\Models\Post; // Import the Post model
 use Exception;
-use PhpLiteCore\Pagination\Renderers\Bootstrap5Renderer;
 use PhpLiteCore\Http\Response;
+use PhpLiteCore\Pagination\Renderers\Bootstrap5Renderer;
 use PhpLiteCore\Validation\Exceptions\ValidationException;
 use PhpLiteCore\Validation\Validator;
 use PhpLiteCore\View\Exceptions\ViewNotFoundException;
@@ -39,10 +39,10 @@ class PostController extends BaseController
 
         // 3. Render the view with translated data
         $this->view('posts', [
-            'pageTitle'       => $pageTitle,
-            'posts'           => $paginationData['items'],
+            'pageTitle' => $pageTitle,
+            'posts' => $paginationData['items'],
             'paginationLinks' => $paginationLinks,
-            'noPostsText'     => $noPostsText,
+            'noPostsText' => $noPostsText,
             'publishedOnText' => $publishedOnText,
         ]);
     }
@@ -65,9 +65,10 @@ class PostController extends BaseController
         $post = Post::find($decodedId);
 
         // 3. Handle not found (Constitution Sec 1.5 & Response logic)
-        if (!$post) {
+        if (! $post) {
             $notFoundMessage = $this->app->translator->get('messages.posts.not_found', ['id' => $decodedId]);
             Response::notFound($notFoundMessage);
+
             return;
         }
 
@@ -78,11 +79,11 @@ class PostController extends BaseController
 
         // 5. Render the view (Constitution Sec 2 - MVC & Sec 1.6.1)
         $this->view('post', [
-            'pageTitle'       => $post->title,
-            'post'            => $post,
+            'pageTitle' => $post->title,
+            'post' => $post,
             'publishedOnText' => $publishedOnText,
-            'backLinkText'    => $backLinkText,
-            'editButtonText'  => $editButtonText, // Passed
+            'backLinkText' => $backLinkText,
+            'editButtonText' => $editButtonText, // Passed
         ]);
     }
 
@@ -105,9 +106,10 @@ class PostController extends BaseController
         $post = Post::find($decodedId);
 
         // 3. Handle not found
-        if (!$post) {
+        if (! $post) {
             $notFoundMessage = $this->app->translator->get('messages.posts.not_found', ['id' => $decodedId]);
             Response::notFound($notFoundMessage);
+
             return;
         }
 
@@ -120,10 +122,10 @@ class PostController extends BaseController
 
         // 5. Render the edit view
         $this->view('edit-post', [
-            'pageTitle'    => $pageTitle,
-            'post'         => $post,
-            'formTitle'    => $formTitle,
-            'formContent'  => $formContent,
+            'pageTitle' => $pageTitle,
+            'post' => $post,
+            'formTitle' => $formTitle,
+            'formContent' => $formContent,
             'updateButton' => $updateButton,
             'cancelButton' => $cancelButton,
         ]);
@@ -145,9 +147,10 @@ class PostController extends BaseController
         $post = Post::find($decodedId);
 
         // 3. Handle not found
-        if (!$post) {
+        if (! $post) {
             $notFoundMessage = $this->app->translator->get('messages.posts.not_found', ['id' => $decodedId]);
             Response::notFound($notFoundMessage);
+
             return;
         }
 
@@ -155,7 +158,7 @@ class PostController extends BaseController
             // 4. Define validation rules
             $rules = [
                 'title' => 'required|min:5',
-                'body'  => 'required|min:10',
+                'body' => 'required|min:10',
             ];
 
             // 5. Validate input
@@ -198,7 +201,7 @@ class PostController extends BaseController
             // 1. Define the validation rules.
             $rules = [
                 'title' => 'required|min:5',
-                'body'  => 'required|min:10',
+                'body' => 'required|min:10',
             ];
 
             // 2. Run the validator.
@@ -206,8 +209,8 @@ class PostController extends BaseController
 
             // 3. Create the post using Active Record
             $post = new Post([
-                'title'   => $validatedData['title'],
-                'body'    => $validatedData['body'],
+                'title' => $validatedData['title'],
+                'body' => $validatedData['body'],
                 'user_id' => 1, // Assuming user ID 1
             ]);
             $post->save();
@@ -240,9 +243,9 @@ class PostController extends BaseController
 
         // 2. Render the view
         $this->view('create-post', [
-            'pageTitle'    => $pageTitle,
-            'formTitle'    => $formTitle,
-            'formContent'  => $formContent,
+            'pageTitle' => $pageTitle,
+            'formTitle' => $formTitle,
+            'formContent' => $formContent,
             'createButton' => $createButton,
             'cancelButton' => $cancelButton,
         ]);

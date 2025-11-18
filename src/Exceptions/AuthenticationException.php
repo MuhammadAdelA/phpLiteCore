@@ -6,14 +6,14 @@ namespace PhpLiteCore\Exceptions;
 
 /**
  * Authentication Exception
- * 
+ *
  * Thrown when authentication operations fail
  */
 class AuthenticationException extends PhpLiteCoreException
 {
     /**
      * Create exception for invalid credentials
-     * 
+     *
      * @param string $message
      * @return static
      */
@@ -24,7 +24,7 @@ class AuthenticationException extends PhpLiteCoreException
 
     /**
      * Create exception for unauthenticated access
-     * 
+     *
      * @param string $message
      * @return static
      */
@@ -35,7 +35,7 @@ class AuthenticationException extends PhpLiteCoreException
 
     /**
      * Create exception for unauthorized access
-     * 
+     *
      * @param string $message
      * @return static
      */

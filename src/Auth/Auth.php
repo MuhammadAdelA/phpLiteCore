@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Auth;
@@ -90,7 +91,7 @@ class Auth
         }
 
         // 3. If no user object could be determined, authentication fails
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -98,6 +99,7 @@ class Auth
         if (password_verify($password, $user->password)) {
             // 5. Password matches. Log the user in.
             $this->login($user);
+
             return true;
         }
 
@@ -147,6 +149,7 @@ class Auth
     public function id(): ?int
     {
         $result = $this->session->get(self::SESSION_KEY);
+
         return $result ? (int)$result : null;
     }
 
@@ -160,17 +163,20 @@ class Auth
             return $this->user ?: null;
         }
         $id = $this->id();
-        if (!$id) {
+        if (! $id) {
             $this->user = false;
+
             return null;
         }
         $user = User::find($id);
-        if (!$user) {
+        if (! $user) {
             $this->session->remove(self::SESSION_KEY);
             $this->user = false;
+
             return null;
         }
         $this->user = $user;
+
         return $this->user;
     }
 }

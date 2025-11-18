@@ -49,31 +49,35 @@ beforeEach(function () {
 
     // Set up container with mock database
     $this->container = new Container();
-    $this->mockDb = new class($this->pdo) {
+    $this->mockDb = new class ($this->pdo) {
         private PDO $pdo;
-        
-        public function __construct(PDO $pdo) {
+
+        public function __construct(PDO $pdo)
+        {
             $this->pdo = $pdo;
         }
-        
-        public function getPdo(): PDO {
+
+        public function getPdo(): PDO
+        {
             return $this->pdo;
         }
     };
-    $this->container->bind('db', fn() => $this->mockDb, true);
-    
+    $this->container->bind('db', fn () => $this->mockDb, true);
+
     BaseModel::setContainer($this->container);
 });
 
 test('hasMany relation eager loads correctly', function () {
     // Define test models with explicit table names
-    $userClass = new class extends BaseModel {
+    $userClass = new class () extends BaseModel {
         protected string $table = 'users';
-        
-        public function posts() {
-            $postClass = new class extends BaseModel {
+
+        public function posts()
+        {
+            $postClass = new class () extends BaseModel {
                 protected string $table = 'posts';
             };
+
             // Explicitly provide foreign key to avoid issues with anonymous classes
             return $this->hasMany(get_class($postClass), 'user_id', 'id');
         }
@@ -100,13 +104,15 @@ test('hasMany relation eager loads correctly', function () {
 });
 
 test('hasOne relation eager loads correctly', function () {
-    $userClass = new class extends BaseModel {
+    $userClass = new class () extends BaseModel {
         protected string $table = 'users';
-        
-        public function profile() {
-            $profileClass = new class extends BaseModel {
+
+        public function profile()
+        {
+            $profileClass = new class () extends BaseModel {
                 protected string $table = 'profiles';
             };
+
             return $this->hasOne(get_class($profileClass), 'user_id', 'id');
         }
     };
@@ -130,13 +136,15 @@ test('hasOne relation eager loads correctly', function () {
 });
 
 test('belongsTo relation eager loads correctly', function () {
-    $postClass = new class extends BaseModel {
+    $postClass = new class () extends BaseModel {
         protected string $table = 'posts';
-        
-        public function author() {
-            $userClass = new class extends BaseModel {
+
+        public function author()
+        {
+            $userClass = new class () extends BaseModel {
                 protected string $table = 'users';
             };
+
             return $this->belongsTo(get_class($userClass), 'user_id', 'id');
         }
     };
@@ -162,32 +170,36 @@ test('belongsTo relation eager loads correctly', function () {
 
 test('relation helper methods work with model instances', function () {
     // Test model instance methods
-    $userClass = new class extends BaseModel {
+    $userClass = new class () extends BaseModel {
         protected string $table = 'users';
-        
-        public function posts() {
-            $postClass = new class extends BaseModel {
+
+        public function posts()
+        {
+            $postClass = new class () extends BaseModel {
                 protected string $table = 'posts';
             };
+
             return $this->hasMany(get_class($postClass), 'user_id', 'id');
         }
     };
 
     $user = new $userClass();
     $relation = $user->posts();
-    
+
     expect($relation)->toBeInstanceOf(\PhpLiteCore\Database\Model\Relations\HasMany::class);
     expect($relation->name())->toBe('posts');
 });
 
 test('eager loading works with empty results', function () {
-    $userClass = new class extends BaseModel {
+    $userClass = new class () extends BaseModel {
         protected string $table = 'users';
-        
-        public function posts() {
-            $postClass = new class extends BaseModel {
+
+        public function posts()
+        {
+            $postClass = new class () extends BaseModel {
                 protected string $table = 'posts';
             };
+
             return $this->hasMany(get_class($postClass));
         }
     };
@@ -206,7 +218,7 @@ test('eager loading works with empty results', function () {
 });
 
 test('eager loading handles missing relation methods gracefully', function () {
-    $userClass = new class extends BaseModel {
+    $userClass = new class () extends BaseModel {
         protected string $table = 'users';
     };
 

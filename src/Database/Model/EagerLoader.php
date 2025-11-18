@@ -1,12 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Model;
 
 use PDO;
-use PhpLiteCore\Database\Model\Relations\BelongsTo;
-use PhpLiteCore\Database\Model\Relations\HasMany;
-use PhpLiteCore\Database\Model\Relations\HasOne;
 use PhpLiteCore\Database\Model\Relations\Relation;
 
 final class EagerLoader
@@ -26,13 +24,13 @@ final class EagerLoader
         $model = new $modelClass();
 
         foreach ($relations as $name) {
-            if (!method_exists($model, $name)) {
+            if (! method_exists($model, $name)) {
                 // Unknown relation; skip silently to avoid breaking existing flows.
                 continue;
             }
 
             $relation = $model->{$name}();
-            if (!$relation instanceof Relation) {
+            if (! $relation instanceof Relation) {
                 // Relation method must return a Relation; skip otherwise.
                 continue;
             }
@@ -52,7 +50,7 @@ final class EagerLoader
         if ($ref->hasProperty('pdo')) {
             $prop = $ref->getProperty('pdo');
             $prop->setAccessible(true);
-            if (!$prop->getValue($relation) instanceof PDO) {
+            if (! $prop->getValue($relation) instanceof PDO) {
                 $prop->setValue($relation, $pdo);
             }
         }

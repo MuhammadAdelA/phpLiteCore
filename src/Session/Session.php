@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Session;
@@ -29,20 +30,20 @@ class Session
     public function start(): void
     {
         // Only start if no session exists and headers haven't been sent
-        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        if (session_status() === PHP_SESSION_NONE && ! headers_sent()) {
             // Configure session cookie parameters for enhanced security
             session_set_cookie_params([
                 // Use SESSION_LIFETIME from .env, default to 1 hour (3600 seconds)
                 'lifetime' => (int)($_ENV['SESSION_LIFETIME'] ?? 3600),
-                'path'     => '/',
+                'path' => '/',
                 // Use SESSION_DOMAIN from .env, default to current host
-                'domain'   => $_ENV['SESSION_DOMAIN'] ?? $_SERVER['HTTP_HOST'] ?? '',
+                'domain' => $_ENV['SESSION_DOMAIN'] ?? $_SERVER['HTTP_HOST'] ?? '',
                 // Set 'secure' flag only if connection is HTTPS
-                'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
                 // Prevent JavaScript access to the session cookie
                 'httponly' => true,
                 // Mitigate CSRF attacks; 'Lax' is a good default
-                'samesite' => 'Lax'
+                'samesite' => 'Lax',
             ]);
             // Start the PHP session
             session_start();
@@ -87,6 +88,7 @@ class Session
         if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION[$key])) {
             return $_SESSION[$key];
         }
+
         // Return default value if session not active or key not found
         return $default;
     }
@@ -197,8 +199,10 @@ class Session
             $message = $_SESSION['_flash'][$key];
             // Remove the message immediately after retrieval
             unset($_SESSION['_flash'][$key]);
+
             return $message;
         }
+
         // Return default if session not active or message not found
         return $default;
     }

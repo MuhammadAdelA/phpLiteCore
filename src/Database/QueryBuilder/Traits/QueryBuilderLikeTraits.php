@@ -1,6 +1,7 @@
 <?php
 
 namespace PhpLiteCore\Database\QueryBuilder\Traits;
+
 use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
 
 /**
@@ -25,6 +26,7 @@ trait QueryBuilderLikeTraits
                 }
             }, $boolean);
         }
+
         return $this->where($column, 'LIKE', $values . '%', $boolean);
     }
 
@@ -57,6 +59,7 @@ trait QueryBuilderLikeTraits
                 }
             }, $boolean);
         }
+
         return $this->where($column, 'LIKE', '%' . $values . '%', $boolean);
     }
 

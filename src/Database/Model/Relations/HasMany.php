@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Model\Relations;
@@ -26,6 +27,7 @@ final class HasMany extends Relation
             foreach ($parents as &$p) {
                 $this->attach($p, []);
             }
+
             return;
         }
 
@@ -40,7 +42,9 @@ final class HasMany extends Relation
         $byFk = [];
         foreach ($children as $row) {
             $fk = $row[$this->foreignKey] ?? null;
-            if ($fk === null) continue;
+            if ($fk === null) {
+                continue;
+            }
             $byFk[$fk][] = $row;
         }
 

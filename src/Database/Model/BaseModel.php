@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhpLiteCore\Database\Model;
 
 use PhpLiteCore\Container\Container;
-use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
+use PhpLiteCore\Database\Model\Relations\BelongsTo;
 use PhpLiteCore\Database\Model\Relations\HasMany;
 use PhpLiteCore\Database\Model\Relations\HasOne;
-use PhpLiteCore\Database\Model\Relations\BelongsTo;
+use PhpLiteCore\Database\QueryBuilder\BaseQueryBuilder;
 
 /**
  * The Hybrid Base Model for the Active Record implementation.
@@ -108,12 +108,13 @@ abstract class BaseModel
         $builder = static::query();
 
         // If 'id' exists in the original attributes, we assume it's an update.
-        if (isset($this->original['id']) && !empty($this->original['id'])) {
+        if (isset($this->original['id']) && ! empty($this->original['id'])) {
             $dirty = $this->getDirtyAttributes();
             // If there are no changes, no need to run a query.
             if (empty($dirty)) {
                 return true;
             }
+
             // Execute an update and return true if one or more rows were affected.
             return $builder->where('id', '=', $this->original['id'])->update($dirty) > 0;
         } else {
@@ -126,6 +127,7 @@ abstract class BaseModel
                 // Sync the original state to reflect the saved state.
                 $this->original = $this->attributes;
                 $this->original['id'] = $this->id;
+
                 return true;
             }
 
@@ -214,6 +216,7 @@ abstract class BaseModel
     public static function query(): BaseQueryBuilder
     {
         $db = static::$container->get('db');
+
         return $db->queryBuilder()
             ->from((new static())->table)
             ->setModel(static::class);
@@ -290,6 +293,7 @@ abstract class BaseModel
     protected function inferForeignKey(?string $class = null): string
     {
         $name = $class ? $this->shortClass($class) : $this->shortClass(static::class);
+
         return $this->toSnakeCase($name) . '_id';
     }
 
@@ -302,22 +306,25 @@ abstract class BaseModel
         // Skip frames until we find one that's not inferRelationName, hasMany, hasOne, or belongsTo
         foreach ($trace as $frame) {
             $func = $frame['function'] ?? '';
-            if ($func && !in_array($func, ['inferRelationName', 'hasMany', 'hasOne', 'belongsTo'], true)) {
+            if ($func && ! in_array($func, ['inferRelationName', 'hasMany', 'hasOne', 'belongsTo'], true)) {
                 return (string)$func;
             }
         }
+
         return 'relation';
     }
 
     protected function shortClass(string $fqcn): string
     {
         $parts = explode('\\', $fqcn);
+
         return end($parts) ?: $fqcn;
     }
 
     protected function toSnakeCase(string $name): string
     {
         $name = preg_replace('/(?<!^)[A-Z]/', '_$0', $name);
+
         return strtolower((string)$name);
     }
 }
