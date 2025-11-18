@@ -31,7 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added comprehensive security documentation
 - Documented security best practices for developers
 
-## [1.0.0] - 2024-XX-XX
+## [1.0.0] - 2024-12-01
+
+_Initial stable release of phpLiteCore framework._
 
 ### Added
 - Initial release of phpLiteCore framework
