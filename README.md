@@ -2,7 +2,10 @@
 
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.3-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://github.com/MuhammadAdelA/phpLiteCore/workflows/PHP%20Code%20Quality%20Checks/badge.svg)](https://github.com/MuhammadAdelA/phpLiteCore/actions)
+[![CI](https://github.com/MuhammadAdelA/phpLiteCore/workflows/PHP%20Code%20Quality%20Checks/badge.svg)](https://github.com/MuhammadAdelA/phpLiteCore/actions)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%206-brightgreen.svg)](phpstan.neon)
+[![Code Style](https://img.shields.io/badge/code%20style-PSR--12-blue.svg)](https://www.php-fig.org/psr/psr-12/)
+[![Codecov](https://codecov.io/gh/MuhammadAdelA/phpLiteCore/branch/master/graph/badge.svg)](https://codecov.io/gh/MuhammadAdelA/phpLiteCore)
 [![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg)](https://muhammadadela.github.io/phpLiteCore/)
 
 **phpLiteCore** is a modern, lightweight, and fast PHP framework designed for building web applications of any size. It focuses on simplicity, speed, and a clean architecture, providing core essentials without unnecessary bloat.
@@ -80,26 +83,33 @@ Security is a top priority for phpLiteCore. If you discover a security vulnerabi
 
 ## 🧪 Code Quality
 
-phpLiteCore maintains high code quality standards:
+phpLiteCore maintains high code quality standards with automated CI checks:
 
 - **PSR-12 Compliant**: All code follows PSR-12 coding standards
-- **Static Analysis**: Uses PHPStan for type safety
+- **Static Analysis**: Uses PHPStan level 6 for type safety and code correctness
 - **Automated Tests**: Comprehensive test suite with Pest PHP
 - **Code Style**: Automated formatting with PHP CS Fixer
+- **CI/CD**: All PRs and pushes are automatically checked for quality
 
-### Running Quality Checks
+### Running Quality Checks Locally
 
 ```bash
-# Run tests
-./vendor/bin/pest
+# Install dev dependencies (if not already installed)
+composer install
 
-# Run static analysis (requires PHPStan)
-composer require --dev phpstan/phpstan
-./vendor/bin/phpstan analyse
+# Run all quality checks at once
+composer quality
 
-# Fix code style (requires PHP CS Fixer)
-composer require --dev friendsofphp/php-cs-fixer
-./vendor/bin/php-cs-fixer fix
+# Or run individually:
+composer test              # Run Pest tests
+composer test:coverage     # Run tests with coverage report
+composer analyse           # Run PHPStan static analysis
+composer format:check      # Check code style without fixing
+composer format            # Fix code style issues
+composer lint              # Check PHP syntax
+```
+
+All these checks run automatically on every pull request and push to ensure code quality.
 ```
 
 ---

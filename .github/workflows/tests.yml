@@ -10,8 +10,8 @@ on:
     branches: [ "master" ]
 
 jobs:
-  lint-and-test:
-    name: 🧪 Test on PHP ${{ matrix.php-versions }}
+  code-quality:
+    name: 🔍 Code Quality on PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -36,6 +36,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           extensions: pdo, exif, fileinfo, mbstring, mysqli, intl, gd, bcmath
           tools: composer:v2
+          coverage: xdebug
 
       - name: 🔒 Verify composer.lock is up-to-date with composer.json
         run: |
@@ -66,10 +67,25 @@ jobs:
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: ✅ PHP Syntax Lint
-        run: find . -type f -name "*.php" ! -path "./vendor/*" -exec php -l {} \;
+        run: composer run-script lint
+
+      - name: 🎨 Check Code Style (PHP CS Fixer)
+        run: composer run-script format:check
+
+      - name: 🔬 Run Static Analysis (PHPStan)
+        run: composer run-script analyse
 
       - name: Make sure tests-results is there
-        run: mkdir -p vendor/pestphp/pest/.temp | touch vendor/pestphp/pest/.temp/test-results
+        run: mkdir -p vendor/pestphp/pest/.temp && touch vendor/pestphp/pest/.temp/test-results
 
-      - name: 🧪 Run Pest Tests
-        run: vendor/bin/pest -c phpunit.xml
+      - name: 🧪 Run Pest Tests with Coverage
+        run: composer run-script test:coverage
+
+      - name: 📊 Upload Coverage Reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false

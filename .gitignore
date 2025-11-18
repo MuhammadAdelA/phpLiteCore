@@ -30,10 +30,13 @@ node_modules/
 
 # PHPUnit
 .phpunit.result.cache
+.phpunit.cache
 
 # Coverage reports
 coverage/
+coverage-html/
 clover.xml
+coverage.xml
 
 # PHP CS Fixer
 .php-cs-fixer.cache
