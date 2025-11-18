@@ -125,11 +125,14 @@ class Router
      * */
     public function dispatch(Application $app): void
     {
-        $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        // Create Request object from globals
+        $request = \PhpLiteCore\Http\Request::createFromGlobals();
+        
+        $requestMethod = $request->getMethod();
+        $requestUri = $request->getPath();
 
         // Execute global middleware before routing
-        $this->runGlobalMiddleware($requestMethod);
+        $this->runGlobalMiddleware($request);
 
         foreach ($this->routes as $route) {
             // Check if the request method matches the route's method.
@@ -146,29 +149,38 @@ class Router
                 $params = !empty($route->getParams()) ? array_combine($route->getParams(), $matches) : [];
 
                 // Execute route-specific middleware
-                $this->runRouteMiddleware($route, $requestMethod);
+                $this->runRouteMiddleware($route, $request);
 
                 // Call the controller action.
-                $this->callAction($app, $route->getAction()[0], $route->getAction()[1], $params);
+                $this->callAction($app, $route->getAction()[0], $route->getAction()[1], $params, $request);
                 return; // Stop processing routes once a match is found and dispatched.
             }
         }
 
         // If no route was matched after checking all registered routes, send a 404 response.
-        Response::notFound('Page Not Found');
+        \PhpLiteCore\Http\Response::notFound('Page Not Found');
     }
 
     /**
      * Execute all registered global middleware.
      * 
-     * @param string $method The HTTP request method.
+     * @param \PhpLiteCore\Http\Request $request The HTTP request object
      * @return void
      */
-    protected function runGlobalMiddleware(string $method): void
+    protected function runGlobalMiddleware(\PhpLiteCore\Http\Request $request): void
     {
         foreach ($this->middleware as $middleware) {
             if (method_exists($middleware, 'handle')) {
-                $middleware->handle($method);
+                // Check if middleware accepts Request object as parameter
+                $reflection = new \ReflectionMethod($middleware, 'handle');
+                $params = $reflection->getParameters();
+                
+                if (!empty($params) && $params[0]->getType() && $params[0]->getType()->getName() === \PhpLiteCore\Http\Request::class) {
+                    $middleware->handle($request);
+                } else {
+                    // Legacy support: pass method string
+                    $middleware->handle($request->getMethod());
+                }
             }
         }
     }
@@ -177,10 +189,10 @@ class Router
      * Execute route-specific middleware.
      * 
      * @param Route $route The route instance
-     * @param string $method The HTTP request method
+     * @param \PhpLiteCore\Http\Request $request The HTTP request object
      * @return void
      */
-    protected function runRouteMiddleware(Route $route, string $method): void
+    protected function runRouteMiddleware(Route $route, \PhpLiteCore\Http\Request $request): void
     {
         foreach ($route->getMiddleware() as $middlewareClass) {
             // Instantiate the middleware
@@ -192,7 +204,16 @@ class Router
             
             // Execute the middleware handle method
             if (method_exists($middleware, 'handle')) {
-                $middleware->handle($method);
+                // Check if middleware accepts Request object as parameter
+                $reflection = new \ReflectionMethod($middleware, 'handle');
+                $params = $reflection->getParameters();
+                
+                if (!empty($params) && $params[0]->getType() && $params[0]->getType()->getName() === \PhpLiteCore\Http\Request::class) {
+                    $middleware->handle($request);
+                } else {
+                    // Legacy support: pass method string
+                    $middleware->handle($request->getMethod());
+                }
             }
         }
     }
@@ -408,10 +429,11 @@ class Router
      * @param string $controller The controller class name (short name).
      * @param string $method The method name on the controller.
      * @param array $params The parameters extracted from the URI, to be passed to the method.
+     * @param \PhpLiteCore\Http\Request $request The HTTP request object.
      * @return void
      * @throws ControllerNotFoundException|MethodNotFoundException
      */
-    protected function callAction(Application $app, string $controller, string $method, array $params = []): void
+    protected function callAction(Application $app, string $controller, string $method, array $params = [], \PhpLiteCore\Http\Request $request = null): void
     {
         // Construct the fully qualified controller class name.
         $fullControllerName = $this->controllerNamespace . $controller;
@@ -429,6 +451,11 @@ class Router
                     $this->container->instance(Application::class, $app);
                 }
 
+                // Bind Request instance if available
+                if ($request !== null && !$this->container->has(\PhpLiteCore\Http\Request::class)) {
+                    $this->container->instance(\PhpLiteCore\Http\Request::class, $request);
+                }
+
                 // Try to auto-wire the controller using the container
                 $controllerInstance = $this->container->make($fullControllerName);
             } catch (\ReflectionException $e) {
@@ -443,6 +470,25 @@ class Router
         // Check if the action method exists on the controller instance.
         if (!method_exists($controllerInstance, $method)) {
             throw new MethodNotFoundException("Method {$method} not found on controller {$fullControllerName}.");
+        }
+
+        // Determine if the controller method expects a Request object
+        $reflection = new \ReflectionMethod($controllerInstance, $method);
+        $methodParams = $reflection->getParameters();
+        
+        // Check if any parameter accepts Request object
+        $acceptsRequest = false;
+        foreach ($methodParams as $param) {
+            $type = $param->getType();
+            if ($type && !$type->isBuiltin() && $type->getName() === \PhpLiteCore\Http\Request::class) {
+                $acceptsRequest = true;
+                break;
+            }
+        }
+        
+        // If method accepts Request object, prepend it to params
+        if ($acceptsRequest && $request !== null) {
+            array_unshift($params, $request);
         }
 
         // Call the action method on the controller instance, passing the extracted parameters.
