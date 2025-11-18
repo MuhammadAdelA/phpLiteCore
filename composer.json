@@ -51,9 +51,9 @@
     "format": "php-cs-fixer fix",
     "format:check": "php-cs-fixer fix --dry-run --diff",
     "analyse": [
-      "@php vendor/bin/phpstan clear-result-cache",
-      "@php vendor/bin/phpstan analyse"
-    ]
+      "phpstan clear-result-cache",
+      "phpstan analyse"
+    ],
     "quality": [
       "@lint",
       "@format:check",
