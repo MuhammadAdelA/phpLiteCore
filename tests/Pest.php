@@ -11,6 +11,11 @@
 |
 */
 
+// Define PHPLITECORE_ROOT constant for tests if not already defined
+if (!defined('PHPLITECORE_ROOT')) {
+    define('PHPLITECORE_ROOT', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR);
+}
+
 // uses(Tests\TestCase::class)->in('Feature');
 
 /*
