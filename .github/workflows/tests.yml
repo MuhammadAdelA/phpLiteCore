@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [ "master" ]
 
+permissions:
+  contents: read
+
 jobs:
   code-quality:
     name: 🔍 Code Quality on PHP ${{ matrix.php-versions }}
