@@ -167,3 +167,19 @@ if (!function_exists('csrf_field')) {
         return '<input type="hidden" name="_token" value="' . e($token) . '">';
     }
 }
+
+/**
+ * Generate a URL for a named route with optional parameters.
+ * 
+ * @param string $name The route name
+ * @param array $params The route parameters (e.g., ['id' => 123])
+ * @return string The generated URL
+ * @throws \InvalidArgumentException If route not found or parameters are missing
+ */
+if (!function_exists('route')) {
+    function route(string $name, array $params = []): string
+    {
+        $app = \PhpLiteCore\Bootstrap\Application::getInstance();
+        return $app->router->route($name, $params);
+    }
+}

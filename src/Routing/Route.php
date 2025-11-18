@@ -60,6 +60,12 @@ class Route
     protected array $params = [];
 
     /**
+     * The router instance (for registering named routes).
+     * @var Router|null
+     */
+    protected ?Router $router = null;
+
+    /**
      * Create a new Route instance.
      *
      * @param string $method The HTTP method
@@ -80,6 +86,17 @@ class Route
     }
 
     /**
+     * Set the router reference.
+     *
+     * @param Router $router The router instance
+     * @return void
+     */
+    public function setRouter(Router $router): void
+    {
+        $this->router = $router;
+    }
+
+    /**
      * Set the name for this route.
      *
      * @param string $name The route name
@@ -88,6 +105,12 @@ class Route
     public function name(string $name): self
     {
         $this->name = $name;
+        
+        // Register this route with the router if available
+        if ($this->router !== null) {
+            $this->router->registerNamedRoute($name, $this);
+        }
+        
         return $this;
     }
 
