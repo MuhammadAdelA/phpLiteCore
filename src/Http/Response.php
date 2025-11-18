@@ -24,6 +24,9 @@ class Response // Add ArrayAccess if you need header manipulation like $response
     /** @var string The response body content. */
     protected string $content = '';
 
+    /** @var array The cookies to set. */
+    protected array $cookies = [];
+
     /**
      * Sets the HTTP status code for the response.
      *
@@ -50,6 +53,106 @@ class Response // Add ArrayAccess if you need header manipulation like $response
     }
 
     /**
+     * Set multiple headers at once.
+     *
+     * @param array<string, string> $headers Array of headers
+     * @return static
+     */
+    public function setHeaders(array $headers): static
+    {
+        foreach ($headers as $key => $value) {
+            $this->headers[$key] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Get a header value.
+     *
+     * @param string $key The header name
+     * @return string|null The header value or null if not set
+     */
+    public function getHeader(string $key): ?string
+    {
+        return $this->headers[$key] ?? null;
+    }
+
+    /**
+     * Get all headers.
+     *
+     * @return array<string, string> All headers
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Set a cookie.
+     *
+     * @param string $name The cookie name
+     * @param string $value The cookie value
+     * @param int $expire The expiration time (Unix timestamp, default: 0 = session cookie)
+     * @param string $path The path on the server where the cookie will be available (default: '/')
+     * @param string $domain The domain that the cookie is available to (default: '')
+     * @param bool $secure Whether the cookie should only be transmitted over HTTPS (default: false)
+     * @param bool $httponly Whether the cookie is accessible only through HTTP protocol (default: true)
+     * @return static
+     */
+    public function setCookie(
+        string $name,
+        string $value,
+        int $expire = 0,
+        string $path = '/',
+        string $domain = '',
+        bool $secure = false,
+        bool $httponly = true
+    ): static {
+        $this->cookies[$name] = [
+            'value' => $value,
+            'expire' => $expire,
+            'path' => $path,
+            'domain' => $domain,
+            'secure' => $secure,
+            'httponly' => $httponly,
+        ];
+        return $this;
+    }
+
+    /**
+     * Delete a cookie by setting its expiration to the past.
+     *
+     * @param string $name The cookie name
+     * @param string $path The path on the server where the cookie is available
+     * @param string $domain The domain that the cookie is available to
+     * @return static
+     */
+    public function deleteCookie(string $name, string $path = '/', string $domain = ''): static
+    {
+        return $this->setCookie($name, '', time() - 3600, $path, $domain);
+    }
+
+    /**
+     * Get the current status code.
+     *
+     * @return int The HTTP status code
+     */
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
+    /**
+     * Get the response content.
+     *
+     * @return string The response body content
+     */
+    public function getContent(): string
+    {
+        return $this->content;
+    }
+
+    /**
      * Sets the response body content.
      *
      * @param string $content The content to send.
@@ -71,6 +174,19 @@ class Response // Add ArrayAccess if you need header manipulation like $response
     {
         // Send status code header.
         http_response_code($this->statusCode);
+
+        // Send all cookies.
+        foreach ($this->cookies as $name => $cookie) {
+            setcookie(
+                $name,
+                $cookie['value'],
+                $cookie['expire'],
+                $cookie['path'],
+                $cookie['domain'],
+                $cookie['secure'],
+                $cookie['httponly']
+            );
+        }
 
         // Send all other headers.
         foreach ($this->headers as $key => $value) {
@@ -185,5 +301,122 @@ class Response // Add ArrayAccess if you need header manipulation like $response
         header('Retry-After: ' . $retryAfter);
         echo $message;
         exit;
+    }
+
+    /**
+     * Create an instance-based JSON response (non-static).
+     * Allows for method chaining.
+     *
+     * @param mixed $data The data to encode as JSON
+     * @param int $statusCode The HTTP status code (default: 200 OK)
+     * @return static
+     */
+    public function withJson(mixed $data, int $statusCode = 200): static
+    {
+        $this->setStatusCode($statusCode);
+        $this->setHeader('Content-Type', 'application/json');
+        $this->setContent(json_encode($data));
+        return $this;
+    }
+
+    /**
+     * Create a plain text response.
+     *
+     * @param string $content The text content
+     * @param int $statusCode The HTTP status code (default: 200 OK)
+     * @return static
+     */
+    public function text(string $content, int $statusCode = 200): static
+    {
+        $this->setStatusCode($statusCode);
+        $this->setHeader('Content-Type', 'text/plain');
+        $this->setContent($content);
+        return $this;
+    }
+
+    /**
+     * Create an HTML response.
+     *
+     * @param string $content The HTML content
+     * @param int $statusCode The HTTP status code (default: 200 OK)
+     * @return static
+     */
+    public function html(string $content, int $statusCode = 200): static
+    {
+        $this->setStatusCode($statusCode);
+        $this->setHeader('Content-Type', 'text/html; charset=UTF-8');
+        $this->setContent($content);
+        return $this;
+    }
+
+    /**
+     * Create a file download response.
+     *
+     * @param string $filePath Path to the file to download
+     * @param string|null $filename The filename to send to the browser (defaults to basename of filePath)
+     * @param array<string, string> $headers Additional headers
+     * @return static
+     */
+    public function download(string $filePath, ?string $filename = null, array $headers = []): static
+    {
+        if (!file_exists($filePath)) {
+            throw new \RuntimeException("File not found: {$filePath}");
+        }
+
+        $filename = $filename ?? basename($filePath);
+        $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+
+        $this->setStatusCode(200);
+        $this->setHeader('Content-Type', $mimeType);
+        $this->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $this->setHeader('Content-Length', (string)filesize($filePath));
+        
+        foreach ($headers as $key => $value) {
+            $this->setHeader($key, $value);
+        }
+
+        $this->setContent(file_get_contents($filePath));
+        return $this;
+    }
+
+    /**
+     * Create an instance-based redirect response (non-static).
+     * Returns the instance for method chaining, does NOT exit.
+     *
+     * @param string $url The URL to redirect to
+     * @param int $statusCode The HTTP status code for the redirect (default: 302 Found)
+     * @return static
+     */
+    public function redirectTo(string $url, int $statusCode = 302): static
+    {
+        $this->setStatusCode($statusCode);
+        $this->setHeader('Location', $url);
+        return $this;
+    }
+
+    /**
+     * Set cache control headers to prevent caching.
+     *
+     * @return static
+     */
+    public function noCache(): static
+    {
+        $this->setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        $this->setHeader('Pragma', 'no-cache');
+        $this->setHeader('Expires', '0');
+        return $this;
+    }
+
+    /**
+     * Set cache control headers for a specified duration.
+     *
+     * @param int $seconds Number of seconds to cache
+     * @return static
+     */
+    public function cache(int $seconds): static
+    {
+        $this->setHeader('Cache-Control', 'public, max-age=' . $seconds);
+        $this->setHeader('Expires', gmdate('D, d M Y H:i:s', time() + $seconds) . ' GMT');
+        return $this;
     }
 }
