@@ -47,14 +47,15 @@
   "scripts": {
     "test": "pest",
     "test:coverage": "pest --coverage",
-    "lint": "find src app -name '*.php' -exec php -l {} \\;",
+    "lint": "php -v",
+    "check-lock": "composer validate --strict",
     "format": "php-cs-fixer fix",
     "format:check": "php-cs-fixer fix --dry-run --diff",
     "analyse": [
-      "phpstan clear-result-cache",
-      "phpstan analyse"
+      "phpstan analyse --memory-limit=1G"
     ],
     "quality": [
+      "@check-lock",
       "@lint",
       "@format:check",
       "@analyse",
@@ -62,13 +63,14 @@
     ]
   },
   "scripts-descriptions": {
+    "check-lock": "Validate composer.json and ensure composer.lock is up to date",
     "test": "Run the test suite",
     "test:coverage": "Run tests with coverage report",
-    "lint": "Check PHP syntax",
+    "lint": "Check PHP version",
     "format": "Format code using PHP CS Fixer",
     "format:check": "Check code format without making changes",
     "analyse": "Run static analysis with PHPStan",
-    "quality": "Run all quality checks (lint, format, analyse, test)"
+    "quality": "Run all quality checks"
   },
   "config": {
     "sort-packages": true,

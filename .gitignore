@@ -43,6 +43,7 @@ coverage.xml
 
 # PHPStan
 .phpstan.cache
+var/
 
 # Laravel specific (if needed later)
 storage/
