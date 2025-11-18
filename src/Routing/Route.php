@@ -77,10 +77,10 @@ class Route
         $this->method = strtoupper($method);
         $this->uri = $uri;
         $this->action = $action;
-        
+
         // Extract parameter names
         preg_match_all('/\{([a-zA-Z][a-zA-Z0-9_]*)\}/', $uri, $paramMatches);
-        if (!empty($paramMatches[1])) {
+        if (! empty($paramMatches[1])) {
             $this->params = $paramMatches[1];
         }
     }
@@ -105,12 +105,12 @@ class Route
     public function name(string $name): self
     {
         $this->name = $name;
-        
+
         // Register this route with the router if available
         if ($this->router !== null) {
             $this->router->registerNamedRoute($name, $this);
         }
-        
+
         return $this;
     }
 
@@ -123,6 +123,7 @@ class Route
     public function where(array $constraints): self
     {
         $this->constraints = array_merge($this->constraints, $constraints);
+
         return $this;
     }
 
@@ -138,6 +139,7 @@ class Route
             $middleware = [$middleware];
         }
         $this->middleware = array_merge($this->middleware, $middleware);
+
         return $this;
     }
 
@@ -222,6 +224,7 @@ class Route
         if ($this->regex === null) {
             $this->regex = $this->compilePattern();
         }
+
         return $this->regex;
     }
 
@@ -234,7 +237,7 @@ class Route
     protected function compilePattern(): string
     {
         $pattern = $this->uri;
-        
+
         // Replace each {param} with its constraint or default pattern
         foreach ($this->params as $param) {
             $constraint = $this->constraints[$param] ?? '[^/]+';
@@ -245,7 +248,7 @@ class Route
                 1
             );
         }
-        
+
         // Add start and end anchors with delimiters
         return '#^' . $pattern . '$#';
     }

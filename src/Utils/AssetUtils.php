@@ -1,4 +1,5 @@
 <?php
+
 // ملف: src/Utils/AssetUtils.php
 declare(strict_types=1);
 
@@ -17,7 +18,7 @@ class AssetUtils
     public static function withVersion(string $path, string $urlBase = 'ASSET_BASE_URL', string $pathBase = 'ASSET_BASE_PATH'): string
     {
         // Resolve a base URL and filesystem path from constants or as given
-        $baseUrl  = defined($urlBase)  ? constant($urlBase)  : $urlBase;
+        $baseUrl = defined($urlBase) ? constant($urlBase) : $urlBase;
         $basePath = defined($pathBase) ? constant($pathBase) : $pathBase;
 
         // Normalize separators
@@ -28,7 +29,7 @@ class AssetUtils
         $webPath = rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 
         // If the file does not exist or filemtime fails, return the web path unchanged
-        if (!file_exists($fileSystemPath) || ($mtime = filemtime($fileSystemPath)) === false) {
+        if (! file_exists($fileSystemPath) || ($mtime = filemtime($fileSystemPath)) === false) {
             return $webPath;
         }
 

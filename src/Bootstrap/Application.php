@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpLiteCore\Bootstrap;
 
 use Dotenv\Dotenv;
@@ -121,8 +122,12 @@ class Application
         // Depends on DEFAULT_LANG constant defined after dotenv load.
         $locale = set_language() ?: DEFAULT_LANG; // set_language() needs Session to be active for cookies
         // Define constants *after* set_language might have redirected or set cookies.
-        if (!defined('LANG')) define('LANG', $locale);
-        if (!defined('HTML_DIR')) define('HTML_DIR', getDirection(LANG) ?: 'ltr');
+        if (! defined('LANG')) {
+            define('LANG', $locale);
+        }
+        if (! defined('HTML_DIR')) {
+            define('HTML_DIR', getDirection(LANG) ?: 'ltr');
+        }
         // Instantiate Translator with the determined locale.
         $this->translator = new Translator(LANG);
 
@@ -134,12 +139,12 @@ class Application
         // --- Database Service ---
         // Reads database credentials from $_ENV.
         $dbConfig = [
-            'host'     => $_ENV['MYSQL_DB_HOST'] ?? 'localhost',
-            'port'     => (int) ($_ENV['MYSQL_DB_PORT'] ?? 3306),
+            'host' => $_ENV['MYSQL_DB_HOST'] ?? 'localhost',
+            'port' => (int) ($_ENV['MYSQL_DB_PORT'] ?? 3306),
             'database' => $_ENV['MYSQL_DB_NAME'] ?? '', // Provide default or ensure it's set
             'username' => $_ENV['MYSQL_DB_USER'] ?? '', // Provide default or ensure it's set
             'password' => $_ENV['MYSQL_DB_PASS'] ?? '', // Provide default or ensure it's set
-            'charset'  => $_ENV['MYSQL_DB_CHAR'] ?? 'utf8mb4',
+            'charset' => $_ENV['MYSQL_DB_CHAR'] ?? 'utf8mb4',
         ];
         // Ensure required DB config is present, maybe throw exception if not in development?
         if (empty($dbConfig['database']) || empty($dbConfig['username'])) {
@@ -216,10 +221,16 @@ class Application
     private function defineConstants(): void
     {
         // Define APP_ENV, default to 'production' if not set
-        if (!defined('ENV')) define('ENV', $_ENV['APP_ENV'] ?? 'production');
+        if (! defined('ENV')) {
+            define('ENV', $_ENV['APP_ENV'] ?? 'production');
+        }
         // Define default timezone, default to 'UTC' if not set
-        if (!defined('SYSTEM_TIMEZONE')) define('SYSTEM_TIMEZONE', $_ENV['SYSTEM_TIMEZONE'] ?? 'UTC');
+        if (! defined('SYSTEM_TIMEZONE')) {
+            define('SYSTEM_TIMEZONE', $_ENV['SYSTEM_TIMEZONE'] ?? 'UTC');
+        }
         // Define default language, default to 'en' if not set
-        if (!defined('DEFAULT_LANG')) define('DEFAULT_LANG', $_ENV['DEFAULT_LANG'] ?? 'en');
+        if (! defined('DEFAULT_LANG')) {
+            define('DEFAULT_LANG', $_ENV['DEFAULT_LANG'] ?? 'en');
+        }
     }
 }

@@ -17,9 +17,9 @@ class JsonUtils
     public static function feedback(string $message, string $type = 'info', string $title = ''): string
     {
         $data = [
-            'type'    => $type,
+            'type' => $type,
             'message' => $message,
-            'title'   => $title,
+            'title' => $title,
         ];
 
         return json_encode($data, JSON_UNESCAPED_UNICODE);

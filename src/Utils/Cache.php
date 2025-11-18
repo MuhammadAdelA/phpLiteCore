@@ -6,7 +6,7 @@ namespace PhpLiteCore\Utils;
 
 /**
  * Simple File-based Cache
- * 
+ *
  * Provides basic caching functionality with file-based storage.
  * Supports TTL (time-to-live) for cache entries.
  */
@@ -24,7 +24,7 @@ class Cache
 
     /**
      * Constructor
-     * 
+     *
      * @param string $cacheDirectory The directory where cache files will be stored
      * @param int $defaultTtl Default time-to-live in seconds
      */
@@ -32,9 +32,9 @@ class Cache
     {
         $this->cacheDirectory = $cacheDirectory ?: (defined('PHPLITECORE_ROOT') ? PHPLITECORE_ROOT . 'storage/cache' : __DIR__ . '/../../storage/cache');
         $this->defaultTtl = $defaultTtl;
-        
+
         // Create cache directory if it doesn't exist
-        if (!is_dir($this->cacheDirectory)) {
+        if (! is_dir($this->cacheDirectory)) {
             mkdir($this->cacheDirectory, 0755, true);
         }
     }
@@ -51,14 +51,14 @@ class Cache
     {
         $ttl = $ttl ?? $this->defaultTtl;
         $filePath = $this->getFilePath($key);
-        
+
         $data = [
             'value' => $value,
             'expires_at' => time() + $ttl,
         ];
 
         $serialized = serialize($data);
-        
+
         return file_put_contents($filePath, $serialized, LOCK_EX) !== false;
     }
 
@@ -72,23 +72,23 @@ class Cache
     public function get(string $key, mixed $default = null): mixed
     {
         $filePath = $this->getFilePath($key);
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return $default;
         }
 
         $content = file_get_contents($filePath);
-        
+
         if ($content === false) {
             return $default;
         }
 
         $data = unserialize($content);
-        
+
         // Check if expired
         if (time() > $data['expires_at']) {
             $this->forget($key);
-            
+
             return $default;
         }
 
@@ -104,23 +104,23 @@ class Cache
     public function has(string $key): bool
     {
         $filePath = $this->getFilePath($key);
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return false;
         }
 
         $content = file_get_contents($filePath);
-        
+
         if ($content === false) {
             return false;
         }
 
         $data = unserialize($content);
-        
+
         // Check if expired
         if (time() > $data['expires_at']) {
             $this->forget($key);
-            
+
             return false;
         }
 
@@ -136,7 +136,7 @@ class Cache
     public function forget(string $key): bool
     {
         $filePath = $this->getFilePath($key);
-        
+
         if (file_exists($filePath)) {
             return unlink($filePath);
         }
@@ -173,7 +173,7 @@ class Cache
 
         $value = $callback();
         $this->set($key, $value, $ttl);
-        
+
         return $value;
     }
 
@@ -185,7 +185,7 @@ class Cache
     public function flush(): bool
     {
         $files = glob($this->cacheDirectory . '/*');
-        
+
         foreach ($files as $file) {
             if (is_file($file)) {
                 unlink($file);
@@ -204,7 +204,7 @@ class Cache
     private function getFilePath(string $key): string
     {
         $hash = md5($key);
-        
+
         return $this->cacheDirectory . '/' . $hash . '.cache';
     }
 
@@ -217,16 +217,16 @@ class Cache
     {
         $files = glob($this->cacheDirectory . '/*.cache');
         $removed = 0;
-        
+
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            
+
             if ($content === false) {
                 continue;
             }
 
             $data = unserialize($content);
-            
+
             // Check if expired
             if (time() > $data['expires_at']) {
                 unlink($file);

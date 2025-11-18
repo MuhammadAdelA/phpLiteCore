@@ -9,7 +9,7 @@ use PhpLiteCore\Session\Session;
 
 /**
  * Rate Limiting Middleware
- * 
+ *
  * Provides basic rate limiting to prevent abuse by:
  * - Tracking request counts per IP address
  * - Using session storage for simplicity
@@ -39,7 +39,7 @@ class RateLimitMiddleware
 
     /**
      * Constructor
-     * 
+     *
      * @param Session $session The session instance
      * @param int $maxAttempts Maximum number of requests allowed (default: 60)
      * @param int $decaySeconds Time window in seconds (default: 60)
@@ -53,7 +53,7 @@ class RateLimitMiddleware
 
     /**
      * Handle the incoming request
-     * 
+     *
      * @param string $key Unique key for rate limiting (e.g., IP address, user ID)
      * @return void
      */
@@ -63,9 +63,9 @@ class RateLimitMiddleware
         $data = $this->session->get($sessionKey, []);
 
         $now = time();
-        
+
         // Initialize or reset if expired
-        if (!isset($data['reset_at']) || $data['reset_at'] <= $now) {
+        if (! isset($data['reset_at']) || $data['reset_at'] <= $now) {
             $data = [
                 'attempts' => 0,
                 'reset_at' => $now + $this->decaySeconds,
@@ -74,7 +74,7 @@ class RateLimitMiddleware
 
         // Increment attempts
         $data['attempts']++;
-        
+
         // Store updated data
         $this->session->set($sessionKey, $data);
 
@@ -90,7 +90,7 @@ class RateLimitMiddleware
 
     /**
      * Get the current number of attempts for a key
-     * 
+     *
      * @param string $key The rate limit key
      * @return int Number of attempts
      */
@@ -100,9 +100,9 @@ class RateLimitMiddleware
         $data = $this->session->get($sessionKey, []);
 
         $now = time();
-        
+
         // Return 0 if expired or not set
-        if (!isset($data['reset_at']) || $data['reset_at'] <= $now) {
+        if (! isset($data['reset_at']) || $data['reset_at'] <= $now) {
             return 0;
         }
 
@@ -111,20 +111,20 @@ class RateLimitMiddleware
 
     /**
      * Get the number of remaining attempts for a key
-     * 
+     *
      * @param string $key The rate limit key
      * @return int Number of remaining attempts
      */
     public function getRemainingAttempts(string $key): int
     {
         $attempts = $this->getAttempts($key);
-        
+
         return max(0, $this->maxAttempts - $attempts);
     }
 
     /**
      * Clear rate limit data for a key
-     * 
+     *
      * @param string $key The rate limit key
      * @return void
      */
@@ -136,7 +136,7 @@ class RateLimitMiddleware
 
     /**
      * Sanitize the key to prevent session key injection
-     * 
+     *
      * @param string $key The key to sanitize
      * @return string Sanitized key
      */
@@ -147,7 +147,7 @@ class RateLimitMiddleware
 
     /**
      * Get the client's IP address for rate limiting
-     * 
+     *
      * @return string The client's IP address
      */
     public static function getClientIp(): string
@@ -163,14 +163,14 @@ class RateLimitMiddleware
         ];
 
         foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
+            if (! empty($_SERVER[$header])) {
                 $ip = $_SERVER[$header];
-                
+
                 // Handle multiple IPs in X-Forwarded-For
                 if (str_contains($ip, ',')) {
                     $ip = trim(explode(',', $ip)[0]);
                 }
-                
+
                 // Validate IP
                 if (filter_var($ip, FILTER_VALIDATE_IP)) {
                     return $ip;

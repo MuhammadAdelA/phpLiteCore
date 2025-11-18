@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Http\Middleware;
 
-use PhpLiteCore\Session\Session;
 use PhpLiteCore\Http\Response;
+use PhpLiteCore\Session\Session;
 
 /**
  * CSRF Protection Middleware
- * 
+ *
  * Provides Cross-Site Request Forgery (CSRF) protection by:
  * - Lazily generating a session-backed token
  * - Validating incoming tokens from form fields or headers
@@ -39,7 +39,7 @@ class CsrfMiddleware
 
     /**
      * Constructor
-     * 
+     *
      * @param Session $session The session instance
      */
     public function __construct(Session $session)
@@ -49,10 +49,10 @@ class CsrfMiddleware
 
     /**
      * Handle the incoming request.
-     * 
+     *
      * For GET requests: no-op (allows request to proceed)
      * For non-GET requests: validates CSRF token, sends 403 if invalid
-     * 
+     *
      * @param string $method The HTTP request method
      * @return void
      */
@@ -64,16 +64,16 @@ class CsrfMiddleware
         }
 
         // For non-GET requests, validate the token
-        if (!$this->validateToken()) {
+        if (! $this->validateToken()) {
             Response::forbidden('CSRF token mismatch');
         }
     }
 
     /**
      * Get or generate the CSRF token.
-     * 
+     *
      * Lazily generates a token if one doesn't exist in the session.
-     * 
+     *
      * @return string The CSRF token
      */
     public static function token(): string
@@ -83,8 +83,8 @@ class CsrfMiddleware
         // or create a temporary one. In practice, the session should already be started
         // by the Application bootstrap.
         $session = self::getSession();
-        
-        if (!$session->has(self::TOKEN_KEY)) {
+
+        if (! $session->has(self::TOKEN_KEY)) {
             $token = bin2hex(random_bytes(32));
             $session->set(self::TOKEN_KEY, $token);
         }
@@ -94,19 +94,19 @@ class CsrfMiddleware
 
     /**
      * Validate the CSRF token from the request.
-     * 
+     *
      * Checks for the token in:
      * 1. POST data (form field: _token)
      * 2. HTTP header (X-CSRF-TOKEN)
-     * 
+     *
      * @return bool True if the token is valid, false otherwise
      */
     private function validateToken(): bool
     {
         $expectedToken = $this->session->get(self::TOKEN_KEY);
-        
+
         // If no token exists in session yet, reject the request
-        if (!$expectedToken) {
+        if (! $expectedToken) {
             return false;
         }
 
@@ -114,12 +114,12 @@ class CsrfMiddleware
         $submittedToken = $_POST[self::FORM_FIELD] ?? null;
 
         // If not in POST, check the HTTP header
-        if (!$submittedToken) {
+        if (! $submittedToken) {
             $submittedToken = $_SERVER[self::HEADER_NAME] ?? null;
         }
 
         // Token must be present and match
-        if (!$submittedToken) {
+        if (! $submittedToken) {
             return false;
         }
 
@@ -129,10 +129,10 @@ class CsrfMiddleware
 
     /**
      * Get the session instance.
-     * 
+     *
      * This helper method retrieves the session from the Application singleton.
      * If the Application is not available, it creates a new Session instance.
-     * 
+     *
      * @return Session
      */
     private static function getSession(): Session

@@ -16,6 +16,7 @@ trait QueryBuilderGetTraits
     public function setModel(string $class): static
     {
         $this->modelClass = $class;
+
         return $this;
     }
 
@@ -33,12 +34,15 @@ trait QueryBuilderGetTraits
             $results = $this->afterFetch($results);
         }
 
-        if (!$this->modelClass) { return $results; }
+        if (! $this->modelClass) {
+            return $results;
+        }
 
         $models = [];
         foreach ($results as $record) {
             $models[] = new $this->modelClass($record);
         }
+
         return $models;
     }
 
@@ -50,7 +54,9 @@ trait QueryBuilderGetTraits
     public function first(): ?object
     {
         $results = (clone $this)->limit(1)->runQuery();
-        if (empty($results)) { return null; }
+        if (empty($results)) {
+            return null;
+        }
 
         return $this->modelClass ? new $this->modelClass($results[0]) : (object)$results[0];
     }
@@ -67,7 +73,7 @@ trait QueryBuilderGetTraits
 
         $result = $clone->limit(1)->runQuery();
 
-        return !empty($result);
+        return ! empty($result);
     }
 
     /**
@@ -93,6 +99,7 @@ trait QueryBuilderGetTraits
         $bindings = $this->getWhereBindings();
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($bindings);
+
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -124,38 +131,69 @@ trait QueryBuilderGetTraits
                 $bindings[] = $where['value'];
             }
         }
+
         return $bindings;
     }
 
     // --- Getters for Grammar Access ---
 
     /** @return array The bindings for the SET part of an insert/update. */
-    public function getBindings(): array { return $this->bindings; }
+    public function getBindings(): array
+    {
+        return $this->bindings;
+    }
 
     /** @return array The selected columns. */
-    public function getColumns(): array { return $this->columns; }
+    public function getColumns(): array
+    {
+        return $this->columns;
+    }
 
     /** @return string The target table name. */
-    public function getTable(): string { return $this->table ?? ''; }
+    public function getTable(): string
+    {
+        return $this->table ?? '';
+    }
 
     /** @return string|null The table alias. */
-    public function getAlias(): ?string { return $this->alias; }
+    public function getAlias(): ?string
+    {
+        return $this->alias;
+    }
 
     /** @return array The WHERE clauses data. */
-    public function getWheres(): array { return $this->wheres; }
+    public function getWheres(): array
+    {
+        return $this->wheres;
+    }
 
     /** @return array The JOIN clauses. */
-    public function getJoins(): array { return $this->joins; }
+    public function getJoins(): array
+    {
+        return $this->joins;
+    }
 
     /** @return array The GROUP BY columns. */
-    public function getGroups(): array { return $this->groups; }
+    public function getGroups(): array
+    {
+        return $this->groups;
+    }
 
     /** @return array The ORDER BY clauses. */
-    public function getOrders(): array { return $this->orders; }
+    public function getOrders(): array
+    {
+        return $this->orders;
+    }
 
     /** @return int|null The query limit. */
-    public function getLimit(): ?int { return $this->limit; }
+    public function getLimit(): ?int
+    {
+        return $this->limit;
+    }
 
     /** @return int|null The query offset. */
-    public function getOffset(): ?int { return $this->offset; }
+    public function getOffset(): ?int
+    {
+        return $this->offset;
+    }
 }

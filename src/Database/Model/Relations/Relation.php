@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Model\Relations;
@@ -14,7 +15,8 @@ abstract class Relation
         protected string $localKey,
         protected string $foreignKey,
         protected string $relationName
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {
@@ -41,6 +43,7 @@ abstract class Relation
         if (is_object($row)) {
             return $row->{$key} ?? null;
         }
+
         return $row[$key] ?? null;
     }
 }

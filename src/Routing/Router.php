@@ -78,7 +78,7 @@ class Router
 
     /**
      * Create a route group with shared attributes.
-     * 
+     *
      * @param array $attributes Group attributes (prefix, as, middleware)
      * @param callable $callback Callback to register routes within the group
      * @return void
@@ -87,10 +87,10 @@ class Router
     {
         // Push current group attributes onto the stack
         $this->groupStack[] = $attributes;
-        
+
         // Execute the callback to register routes
         $callback($this);
-        
+
         // Pop the group attributes from the stack
         array_pop($this->groupStack);
     }
@@ -143,13 +143,14 @@ class Router
                 array_shift($matches);
 
                 // Combine the extracted parameter values with their names if parameters exist.
-                $params = !empty($route->getParams()) ? array_combine($route->getParams(), $matches) : [];
+                $params = ! empty($route->getParams()) ? array_combine($route->getParams(), $matches) : [];
 
                 // Execute route-specific middleware
                 $this->runRouteMiddleware($route, $requestMethod);
 
                 // Call the controller action.
                 $this->callAction($app, $route->getAction()[0], $route->getAction()[1], $params);
+
                 return; // Stop processing routes once a match is found and dispatched.
             }
         }
@@ -160,7 +161,7 @@ class Router
 
     /**
      * Execute all registered global middleware.
-     * 
+     *
      * @param string $method The HTTP request method.
      * @return void
      */
@@ -175,7 +176,7 @@ class Router
 
     /**
      * Execute route-specific middleware.
-     * 
+     *
      * @param Route $route The route instance
      * @param string $method The HTTP request method
      * @return void
@@ -189,7 +190,7 @@ class Router
             } else {
                 $middleware = new $middlewareClass();
             }
-            
+
             // Execute the middleware handle method
             if (method_exists($middleware, 'handle')) {
                 $middleware->handle($method);
@@ -211,26 +212,26 @@ class Router
         // Apply group attributes if we're inside a group
         $uri = $this->applyGroupPrefix($uri);
         $route = new Route($method, $uri, $action);
-        
+
         // Set the router reference so route can register itself when named
         $route->setRouter($this);
-        
+
         // Apply group middleware if any
         $groupMiddleware = $this->getGroupMiddleware();
-        if (!empty($groupMiddleware)) {
+        if (! empty($groupMiddleware)) {
             $route->middleware($groupMiddleware);
         }
-        
+
         // Store the route
         $this->routes[] = $route;
-        
+
         return $route;
     }
 
     /**
      * Register a named route for lookup.
      * This is called internally by Route::name() to track named routes.
-     * 
+     *
      * @param string $name The route name
      * @param Route $route The route instance
      * @return void
@@ -242,7 +243,7 @@ class Router
 
     /**
      * Get a route by its name.
-     * 
+     *
      * @param string $name The route name
      * @return Route|null The route instance or null if not found
      */
@@ -253,7 +254,7 @@ class Router
 
     /**
      * Generate a URL for a named route with optional parameters.
-     * 
+     *
      * @param string $name The route name
      * @param array $params The route parameters
      * @return string The generated URL
@@ -262,26 +263,26 @@ class Router
     public function route(string $name, array $params = []): string
     {
         $route = $this->getNamedRoute($name);
-        
+
         if ($route === null) {
             throw new \InvalidArgumentException("Route [{$name}] not found.");
         }
-        
+
         $uri = $route->getUri();
         $routeParams = $route->getParams();
-        
+
         // Check if all required parameters are provided
         foreach ($routeParams as $param) {
-            if (!isset($params[$param])) {
+            if (! isset($params[$param])) {
                 throw new \InvalidArgumentException("Missing required parameter [{$param}] for route [{$name}].");
             }
         }
-        
+
         // Replace placeholders with actual values
         foreach ($params as $key => $value) {
             $uri = preg_replace('/\{' . preg_quote($key, '/') . '\}/', (string)$value, $uri, 1);
         }
-        
+
         return $uri;
     }
 
@@ -299,11 +300,11 @@ class Router
                 $prefix .= '/' . trim($group['prefix'], '/');
             }
         }
-        
+
         if ($prefix !== '') {
             $uri = rtrim($prefix, '/') . '/' . ltrim($uri, '/');
         }
-        
+
         return $uri;
     }
 
@@ -317,33 +318,34 @@ class Router
         $middleware = [];
         foreach ($this->groupStack as $group) {
             if (isset($group['middleware'])) {
-                $groupMiddleware = is_array($group['middleware']) 
-                    ? $group['middleware'] 
+                $groupMiddleware = is_array($group['middleware'])
+                    ? $group['middleware']
                     : [$group['middleware']];
                 $middleware = array_merge($middleware, $groupMiddleware);
             }
         }
+
         return $middleware;
     }
 
     /**
      * Load routes from cache file.
-     * 
+     *
      * @param string $cachePath Path to the cache file
      * @return bool True if cache was loaded successfully
      */
     public function loadFromCache(string $cachePath): bool
     {
-        if (!file_exists($cachePath)) {
+        if (! file_exists($cachePath)) {
             return false;
         }
-        
+
         $cached = require $cachePath;
-        
-        if (!is_array($cached) || !isset($cached['routes'])) {
+
+        if (! is_array($cached) || ! isset($cached['routes'])) {
             return false;
         }
-        
+
         // Reconstruct Route objects from cached data
         foreach ($cached['routes'] as $routeData) {
             $route = new Route(
@@ -351,31 +353,31 @@ class Router
                 $routeData['uri'],
                 $routeData['action']
             );
-            
+
             // Set router reference so the route can register itself when named
             $route->setRouter($this);
-            
+
             if (isset($routeData['name'])) {
                 $route->name($routeData['name']);
             }
-            
-            if (!empty($routeData['constraints'])) {
+
+            if (! empty($routeData['constraints'])) {
                 $route->where($routeData['constraints']);
             }
-            
-            if (!empty($routeData['middleware'])) {
+
+            if (! empty($routeData['middleware'])) {
                 $route->middleware($routeData['middleware']);
             }
-            
+
             $this->routes[] = $route;
         }
-        
+
         return true;
     }
 
     /**
      * Save current routes to cache file.
-     * 
+     *
      * @param string $cachePath Path to save the cache file
      * @return bool True if cache was saved successfully
      */
@@ -384,20 +386,20 @@ class Router
         $routesData = array_map(function (Route $route) {
             return $route->toArray();
         }, $this->routes);
-        
+
         $cacheData = [
             'routes' => $routesData,
             'timestamp' => time(),
         ];
-        
+
         $content = '<?php return ' . var_export($cacheData, true) . ';';
-        
+
         // Ensure directory exists
         $dir = dirname($cachePath);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-        
+
         return file_put_contents($cachePath, $content) !== false;
     }
 
@@ -417,7 +419,7 @@ class Router
         $fullControllerName = $this->controllerNamespace . $controller;
 
         // Check if the controller class exists.
-        if (!class_exists($fullControllerName)) {
+        if (! class_exists($fullControllerName)) {
             throw new ControllerNotFoundException("Controller class {$fullControllerName} not found.");
         }
 
@@ -425,7 +427,7 @@ class Router
         if ($this->container !== null) {
             try {
                 // First, bind Application class to the container if not already bound
-                if (!$this->container->has(Application::class)) {
+                if (! $this->container->has(Application::class)) {
                     $this->container->instance(Application::class, $app);
                 }
 
@@ -441,7 +443,7 @@ class Router
         }
 
         // Check if the action method exists on the controller instance.
-        if (!method_exists($controllerInstance, $method)) {
+        if (! method_exists($controllerInstance, $method)) {
             throw new MethodNotFoundException("Method {$method} not found on controller {$fullControllerName}.");
         }
 

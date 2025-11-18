@@ -1,4 +1,5 @@
 <?php
+
 namespace App\ViewComposers;
 
 use PhpLiteCore\Bootstrap\Application;
@@ -31,10 +32,10 @@ class NavigationComposer
     {
         // Fetch translated navigation links
         $navData = [
-            'navHome'       => $this->app->translator->get('messages.nav.home'),
-            'navPosts'      => $this->app->translator->get('messages.nav.posts'),
+            'navHome' => $this->app->translator->get('messages.nav.home'),
+            'navPosts' => $this->app->translator->get('messages.nav.posts'),
             'navCreatePost' => $this->app->translator->get('messages.nav.create_post'),
-            'navAbout'      => $this->app->translator->get('messages.nav.about'),
+            'navAbout' => $this->app->translator->get('messages.nav.about'),
         ];
 
         // Merge navigation data with existing data

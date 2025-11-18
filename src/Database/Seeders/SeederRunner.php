@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Seeders;
@@ -25,7 +26,7 @@ final class SeederRunner
         $executed = [];
         foreach ($files as $file) {
             $callable = require $file;
-            if (!is_callable($callable)) {
+            if (! is_callable($callable)) {
                 throw new \RuntimeException("Seeder file must return a callable: {$file}");
             }
             $callable($this->db);

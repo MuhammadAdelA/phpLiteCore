@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\View;
@@ -78,7 +79,7 @@ class Layout extends View
 
         // 3. Find the path to the layout file itself.
         $layoutPath = $this->buildLayoutPath();
-        if (!file_exists($layoutPath)) {
+        if (! file_exists($layoutPath)) {
             // Throw an exception if the layout file (e.g., 'views/layouts/app.php') doesn't exist.
             throw new ViewNotFoundException("Layout file not found: {$layoutPath}");
         }
@@ -93,6 +94,7 @@ class Layout extends View
         // - $content (the rendered output of the original view, e.g., home.php)
         // - All variables extracted from the final $this->data (including those added by the composer).
         require $layoutPath;
+
         // Return the captured output from the layout file.
         return ob_get_clean();
     }
@@ -111,8 +113,9 @@ class Layout extends View
             'layouts',        // The subdirectory for layout files
             // Convert dot notation in layout name to directory separators if needed (e.g., 'admin.app')
             // and append '.php' extension.
-            str_replace('.', DIRECTORY_SEPARATOR, $this->layout) . '.php'
+            str_replace('.', DIRECTORY_SEPARATOR, $this->layout) . '.php',
         ];
+
         // Combine the segments into a full path.
         return implode(DIRECTORY_SEPARATOR, $pathSegments);
     }

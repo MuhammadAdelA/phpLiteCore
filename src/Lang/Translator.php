@@ -81,6 +81,7 @@ class Translator
             } else {
                 $this->messages[$filename] = $messages;
             }
+
             return;
         }
 
@@ -107,14 +108,14 @@ class Translator
      */
     public function get(string $key, array $replace = [], ?string $default = null): string
     {
-        if (!str_contains($key, '.')) {
+        if (! str_contains($key, '.')) {
             $key = 'messages.' . $key;
         }
 
         [$file, $messageKey] = explode('.', $key, 2);
 
         // Lazy-load the primary locale file if not already loaded.
-        if (!isset($this->messages[$file])) {
+        if (! isset($this->messages[$file])) {
             $this->loadMessagesFromFile($file, $this->locale);
         }
 
@@ -123,7 +124,7 @@ class Translator
 
         // If not found, try the fallback locale.
         if ($message === null && $this->locale !== $this->fallbackLocale) {
-            if (!isset($this->fallbackMessages[$file])) {
+            if (! isset($this->fallbackMessages[$file])) {
                 $this->loadMessagesFromFile($file, $this->fallbackLocale, true);
             }
             $message = $this->findByDotNotation($this->fallbackMessages[$file] ?? [], $messageKey);
@@ -135,7 +136,7 @@ class Translator
         }
 
         // Replace placeholders if the message is a string.
-        if (is_string($message) && !empty($replace)) {
+        if (is_string($message) && ! empty($replace)) {
             foreach ($replace as $placeholder => $value) {
                 $message = str_replace(":{$placeholder}", (string)$value, $message);
             }
@@ -184,6 +185,7 @@ class Translator
     {
         // Use a unique sentinel value to differentiate a not-found key from a null/empty one.
         $sentinel = '___TRANSLATION_NOT_FOUND___';
+
         return $this->get($key, [], $sentinel) !== $sentinel;
     }
 
@@ -200,7 +202,7 @@ class Translator
         $keys = explode('.', $key);
 
         foreach ($keys as $segment) {
-            if (!is_array($current) || !array_key_exists($segment, $current)) {
+            if (! is_array($current) || ! array_key_exists($segment, $current)) {
                 return null; // Return null if the key path is broken.
             }
             $current = $current[$segment];

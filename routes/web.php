@@ -46,19 +46,19 @@ if (defined('ENV') && ENV === 'development') {
     $router->get('/test-session-set/{key}/{value}', ['TestController', 'testSessionSet'])
         ->name('dev.session.set')
         ->where(['key' => '[a-zA-Z0-9_]+', 'value' => '[a-zA-Z0-9_]+']);
-    
+
     $router->get('/test-session-get/{key}', ['TestController', 'testSessionGet'])
         ->name('dev.session.get')
         ->where(['key' => '[a-zA-Z0-9_]+']);
-    
+
     $router->get('/test-session-flash-set/{key}/{message}', ['TestController', 'testSessionFlashSet'])
         ->name('dev.session.flash-set')
         ->where(['key' => '[a-zA-Z0-9_]+', 'message' => '[a-zA-Z0-9_]+']);
-    
+
     $router->get('/test-session-flash-get/{key}', ['TestController', 'testSessionFlashGet'])
         ->name('dev.session.flash-get')
         ->where(['key' => '[a-zA-Z0-9_]+']);
-    
+
     $router->get('/test-session-destroy', ['TestController', 'testSessionDestroy'])
         ->name('dev.session.destroy');
     // --- END NEW ---

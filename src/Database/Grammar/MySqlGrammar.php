@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Grammar;
@@ -86,7 +87,7 @@ class MySqlGrammar implements GrammarInterface
         // Add ORDER BY clause
         if ($orders = $builder->getOrders()) {
             $orderClauses = array_map(
-                fn($o) => $this->wrapIdentifier($o[0]) . ' ' . strtoupper($o[1]),
+                fn ($o) => $this->wrapIdentifier($o[0]) . ' ' . strtoupper($o[1]),
                 $orders
             );
             $sql .= ' ORDER BY ' . implode(', ', $orderClauses);
@@ -195,14 +196,14 @@ class MySqlGrammar implements GrammarInterface
         // Handle alias "AS" (case-insensitive)
         $alias = '';
         if (preg_match('/\s+AS\s+/i', $clean, $matches, PREG_OFFSET_CAPTURE)) {
-            $pos   = (int) $matches[0][1];
+            $pos = (int) $matches[0][1];
             $alias = substr($clean, $pos);
             $clean = substr($clean, 0, $pos);
         }
 
         // Wrap each segment separated by dot
         $segments = explode('.', trim($clean));
-        $wrapped  = $this->opening
+        $wrapped = $this->opening
             . implode($this->closing . '.' . $this->opening, $segments)
             . $this->closing;
 
@@ -229,6 +230,7 @@ class MySqlGrammar implements GrammarInterface
                 $this->wrapIdentifier($second)
             );
         }
+
         return implode(' ', $clauses);
     }
 
@@ -246,11 +248,12 @@ class MySqlGrammar implements GrammarInterface
 
         foreach ($wheres as $index => $where) {
             $boolean = $where['boolean'] ?? 'AND';
-            $prefix  = $index === 0 ? '' : " {$boolean} ";
+            $prefix = $index === 0 ? '' : " {$boolean} ";
 
             switch ($where['type']) {
                 case 'Basic':
                     $clauses[] = $prefix . $this->wrapIdentifier($where['column']) . ' ' . $where['operator'] . ' ?';
+
                     break;
 
                 case 'In':
@@ -258,17 +261,20 @@ class MySqlGrammar implements GrammarInterface
                     $placeholders = implode(', ', array_fill(0, count($where['values']), '?'));
                     $operator = $where['type'] === 'In' ? 'IN' : 'NOT IN';
                     $clauses[] = $prefix . $this->wrapIdentifier($where['column']) . " $operator ($placeholders)";
+
                     break;
 
                 case 'Between':
                 case 'NotBetween':
                     $operator = $where['type'] === 'Between' ? 'BETWEEN' : 'NOT BETWEEN';
                     $clauses[] = $prefix . $this->wrapIdentifier($where['column']) . " $operator ? AND ?";
+
                     break;
 
                 case 'Nested':
                     $nestedSql = $this->compileWheres($where['wheres']);
                     $clauses[] = $prefix . '(' . $nestedSql . ')';
+
                     break;
 
                 default:

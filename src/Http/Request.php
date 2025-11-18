@@ -1,4 +1,5 @@
 <?php
+
 // File: src/Http/Request.php
 declare(strict_types=1);
 
@@ -80,17 +81,17 @@ class Request
         $ip = null;
 
         // Check common headers in order of trust
-        if (!empty($this->server['HTTP_CLIENT_IP'])) {
+        if (! empty($this->server['HTTP_CLIENT_IP'])) {
             $ip = $this->server['HTTP_CLIENT_IP'];
-        } elseif (!empty($this->server['HTTP_X_FORWARDED_FOR'])) {
+        } elseif (! empty($this->server['HTTP_X_FORWARDED_FOR'])) {
             // Can contain multiple IPs, take the first one
             $parts = explode(',', $this->server['HTTP_X_FORWARDED_FOR']);
             $ip = trim($parts[0]);
-        } elseif (!empty($this->server['HTTP_X_FORWARDED'])) {
+        } elseif (! empty($this->server['HTTP_X_FORWARDED'])) {
             $ip = $this->server['HTTP_X_FORWARDED'];
-        } elseif (!empty($this->server['HTTP_FORWARDED_FOR'])) {
+        } elseif (! empty($this->server['HTTP_FORWARDED_FOR'])) {
             $ip = $this->server['HTTP_FORWARDED_FOR'];
-        } elseif (!empty($this->server['HTTP_FORWARDED'])) {
+        } elseif (! empty($this->server['HTTP_FORWARDED'])) {
             $forward = $this->server['HTTP_FORWARDED'];
             // Format: "for="<IP>"... -> extract IP after 'for='
             if (preg_match('/for="?([^;,\"]+)"?/', $forward, $matches)) {
@@ -98,7 +99,7 @@ class Request
             } else {
                 $ip = $forward;
             }
-        } elseif (!empty($this->server['REMOTE_ADDR'])) {
+        } elseif (! empty($this->server['REMOTE_ADDR'])) {
             $ip = $this->server['REMOTE_ADDR'];
         }
 
@@ -126,7 +127,7 @@ class Request
      */
     public function isAjax(): bool
     {
-        return !empty($this->server['HTTP_X_REQUESTED_WITH'])
+        return ! empty($this->server['HTTP_X_REQUESTED_WITH'])
             && strcasecmp($this->server['HTTP_X_REQUESTED_WITH'], 'XMLHttpRequest') === 0;
     }
 
@@ -142,7 +143,7 @@ class Request
         }
 
         $uri = $this->server['REQUEST_URI'];
-        
+
         // Remove query string if present
         if (($pos = strpos($uri, '?')) !== false) {
             $uri = substr($uri, 0, $pos);
@@ -158,8 +159,8 @@ class Request
      */
     public function getMethod(): string
     {
-        return !empty($this->server['REQUEST_METHOD']) 
-            ? strtoupper($this->server['REQUEST_METHOD']) 
+        return ! empty($this->server['REQUEST_METHOD'])
+            ? strtoupper($this->server['REQUEST_METHOD'])
             : 'GET';
     }
 

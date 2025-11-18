@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\QueryBuilder\Traits;
@@ -12,7 +13,7 @@ trait QueryBuilderWhereTraits
     {
         // Handle array of conditions: where(['status' => 'active', 'type' => 'post'])
         if (is_array($column)) {
-            return $this->whereGroup(function($query) use ($column) {
+            return $this->whereGroup(function ($query) use ($column) {
                 foreach ($column as $key => $val) {
                     $query->where($key, '=', $val);
                 }
@@ -38,11 +39,11 @@ trait QueryBuilderWhereTraits
         // Add a basic single condition to the wheres array.
         // We only store the data, we do not touch the global bindings array.
         $this->wheres[] = [
-            'type'     => 'Basic',
-            'column'   => $column,
+            'type' => 'Basic',
+            'column' => $column,
             'operator' => $operator,
-            'value'    => $value, // Store the value here
-            'boolean'  => $boolean,
+            'value' => $value, // Store the value here
+            'boolean' => $boolean,
         ];
 
         return $this;
@@ -66,13 +67,14 @@ trait QueryBuilderWhereTraits
         $callback($nested);
 
         // Only add the nested group if it actually has where clauses.
-        if (!empty($nested->getWheres())) {
+        if (! empty($nested->getWheres())) {
             $this->wheres[] = [
-                'type'   => 'Nested',
+                'type' => 'Nested',
                 'wheres' => $nested->getWheres(),
-                'boolean'=> $boolean,
+                'boolean' => $boolean,
             ];
         }
+
         return $this;
     }
 
@@ -90,11 +92,12 @@ trait QueryBuilderWhereTraits
     public function whereIn(string $column, array $values, string $type = 'In', string $boolean = 'AND'): static
     {
         $this->wheres[] = [
-            'type'    => $type,
-            'column'  => $column,
-            'values'  => $values, // Store values here
+            'type' => $type,
+            'column' => $column,
+            'values' => $values, // Store values here
             'boolean' => $boolean,
         ];
+
         return $this;
     }
 
@@ -128,11 +131,12 @@ trait QueryBuilderWhereTraits
     public function whereBetween(string $column, mixed $start, mixed $end, string $boolean = 'AND'): static
     {
         $this->wheres[] = [
-            'type'    => 'Between',
-            'column'  => $column,
-            'values'  => [$start, $end], // Store values here
+            'type' => 'Between',
+            'column' => $column,
+            'values' => [$start, $end], // Store values here
             'boolean' => $boolean,
         ];
+
         return $this;
     }
 

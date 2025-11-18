@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Database\Migrations;
 
-use PhpLiteCore\Database\Database;
 use PDO;
+use PhpLiteCore\Database\Database;
 
 final class MigrationRunner
 {
@@ -51,7 +52,7 @@ final class MigrationRunner
             }
 
             $migration = $this->loadMigration($file);
-            
+
             try {
                 // Note: DDL statements (CREATE, ALTER, DROP) cause implicit commit in MySQL
                 // So transactions are not effective for schema changes
@@ -79,9 +80,10 @@ final class MigrationRunner
         }
 
         $file = rtrim($migrationsPath, '/\\') . DIRECTORY_SEPARATOR . $last . '.php';
-        if (!is_file($file)) {
+        if (! is_file($file)) {
             // If file missing, still remove from table to allow progress
             $this->removeVersion($last);
+
             return $last;
         }
 
@@ -107,9 +109,10 @@ final class MigrationRunner
         $db = $this->db;
         $loaded = require $file;
 
-        if (!$loaded instanceof Migration) {
+        if (! $loaded instanceof Migration) {
             throw new \RuntimeException("Migration file must return an instance of " . Migration::class . " ($file)");
         }
+
         return $loaded;
     }
 
@@ -124,6 +127,7 @@ final class MigrationRunner
         foreach ($rows as $row) {
             $map[$row['version']] = $row['applied_at'];
         }
+
         return $map;
     }
 
@@ -131,6 +135,7 @@ final class MigrationRunner
     {
         $stmt = $this->db->raw("SELECT version FROM `schema_migrations` ORDER BY applied_at DESC, version DESC LIMIT 1");
         $ver = $stmt->fetchColumn(0);
+
         return $ver !== false ? (string)$ver : null;
     }
 

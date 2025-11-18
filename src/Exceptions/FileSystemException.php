@@ -6,14 +6,14 @@ namespace PhpLiteCore\Exceptions;
 
 /**
  * File System Exception
- * 
+ *
  * Thrown when file system operations fail
  */
 class FileSystemException extends PhpLiteCoreException
 {
     /**
      * Create exception for file not found
-     * 
+     *
      * @param string $path
      * @return static
      */
@@ -24,7 +24,7 @@ class FileSystemException extends PhpLiteCoreException
 
     /**
      * Create exception for permission denied
-     * 
+     *
      * @param string $path
      * @param string $operation
      * @return static
@@ -36,7 +36,7 @@ class FileSystemException extends PhpLiteCoreException
 
     /**
      * Create exception for read failure
-     * 
+     *
      * @param string $path
      * @return static
      */
@@ -47,7 +47,7 @@ class FileSystemException extends PhpLiteCoreException
 
     /**
      * Create exception for write failure
-     * 
+     *
      * @param string $path
      * @return static
      */

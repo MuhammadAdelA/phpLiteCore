@@ -124,7 +124,7 @@ class Container
         $reflector = new ReflectionClass($concrete);
 
         // Check if the class is instantiable
-        if (!$reflector->isInstantiable()) {
+        if (! $reflector->isInstantiable()) {
             throw new ReflectionException("Class {$concrete} is not instantiable.");
         }
 
@@ -143,7 +143,7 @@ class Container
             $type = $parameter->getType();
 
             // If parameter has no type or is not a class, we can't auto-wire it
-            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
+            if (! $type instanceof ReflectionNamedType || $type->isBuiltin()) {
                 // Check if it has a default value
                 if ($parameter->isDefaultValueAvailable()) {
                     $dependencies[] = $parameter->getDefaultValue();

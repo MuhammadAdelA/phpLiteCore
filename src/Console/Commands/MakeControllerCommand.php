@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Console\Commands;
@@ -26,7 +27,7 @@ final class MakeControllerCommand extends Command
     {
         $name = preg_replace('/[^A-Za-z0-9_]/', '', (string)$input->getArgument('name'));
         $dir = PHPLITECORE_ROOT . 'app/Controllers';
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         $file = "{$dir}/{$name}.php";
@@ -50,10 +51,12 @@ PHP;
 
         if (file_put_contents($file, $template) === false) {
             $output->writeln("<error>Failed to create controller: {$file}</error>");
+
             return Command::FAILURE;
         }
 
         $output->writeln("<info>Created controller:</info> {$file}");
+
         return Command::SUCCESS;
     }
 }

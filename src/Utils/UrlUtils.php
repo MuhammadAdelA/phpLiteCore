@@ -29,7 +29,7 @@ class UrlUtils
 
     /**
      * Generate a URL for a named route with optional parameters.
-     * 
+     *
      * @param string $name The route name
      * @param array $params The route parameters (e.g., ['id' => 123])
      * @return string The generated URL
@@ -38,6 +38,7 @@ class UrlUtils
     public static function route(string $name, array $params = []): string
     {
         $app = Application::getInstance();
+
         return $app->router->route($name, $params);
     }
 }

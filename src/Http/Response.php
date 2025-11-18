@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhpLiteCore\Http;
 
-use PhpLiteCore\Lang\Translator; // Import the Translator class
-use ReturnTypeWillChange; // For compatibility with PHP 8.1+ regarding ArrayAccess implementation
-use JetBrains\PhpStorm\NoReturn; // For static analysis indicating termination
+use JetBrains\PhpStorm\NoReturn; // Import the Translator class
+// For compatibility with PHP 8.1+ regarding ArrayAccess implementation
+use PhpLiteCore\Lang\Translator; // For static analysis indicating termination
 
 /**
  * Represents an HTTP response.
@@ -33,6 +33,7 @@ class Response // Add ArrayAccess if you need header manipulation like $response
     public function setStatusCode(int $code): static
     {
         $this->statusCode = $code;
+
         return $this;
     }
 
@@ -46,6 +47,7 @@ class Response // Add ArrayAccess if you need header manipulation like $response
     public function setHeader(string $key, string $value): static
     {
         $this->headers[$key] = $value;
+
         return $this;
     }
 
@@ -58,6 +60,7 @@ class Response // Add ArrayAccess if you need header manipulation like $response
     public function setContent(string $content): static
     {
         $this->content = $content;
+
         return $this;
     }
 

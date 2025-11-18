@@ -1,4 +1,5 @@
 <?php
+
 // File: src/Utils/StringUtils.php
 declare(strict_types=1);
 
@@ -67,15 +68,19 @@ class StringUtils
             switch ($setKey) {
                 case 'l':
                     $setsMap[] = 'abcdefghjkmnpqrstuvwxyz';
+
                     break;
                 case 'u':
                     $setsMap[] = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+
                     break;
                 case 'd':
                     $setsMap[] = '123456789';
+
                     break;
                 case 's':
                     $setsMap[] = '!@#$%&*?';
+
                     break;
             }
         }
@@ -128,7 +133,7 @@ class StringUtils
             }
         } elseif (function_exists('openssl_random_pseudo_bytes')) {
             $bytes = openssl_random_pseudo_bytes($bytesNeeded);
-            if (!$bytes) {
+            if (! $bytes) {
                 throw new RuntimeException('Failed to generate secure random bytes via OpenSSL.');
             }
         } else {

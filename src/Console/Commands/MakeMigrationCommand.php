@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace PhpLiteCore\Console\Commands;
@@ -28,7 +29,7 @@ final class MakeMigrationCommand extends Command
         $name = preg_replace('/[^A-Za-z0-9_]/', '', (string)$input->getArgument('name'));
         $ts = date('YmdHis');
         $dir = PHPLITECORE_ROOT . 'database/migrations';
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         $file = "{$dir}/{$ts}_{$name}.php";
@@ -58,10 +59,12 @@ PHP;
 
         if (file_put_contents($file, $template) === false) {
             $output->writeln("<error>Failed to create migration: {$file}</error>");
+
             return Command::FAILURE;
         }
 
         $output->writeln("<info>Created migration:</info> {$file}");
+
         return Command::SUCCESS;
     }
 }
