@@ -72,6 +72,27 @@ If you need to configure network access for GitHub Actions or work behind firewa
 
 ---
 
+## 📦 Versioning
+
+phpLiteCore follows [Semantic Versioning 2.0.0](https://semver.org/) (SemVer). We maintain a detailed [CHANGELOG.md](CHANGELOG.md) documenting all notable changes for each release.
+
+### Version Support
+
+- **Active Support**: 12 months (bug fixes, security patches, new features)
+- **Security Support**: Additional 12 months (security patches only)
+- **Total Support**: 24 months per major version
+
+### Current Version
+
+Check the [latest release](https://github.com/MuhammadAdelA/phpLiteCore/releases) for the current stable version.
+
+**Learn More:**
+- [Versioning Policy](docs/VERSIONING.md) - Complete versioning and release policy
+- [CHANGELOG](CHANGELOG.md) - Detailed change history for all versions
+- [Upgrade Guides](docs/upgrades/) - Step-by-step upgrade instructions
+
+---
+
 ## 🛡️ Security
 
 Security is a top priority for phpLiteCore. If you discover a security vulnerability, please review our [Security Policy](SECURITY.md) for responsible disclosure guidelines.
