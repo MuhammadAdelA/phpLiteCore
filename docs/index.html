@@ -43,7 +43,7 @@
             The framework follows a clear design philosophy as defined in its constitution (Section 2):
         </p>
         <ul>
-            <li><strong>Front Controller:</strong> All requests go through a single <code>index.php</code> file, with <code>.htaccess</code> directing everything to it.</li>
+            <li><strong>Front Controller:</strong> All requests go through a single <code>public/index.php</code> file, with <code>public/.htaccess</code> directing everything to it. The <code>public/</code> directory should be your web server's document root.</li>
             <li><strong>Strict Separation of Concerns (MVC):</strong> Logic is completely separated from presentation. Controllers fetch and prepare data, Views only display it.</li>
             <li><strong>Hybrid Active Record Pattern:</strong> A powerful way to interact with the database, combining the simplicity of Active Record with the flexibility of a Query Builder.</li>
         </ul>
@@ -56,7 +56,7 @@
             <li><code>/app</code>: Contains your application-specific code (<code>Controllers</code>, <code>Models</code>).</li>
             <li><code>/src</code>: Contains the framework's core code (<code>Database</code>, <code>Routing</code>, <code>Lang</code>, etc.).</li>
             <li><code>/resources</code>: Source files before compilation (<code>js</code>, <code>scss</code>, <code>lang</code>).</li>
-            <li><code>/public</code>: The only web-accessible directory. Contains only built assets.</li>
+            <li><code>/public</code>: The web server's document root (web-accessible directory). Contains the front controller (<code>index.php</code>), rewrite rules (<code>.htaccess</code>), and built assets (<code>assets/</code>).</li>
             <li><code>/views</code>: All template files (<code>layouts</code>, <code>partials</code>, <code>themes</code>).</li>
             <li><code>/routes</code>: The <code>web.php</code> file for defining routes.</li>
         </ul>
