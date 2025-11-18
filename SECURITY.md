@@ -29,6 +29,7 @@ When reporting a vulnerability, please include:
 When using phpLiteCore, please follow these security best practices:
 
 ### 1. Environment Configuration
+- Set your web server's document root to the `public/` directory (see [MIGRATION.md](MIGRATION.md) for setup)
 - Never commit your `.env` file to version control
 - Use strong, unique database passwords
 - Keep `APP_ENV=production` in production environments
@@ -73,7 +74,7 @@ When using phpLiteCore, please follow these security best practices:
 
 ### 9. File Upload Security
 - Validate file types and sizes
-- Store uploaded files outside the web root when possible
+- Store uploaded files outside the web root (e.g., in `storage/` directory, not `public/`)
 - Use random filenames to prevent directory traversal
 - Scan uploaded files for malware if handling user uploads
 
