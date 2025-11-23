@@ -244,10 +244,11 @@ class Response // Add ArrayAccess if you need header manipulation like $response
 
     /**
      * Instance method to create a redirect response.
-     * This method is chainable and preserves status code if already set.
+     * This method is chainable and preserves status code if already set to a non-default value.
+     * If status code is still at default (200), it will be set to 302.
      *
      * @param string $url The URL to redirect to.
-     * @param int|null $status Optional status code (default: 302 Found).
+     * @param int|null $status Optional status code to explicitly set.
      * @return static
      */
     public function redirectTo(string $url, ?int $status = null): static
@@ -255,9 +256,10 @@ class Response // Add ArrayAccess if you need header manipulation like $response
         if ($status !== null) {
             $this->setStatusCode($status);
         } elseif ($this->statusCode === 200) {
-            // Only set default 302 if status code wasn't explicitly set before
+            // Set default redirect status (302) only if status code is still at initial default (200)
             $this->setStatusCode(302);
         }
+        // If status code is not 200 (e.g., was set to 301, 307, etc.), preserve it
         $this->setHeader('Location', $url);
         return $this;
     }
