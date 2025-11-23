@@ -184,4 +184,94 @@ class Request
 
         return $default;
     }
+
+    /**
+     * Get a header value from the request.
+     * Normalizes header name and checks both HTTP_* and special headers like CONTENT_TYPE.
+     *
+     * @param string $name The header name (e.g., 'Content-Type', 'X-Requested-With')
+     * @param mixed $default Default value if header is not found
+     * @return mixed The header value, or the default if not found
+     */
+    public function header(string $name, mixed $default = null): mixed
+    {
+        // Normalize header name to HTTP_* server key
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+
+        if (isset($this->server[$key])) {
+            return $this->server[$key];
+        }
+
+        // Some headers are provided without the HTTP_ prefix (CONTENT_TYPE, CONTENT_LENGTH)
+        $special = strtoupper(str_replace('-', '_', $name));
+        if (isset($this->server[$special])) {
+            return $this->server[$special];
+        }
+
+        // Case-insensitive fallback: scan server keys for case-insensitive match
+        foreach ($this->server as $k => $v) {
+            if (strcasecmp($k, $key) === 0 || strcasecmp($k, $special) === 0) {
+                return $v;
+            }
+        }
+
+        return $default;
+    }
+
+    /**
+     * Get all request headers.
+     * Extracts HTTP_* and special headers from $_SERVER.
+     *
+     * @return array<string, mixed> Array of headers
+     */
+    public function headers(): array
+    {
+        $headers = [];
+        
+        foreach ($this->server as $key => $value) {
+            // Check for HTTP_* headers
+            if (str_starts_with($key, 'HTTP_')) {
+                // Remove HTTP_ prefix and convert to header name format
+                $headerName = substr($key, 5);
+                $headers[$headerName] = $value;
+            }
+            // Include special headers that don't have HTTP_ prefix
+            elseif (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'])) {
+                $headers[$key] = $value;
+            }
+        }
+        
+        return $headers;
+    }
+
+    /**
+     * Check if a header exists in the request.
+     *
+     * @param string $name The header name
+     * @return bool True if header exists, false otherwise
+     */
+    public function hasHeader(string $name): bool
+    {
+        // Normalize header name to HTTP_* server key
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+
+        if (isset($this->server[$key])) {
+            return true;
+        }
+
+        // Some headers are provided without the HTTP_ prefix
+        $special = strtoupper(str_replace('-', '_', $name));
+        if (isset($this->server[$special])) {
+            return true;
+        }
+
+        // Case-insensitive fallback
+        foreach ($this->server as $k => $v) {
+            if (strcasecmp($k, $key) === 0 || strcasecmp($k, $special) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
