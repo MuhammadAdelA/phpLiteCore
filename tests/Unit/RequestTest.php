@@ -361,3 +361,137 @@ describe('Request::input()', function () {
         expect($request->input('count'))->toBe(0);
     });
 });
+
+describe('Request::header()', function () {
+    test('it returns null when header is not found', function () {
+        $request = new Request([], [], []);
+        
+        expect($request->header('Content-Type'))->toBeNull();
+    });
+
+    test('it returns default value when header is not found', function () {
+        $request = new Request([], [], []);
+        
+        expect($request->header('Content-Type', 'text/html'))->toBe('text/html');
+    });
+
+    test('it retrieves header with HTTP_ prefix', function () {
+        $request = new Request([], [], [
+            'HTTP_CONTENT_TYPE' => 'application/json'
+        ]);
+        
+        expect($request->header('Content-Type'))->toBe('application/json');
+    });
+
+    test('it retrieves CONTENT_TYPE without HTTP_ prefix', function () {
+        $request = new Request([], [], [
+            'CONTENT_TYPE' => 'application/json'
+        ]);
+        
+        expect($request->header('Content-Type'))->toBe('application/json');
+    });
+
+    test('it retrieves custom headers', function () {
+        $request = new Request([], [], [
+            'HTTP_X_CUSTOM_HEADER' => 'custom-value'
+        ]);
+        
+        expect($request->header('X-Custom-Header'))->toBe('custom-value');
+    });
+
+    test('it handles case-insensitive header lookup', function () {
+        $request = new Request([], [], [
+            'HTTP_ACCEPT' => 'application/json'
+        ]);
+        
+        expect($request->header('accept'))->toBe('application/json');
+        expect($request->header('ACCEPT'))->toBe('application/json');
+        expect($request->header('Accept'))->toBe('application/json');
+    });
+
+    test('it handles CONTENT_LENGTH header', function () {
+        $request = new Request([], [], [
+            'CONTENT_LENGTH' => '1234'
+        ]);
+        
+        expect($request->header('Content-Length'))->toBe('1234');
+    });
+
+    test('it prioritizes HTTP_ prefix over non-prefixed', function () {
+        $request = new Request([], [], [
+            'HTTP_CONTENT_TYPE' => 'application/json',
+            'CONTENT_TYPE' => 'text/html'
+        ]);
+        
+        expect($request->header('Content-Type'))->toBe('application/json');
+    });
+});
+
+describe('Request::headers()', function () {
+    test('it returns empty array when no headers present', function () {
+        $request = new Request([], [], []);
+        
+        expect($request->headers())->toBe([]);
+    });
+
+    test('it returns all HTTP_ headers', function () {
+        $request = new Request([], [], [
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_USER_AGENT' => 'Test Browser',
+            'REQUEST_METHOD' => 'GET'
+        ]);
+        
+        $headers = $request->headers();
+        expect($headers)->toHaveKey('ACCEPT');
+        expect($headers)->toHaveKey('USER_AGENT');
+        expect($headers['ACCEPT'])->toBe('application/json');
+        expect($headers['USER_AGENT'])->toBe('Test Browser');
+    });
+
+    test('it includes special headers without HTTP_ prefix', function () {
+        $request = new Request([], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'CONTENT_LENGTH' => '1234',
+            'HTTP_ACCEPT' => 'text/html'
+        ]);
+        
+        $headers = $request->headers();
+        expect($headers)->toHaveKey('CONTENT_TYPE');
+        expect($headers)->toHaveKey('CONTENT_LENGTH');
+        expect($headers)->toHaveKey('ACCEPT');
+    });
+});
+
+describe('Request::hasHeader()', function () {
+    test('it returns false when header is not present', function () {
+        $request = new Request([], [], []);
+        
+        expect($request->hasHeader('Content-Type'))->toBeFalse();
+    });
+
+    test('it returns true for HTTP_ prefixed headers', function () {
+        $request = new Request([], [], [
+            'HTTP_CONTENT_TYPE' => 'application/json'
+        ]);
+        
+        expect($request->hasHeader('Content-Type'))->toBeTrue();
+    });
+
+    test('it returns true for special headers without HTTP_ prefix', function () {
+        $request = new Request([], [], [
+            'CONTENT_TYPE' => 'application/json'
+        ]);
+        
+        expect($request->hasHeader('Content-Type'))->toBeTrue();
+    });
+
+    test('it handles case-insensitive check', function () {
+        $request = new Request([], [], [
+            'HTTP_ACCEPT' => 'application/json'
+        ]);
+        
+        expect($request->hasHeader('accept'))->toBeTrue();
+        expect($request->hasHeader('ACCEPT'))->toBeTrue();
+        expect($request->hasHeader('Accept'))->toBeTrue();
+    });
+});

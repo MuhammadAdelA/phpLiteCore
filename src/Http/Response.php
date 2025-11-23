@@ -186,4 +186,81 @@ class Response // Add ArrayAccess if you need header manipulation like $response
         echo $message;
         exit;
     }
+
+    /**
+     * Instance method to create a JSON response.
+     * Sets the appropriate Content-Type header and encodes the data.
+     * This method is chainable and preserves status code if already set.
+     *
+     * @param mixed $data The data to encode as JSON.
+     * @param int|null $status Optional status code to set.
+     * @return static
+     */
+    public function withJson(mixed $data, ?int $status = null): static
+    {
+        if ($status !== null) {
+            $this->setStatusCode($status);
+        }
+        $this->setHeader('Content-Type', 'application/json');
+        $this->setContent(json_encode($data));
+        return $this;
+    }
+
+    /**
+     * Instance method to create a plain text response.
+     * This method is chainable and preserves status code if already set.
+     *
+     * @param string $content The text content.
+     * @param int|null $status Optional status code to set.
+     * @return static
+     */
+    public function text(string $content, ?int $status = null): static
+    {
+        if ($status !== null) {
+            $this->setStatusCode($status);
+        }
+        $this->setHeader('Content-Type', 'text/plain');
+        $this->setContent($content);
+        return $this;
+    }
+
+    /**
+     * Instance method to create an HTML response.
+     * This method is chainable and preserves status code if already set.
+     *
+     * @param string $content The HTML content.
+     * @param int|null $status Optional status code to set.
+     * @return static
+     */
+    public function html(string $content, ?int $status = null): static
+    {
+        if ($status !== null) {
+            $this->setStatusCode($status);
+        }
+        $this->setHeader('Content-Type', 'text/html');
+        $this->setContent($content);
+        return $this;
+    }
+
+    /**
+     * Instance method to create a redirect response.
+     * This method is chainable and preserves status code if already set to a non-default value.
+     * If status code is still at default (200), it will be set to 302.
+     *
+     * @param string $url The URL to redirect to.
+     * @param int|null $status Optional status code to explicitly set.
+     * @return static
+     */
+    public function redirectTo(string $url, ?int $status = null): static
+    {
+        if ($status !== null) {
+            $this->setStatusCode($status);
+        } elseif ($this->statusCode === 200) {
+            // Set default redirect status (302) only if status code is still at initial default (200)
+            $this->setStatusCode(302);
+        }
+        // If status code is not 200 (e.g., was set to 301, 307, etc.), preserve it
+        $this->setHeader('Location', $url);
+        return $this;
+    }
 }
