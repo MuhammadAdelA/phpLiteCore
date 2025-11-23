@@ -5,6 +5,12 @@ All notable changes to phpLiteCore will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Quick Links
+
+- [Versioning Policy](docs/VERSIONING.md) - Learn about our SemVer approach and release schedule
+- [Upgrade Guides](docs/upgrades/) - Step-by-step upgrade instructions
+- [Latest Release](https://github.com/MuhammadAdelA/phpLiteCore/releases/latest)
+
 ## [Unreleased]
 
 ### Added
@@ -31,7 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added comprehensive security documentation
 - Documented security best practices for developers
 
-## [1.0.0] - 2024-XX-XX
+## [1.0.0] - 2024-12-01
+
+_Initial stable release of phpLiteCore framework._
 
 ### Added
 - Initial release of phpLiteCore framework
