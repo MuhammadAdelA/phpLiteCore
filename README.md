@@ -67,6 +67,44 @@
 
 *(Includes guides for both English and Arabic, covering core concepts, routing, database interaction, translation, and more.)*
 
+### Database Layer Quick Start
+
+phpLiteCore provides a powerful yet simple database layer with Active Record pattern:
+
+```php
+// Find a user by ID
+$user = User::find(1);
+
+// Query with conditions
+$activeAdmins = User::where('role', 'admin')
+    ->where('status', 'active')
+    ->orderBy('created_at', 'DESC')
+    ->get();
+
+// Eager load relationships to avoid N+1 queries
+$users = User::with(['posts', 'profile'])
+    ->where('status', 'active')
+    ->get();
+
+// Use transactions for data integrity
+$db->beginTransaction();
+try {
+    $user->credits -= 100;
+    $user->save();
+    
+    $otherUser->credits += 100;
+    $otherUser->save();
+    
+    $db->commit();
+} catch (\Exception $e) {
+    $db->rollBack();
+}
+```
+
+**Comprehensive Guides:**
+- [Database Guide (Markdown)](docs/database-guide.md) - Complete guide with examples for transactions, relationships, query building, and edge cases
+- [Query Builder Guide (Interactive)](https://muhammadadela.github.io/phpLiteCore/query-builder-guide_en.html) - Visual guide with syntax highlighting
+
 **Network Configuration:**
 
 If you need to configure network access for GitHub Actions or work behind firewalls, see the **[Network Configuration Guide](NETWORK_CONFIGURATION.md)** for detailed setup instructions.
