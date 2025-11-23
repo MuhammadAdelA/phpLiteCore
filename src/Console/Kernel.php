@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace PhpLiteCore\Console;
 
 use PhpLiteCore\Bootstrap\Application;
+use PhpLiteCore\Console\Commands\ConfigCacheCommand;
+use PhpLiteCore\Console\Commands\ConfigClearCommand;
 use PhpLiteCore\Console\Commands\MakeControllerCommand;
 use PhpLiteCore\Console\Commands\MakeMigrationCommand;
 use PhpLiteCore\Console\Commands\MakeModelCommand;
@@ -28,6 +30,8 @@ final class Kernel
         $console->add(new MakeMigrationCommand($this->app));
         $console->add(new MakeModelCommand($this->app));
         $console->add(new MakeControllerCommand($this->app));
+        $console->add(new ConfigCacheCommand());
+        $console->add(new ConfigClearCommand());
 
         return $console->run();
     }
