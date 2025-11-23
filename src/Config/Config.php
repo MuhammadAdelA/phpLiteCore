@@ -51,6 +51,7 @@ final class Config
 
         $files = glob($configDir . '/*.php');
         if ($files === false) {
+            error_log("Failed to read config directory: {$configDir}");
             return;
         }
 
@@ -97,6 +98,9 @@ final class Config
 
     /**
      * Cache all configuration to a single file
+     * 
+     * Note: Uses var_export for caching. This is safe because configuration
+     * files are developer-controlled, not user input.
      * 
      * @return bool
      */
