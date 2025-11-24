@@ -1,0 +1,97 @@
+# Docker Compose Configuration for phpLiteCore Development Environment
+# This configuration is optimized for local development on WSL2 Ubuntu 24.04
+# For production deployments, review and adjust security settings accordingly
+version: '3.8'
+
+services:
+  # PHP Application with Apache
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phplitecore_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      # Exclude vendor and node_modules from sync for better performance
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    ports:
+      - "8080:80"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - MYSQL_DB_HOST=db
+      - MYSQL_DB_PORT=3306
+      - MYSQL_DB_NAME=${MYSQL_DB_NAME:-phplitecore}
+      - MYSQL_DB_USER=${MYSQL_DB_USER:-phplitecore}
+      - MYSQL_DB_PASS=${MYSQL_DB_PASS:-secret}
+      - MYSQL_DB_CHAR=${MYSQL_DB_CHAR:-utf8mb4}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - phplitecore_network
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: phplitecore_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: ${MYSQL_DB_NAME:-phplitecore}
+      MYSQL_USER: ${MYSQL_DB_USER:-phplitecore}
+      MYSQL_PASSWORD: ${MYSQL_DB_PASS:-secret}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./phplitecore.sql:/docker-entrypoint-initdb.d/phplitecore.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootsecret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - phplitecore_network
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phplitecore_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootsecret}
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - phplitecore_network
+
+  # Mailhog for testing email functionality (SMTP)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: phplitecore_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - phplitecore_network
+
+networks:
+  phplitecore_network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
