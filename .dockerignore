@@ -1,0 +1,66 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+IMPLEMENTATION_SUMMARY.md
+MIGRATION.md
+NETWORK_CONFIGURATION.md
+PROJECT_REVIEW.md
+README.md
+SECURITY.md
+docs/
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencies (will be installed inside container)
+vendor/
+node_modules/
+composer.lock
+package-lock.json
+
+# Build artifacts
+public/assets/
+storage/logs/*
+storage/cache/*
+
+# Environment files
+.env
+.env.*
+
+# Testing
+tests/
+phpunit.xml
+phpstan.neon
+.php-cs-fixer.dist.php
+
+# CI/CD
+.github/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
