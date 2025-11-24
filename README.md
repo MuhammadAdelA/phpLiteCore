@@ -26,9 +26,37 @@
 
 ## 🚀 Getting Started
 
+### Quick Start with Docker (Recommended for Development)
+
+The easiest way to get started is using Docker Compose on WSL2 Ubuntu 24.04:
+
+```bash
+# Clone the repository
+git clone https://github.com/MuhammadAdelA/phpLiteCore.git
+cd phpLiteCore
+
+# Run the automated setup script (one-time setup)
+chmod +x setup-wsl2-ubuntu.sh
+./setup-wsl2-ubuntu.sh
+
+# Start the development environment
+docker-compose up -d
+
+# Install dependencies and build assets
+docker-compose exec app composer install
+docker-compose exec app npm install
+docker-compose exec app npm run build
+
+# Access your application at http://localhost:8080
+```
+
+**See the complete [Docker Setup Guide](DOCKER_SETUP.md)** for detailed instructions, troubleshooting, and advanced usage.
+
+### Manual Setup (Traditional)
+
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/MuhammadAdelA/phpLiteCore.git](https://github.com/MuhammadAdelA/phpLiteCore.git)
+    git clone https://github.com/MuhammadAdelA/phpLiteCore.git
     cd phpLiteCore
     ```
 
@@ -104,6 +132,14 @@ try {
 **Comprehensive Guides:**
 - [Database Guide (Markdown)](docs/database-guide.md) - Complete guide with examples for transactions, relationships, query building, and edge cases
 - [Query Builder Guide (Interactive)](https://muhammadadela.github.io/phpLiteCore/query-builder-guide_en.html) - Visual guide with syntax highlighting
+
+**Development Environment:**
+
+For a complete Docker-based development environment on WSL2 Ubuntu 24.04, see the **[Docker Setup Guide](DOCKER_SETUP.md)** with instructions for:
+- Automated setup script for WSL2
+- Docker Compose configuration
+- Development tools (phpMyAdmin, MailHog)
+- Troubleshooting and common tasks
 
 **Network Configuration:**
 
