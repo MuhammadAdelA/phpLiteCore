@@ -175,8 +175,29 @@ class Router
                 $reflection = new \ReflectionMethod($middleware, 'handle');
                 $params = $reflection->getParameters();
                 
-                if (!empty($params) && $params[0]->getType() && $params[0]->getType()->getName() === \PhpLiteCore\Http\Request::class) {
-                    $middleware->handle($request);
+                if (!empty($params) && $params[0]->getType()) {
+                    $type = $params[0]->getType();
+                    $acceptsRequest = false;
+                    if ($type instanceof \ReflectionNamedType) {
+                        $acceptsRequest = $type->getName() === \PhpLiteCore\Http\Request::class;
+                    } elseif ($type instanceof \ReflectionUnionType) {
+                        foreach ($type->getTypes() as $unionType) {
+                            if ($unionType instanceof \ReflectionNamedType && $unionType->getName() === \PhpLiteCore\Http\Request::class) {
+                                $acceptsRequest = true;
+                                break;
+                            }
+                        }
+                    }
+                    if ($acceptsRequest) {
+                        $middleware->handle($request);
+                    } else {
+                        // Legacy support: pass method string
+                        $middleware->handle($request->getMethod());
+                    }
+                } else {
+                    // Legacy support: pass method string
+                    $middleware->handle($request->getMethod());
+                }
                 } else {
                     // Legacy support: pass method string
                     $middleware->handle($request->getMethod());
