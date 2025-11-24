@@ -74,13 +74,23 @@ echo -e "${GREEN}✓ Services are ready${NC}"
 echo ""
 
 echo -e "${BLUE}Step 4: Installing PHP dependencies...${NC}"
-docker-compose exec -T app composer install --no-interaction
-echo -e "${GREEN}✓ PHP dependencies installed${NC}"
+if [ ! -d "vendor" ]; then
+    docker-compose exec -T app composer install --no-interaction
+    echo -e "${GREEN}✓ PHP dependencies installed${NC}"
+else
+    echo -e "${YELLOW}✓ PHP dependencies already installed (vendor/ exists)${NC}"
+    echo -e "   Run 'docker-compose exec app composer update' to update"
+fi
 echo ""
 
 echo -e "${BLUE}Step 5: Installing Node.js dependencies...${NC}"
-docker-compose exec -T app npm install
-echo -e "${GREEN}✓ Node.js dependencies installed${NC}"
+if [ ! -d "node_modules" ]; then
+    docker-compose exec -T app npm install
+    echo -e "${GREEN}✓ Node.js dependencies installed${NC}"
+else
+    echo -e "${YELLOW}✓ Node.js dependencies already installed (node_modules/ exists)${NC}"
+    echo -e "   Run 'docker-compose exec app npm update' to update"
+fi
 echo ""
 
 echo -e "${BLUE}Step 6: Building frontend assets...${NC}"

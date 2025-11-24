@@ -226,12 +226,12 @@ docker-compose logs -f db
 # Access PHP container bash
 docker-compose exec app bash
 
-# Access MySQL container
-docker-compose exec db mysql -u root -p
+# Access MySQL container (password: rootsecret from .env)
+docker-compose exec db mysql -u root -prootsecret
 
 # Run PHP commands
 docker-compose exec app php -v
-docker-compose exec app php artisan --version
+docker-compose exec app php bin/console --version
 ```
 
 ---
@@ -274,8 +274,10 @@ The Docker Compose setup includes the following services:
 The database is automatically initialized with `phplitecore.sql` on first run. To manually import:
 
 ```bash
-docker-compose exec db mysql -u root -p phplitecore < phplitecore.sql
+docker-compose exec -T db mysql -u root -prootsecret phplitecore < phplitecore.sql
 ```
+
+Note: The `-T` flag disables pseudo-TTY allocation for stdin redirection to work properly.
 
 ### 3. phpMyAdmin
 
@@ -341,8 +343,9 @@ docker-compose exec app npm run dev
 # Production build
 docker-compose exec app npm run build
 
-# Watch mode (rebuilds on file changes)
-docker-compose exec app npm run dev
+# Watch mode for development (auto-rebuilds on changes)
+# Note: Check package.json for available watch scripts
+docker-compose exec app npm run dev -- --watch
 ```
 
 ### Running Tests
@@ -381,13 +384,13 @@ docker-compose exec app composer quality
 
 ```bash
 # Access MySQL CLI
-docker-compose exec db mysql -u root -p
+docker-compose exec db mysql -u root -prootsecret
 
 # Export database
-docker-compose exec db mysqldump -u root -p phplitecore > backup.sql
+docker-compose exec db mysqldump -u root -prootsecret phplitecore > backup.sql
 
 # Import database
-docker-compose exec db mysql -u root -p phplitecore < backup.sql
+docker-compose exec -T db mysql -u root -prootsecret phplitecore < backup.sql
 
 # View database logs
 docker-compose logs db

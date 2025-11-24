@@ -88,7 +88,8 @@ RUN echo 'opcache.enable=1' >> /usr/local/etc/php/conf.d/opcache.ini \
 
 # Create storage directories and set permissions
 RUN mkdir -p storage/logs storage/cache \
-    && chmod -R 777 storage
+    && chown -R www-data:www-data storage \
+    && chmod -R 775 storage
 
 # Set proper permissions for web server
 RUN chown -R www-data:www-data /var/www/html
