@@ -368,7 +368,11 @@ class Response // Add ArrayAccess if you need header manipulation like $response
 
         $this->setStatusCode(200);
         $this->setHeader('Content-Type', $mimeType);
-        $this->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $this->setHeader('Content-Disposition', sprintf(
+            'attachment; filename="%s"; filename*=UTF-8\'\'%s',
+            addslashes($filename),
+            rawurlencode($filename)
+        ));
         $this->setHeader('Content-Length', (string)filesize($filePath));
         
         foreach ($headers as $key => $value) {
