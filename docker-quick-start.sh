@@ -53,10 +53,9 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
     # Update for Docker
     sed -i 's/MYSQL_DB_HOST=localhost/MYSQL_DB_HOST=db/' .env
-    sed -i 's/MYSQL_DB_USER=user/MYSQL_DB_USER=phplitecore/' .env
-    sed -i 's/MYSQL_DB_PASS=pass/MYSQL_DB_PASS=secret/' .env
     sed -i 's/SMTP_HOST=smtp.example.com/SMTP_HOST=mailhog/' .env
     sed -i 's/SMTP_PORT=587/SMTP_PORT=1025/' .env
+    sed -i 's/SMTP_ENCRYPTION=tls/SMTP_ENCRYPTION=/' .env
     echo -e "${GREEN}✓ .env file created and configured for Docker${NC}"
 else
     echo -e "${YELLOW}✓ .env file already exists${NC}"

@@ -136,8 +136,16 @@ if command -v docker-compose &> /dev/null; then
     log_warning "Docker Compose is already installed"
     docker-compose --version
 else
-    # Install latest Docker Compose
+    # Install latest Docker Compose from official GitHub releases
+    log_info "Fetching latest Docker Compose version..."
     DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    
+    if [ -z "$DOCKER_COMPOSE_VERSION" ]; then
+        log_error "Failed to fetch Docker Compose version. Using fallback version v2.24.0"
+        DOCKER_COMPOSE_VERSION="v2.24.0"
+    fi
+    
+    log_info "Installing Docker Compose ${DOCKER_COMPOSE_VERSION}..."
     sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
 
@@ -258,7 +266,7 @@ echo "  3. Run 'docker-compose up -d' to start the development environment"
 echo "  4. Run 'docker-compose exec app composer install' to install PHP dependencies"
 echo "  5. Run 'docker-compose exec app npm install' to install Node dependencies"
 echo "  6. Run 'docker-compose exec app npm run build' to build assets"
-echo "  7. Database is auto-imported on first run, or manually: 'docker-compose exec -T db mysql -u root -prootsecret phplitecore < phplitecore.sql'"
+echo "  7. Database is auto-imported on first run. Manual import: see DOCKER_SETUP.md"
 echo "  8. Access your application at http://localhost:8080"
 echo ""
 echo "Useful Docker Compose commands:"

@@ -87,12 +87,13 @@ RUN echo 'opcache.enable=1' >> /usr/local/etc/php/conf.d/opcache.ini \
     && echo 'opcache.fast_shutdown=1' >> /usr/local/etc/php/conf.d/opcache.ini
 
 # Create storage directories and set permissions
-RUN mkdir -p storage/logs storage/cache \
-    && chown -R www-data:www-data storage \
-    && chmod -R 775 storage
+# These directories need to be writable by the web server
+RUN mkdir -p storage/logs storage/cache public/assets \
+    && chown -R www-data:www-data storage public/assets \
+    && chmod -R 775 storage public/assets
 
-# Set proper permissions for web server
-RUN chown -R www-data:www-data /var/www/html
+# Note: Application code will be mounted from host in development
+# Only set ownership for directories that must be writable by web server
 
 # Expose port 80
 EXPOSE 80
