@@ -480,9 +480,18 @@ class Router
         $acceptsRequest = false;
         foreach ($methodParams as $param) {
             $type = $param->getType();
-            if ($type && !$type->isBuiltin() && $type->getName() === \PhpLiteCore\Http\Request::class) {
-                $acceptsRequest = true;
-                break;
+            if ($type && !$type->isBuiltin()) {
+                if ($type instanceof \ReflectionUnionType) {
+                    foreach ($type->getTypes() as $unionType) {
+                        if ($unionType instanceof \ReflectionNamedType && $unionType->getName() === \PhpLiteCore\Http\Request::class) {
+                            $acceptsRequest = true;
+                            break 2;
+                        }
+                    }
+                } elseif ($type instanceof \ReflectionNamedType && $type->getName() === \PhpLiteCore\Http\Request::class) {
+                    $acceptsRequest = true;
+                    break;
+                }
             }
         }
         
