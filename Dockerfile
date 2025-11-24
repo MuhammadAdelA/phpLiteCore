@@ -88,6 +88,8 @@ RUN echo 'opcache.enable=1' >> /usr/local/etc/php/conf.d/opcache.ini \
 
 # Create storage directories and set permissions
 # These directories need to be writable by the web server
+# Note: 775 permissions are used for development environments
+# For production, consider using 755 with specific user ownership
 RUN mkdir -p storage/logs storage/cache public/assets \
     && chown -R www-data:www-data storage public/assets \
     && chmod -R 775 storage public/assets

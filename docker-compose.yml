@@ -1,3 +1,6 @@
+# Docker Compose Configuration for phpLiteCore Development Environment
+# This configuration is optimized for local development on WSL2 Ubuntu 24.04
+# For production deployments, review and adjust security settings accordingly
 version: '3.8'
 
 services:

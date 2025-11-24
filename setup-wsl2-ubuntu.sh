@@ -137,19 +137,25 @@ if command -v docker-compose &> /dev/null; then
     docker-compose --version
 else
     # Install latest Docker Compose from official GitHub releases
-    log_info "Fetching latest Docker Compose version..."
-    DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    log_info "Fetching latest Docker Compose version from GitHub..."
+    DOCKER_COMPOSE_VERSION=$(curl -sf --max-time 10 https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
     if [ -z "$DOCKER_COMPOSE_VERSION" ]; then
-        log_error "Failed to fetch Docker Compose version. Using fallback version v2.24.0"
+        log_warning "Failed to fetch Docker Compose version from GitHub API (rate limit or network issue)"
+        log_info "Using fallback version v2.24.0"
         DOCKER_COMPOSE_VERSION="v2.24.0"
+    else
+        log_info "Found version: ${DOCKER_COMPOSE_VERSION}"
     fi
     
-    log_info "Installing Docker Compose ${DOCKER_COMPOSE_VERSION}..."
-    sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-
-    log_success "Docker Compose installed successfully"
+    log_info "Downloading Docker Compose ${DOCKER_COMPOSE_VERSION}..."
+    if sudo curl -fL --max-time 120 "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; then
+        sudo chmod +x /usr/local/bin/docker-compose
+        log_success "Docker Compose installed successfully"
+    else
+        log_error "Failed to download Docker Compose. Please install manually."
+        exit 1
+    fi
 fi
 
 docker-compose --version || docker compose version
